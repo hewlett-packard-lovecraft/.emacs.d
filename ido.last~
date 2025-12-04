@@ -2,6 +2,8 @@
 
 ;; ----- ido-last-directory-list -----
 (
+ ("c:/Users/Haoming Xia/AppData/" . "Roaming/")
+ ("c:/Users/Haoming Xia/" . "AppData/")
  ("c:/Users/Haoming Xia/AppData/Roaming/" . ".emacs.d/")
 )
 
@@ -13,11 +15,16 @@
 ;; ----- ido-work-file-list -----
 (
  "init.el"
+ "customs.el"
 )
 
 ;; ----- ido-dir-file-cache -----
 (
- ("c:/Users/Haoming Xia/AppData/Roaming/.emacs.d/" (26930 1497 0 0) "url/" "recentf" "places" "org-roam.db" "org-persist/" "init.el~" "init.el" "hunspell/" "eshell/" "elpaca/" "elpa/" "early-init.el~" "early-init.el" "customs.el~" "customs.el" "auto-save-list/" "../" "./")
+ ("c:/Users/Haoming Xia/AppData/Roaming/.emacs.d/" (26930 2864 0 0) "url/" "recentf" "places" "org-roam.db" "org-persist/" "init.el~" "init.el" "ido.last~" "ido.last" "hunspell/" "flycheck_init.el" "eshell/" "elpaca/" "elpa/" "early-init.el~" "early-init.el" "customs.el~" "customs.el" "auto-save-list/" "../" "./")
+
+ ("c:/Users/Haoming Xia/AppData/" (26492 63846 0 0) "Roaming/" "LocalLow/" "Local/" "../" "./")
+
+ ("c:/Users/Haoming Xia/" (26929 62439 0 0) "【UNARCHIVED】singing after thanksgiving. thanksinging. 2025-11-28 17_03 [iEwDyiRf6mI].mp4" "vscode-remote-wsl/" "Videos/" "test.asm" "Templates/" "Sync/" "Start Menu/" "SendTo/" "Searches/" "Saved Games/" "Recent/" "QuickUnlock.kdbx" "PrintHood/" "Pictures/" "OnedrivePictures/" "OneDrive/" "ntuser.ini" "NTUSER.DAT{2ad838bc-efea-11ee-a54d-000d3a94eaa1}.TMContainer00000000000000000002.regtrans-ms" "NTUSER.DAT{2ad838bc-efea-11ee-a54d-000d3a94eaa1}.TMContainer00000000000000000001.regtrans-ms" "NTUSER.DAT{2ad838bc-efea-11ee-a54d-000d3a94eaa1}.TM.blf" "NTUSER.DAT{2ad838bb-efea-11ee-a54d-000d3a94eaa1}.TxR.blf" "NTUSER.DAT{2ad838bb-efea-11ee-a54d-000d3a94eaa1}.TxR.2.regtrans-ms" "NTUSER.DAT{2ad838bb-efea-11ee-a54d-000d3a94eaa1}.TxR.1.regtrans-ms" "NTUSER.DAT{2ad838bb-efea-11ee-a54d-000d3a94eaa1}.TxR.0.regtrans-ms" "ntuser.dat.LOG2" "ntuser.dat.LOG1" "NTUSER.DAT" "nhagr-ytcrd/" "NetHood/" "My Documents/" "Music/" "Local Settings/" "Links/" "KeePassXC/" "Favorites/" "Downloads/" "Documents/" "CrossDevice/" "Cookies/" "Contacts/" "Calibre Library/" "backup-partitions/" "Application Data/" "AppData/" "ansel/" ".vscode-server/" ".vscode/" ".ssh/" ".sonarlint/" ".ollama/" ".matplotlib/" ".logseq/" ".local/" ".dbus-keyrings/" ".cisco/" "../" "./")
 
  ("c:/Users/Haoming Xia/AppData/Roaming/" (26929 10199 0 0) "Zoom/" "vlc/" "uv/" "Thunderbird/" "Tencent/" "rsilauncher/" "QtProject/" "Qt/" "osu/" "obsidian/" "NVIDIA/" "NuGet/" "Mozilla/" "Microsoft/" "Logseq/" "Logishrd/" "logioptionsplus/" "LibreOffice/" "krita/" "KeePassXC/" "kdenlive/" "hakuneko-desktop/" "FACEIT/" "EldenRing/" "EasyAntiCheat/" "DxO/" "discord/" "CrystalDiskMark/" "CrystalDiskInfo/" "ContactSheetII.log" "Contact Sheet II.xml" "com.logitech/" "com.adobe.dunamis/" "Cognosphere/" "Code/" "calibre-ebook.com/" "calibre/" "balenaEtcher/" "Anki2/" "Adobe/" ".emacs.d/" "../" "./")
 

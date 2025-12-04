@@ -93,7 +93,7 @@
   ;; `modus-themes-load-random-light').
   (modus-themes-load-theme 'standard-light))
 
-
+(use-package diminish :ensure t)
 (use-package undo-fu :ensure t :demand t)
 
 ;;; Vim Bindings
@@ -160,6 +160,7 @@
   ;; add integration with ace-window
   (add-to-list 'super-save-triggers 'ace-window)
   (super-save-mode +1)
+  (diminish 'super-save-mode)
   )
 
 (use-package ido
@@ -186,7 +187,7 @@
 ;; Company for auto-completion - Use C-n and C-p to navigate the tooltip.
 (use-package company
   :ensure t
-  :diminish company-mode
+  :diminish 'company-mode
   :hook (prog-mode . company-mode)
   :config
   (setq company-minimum-prefix-length 1
@@ -198,7 +199,6 @@
   (define-key company-active-map (kbd "C-n") 'company-select-next)
   (define-key company-active-map (kbd "C-p") 'company-select-previous))
 
-;; add icons
 
 ;; linter
 (use-package flycheck

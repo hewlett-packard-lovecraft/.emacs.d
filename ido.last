@@ -14,13 +14,13 @@
 
 ;; ----- ido-work-file-list -----
 (
- "customs.el"
  "init.el"
+ "customs.el"
 )
 
 ;; ----- ido-dir-file-cache -----
 (
- ("c:/Users/Haoming Xia/AppData/Roaming/.emacs.d/" (26930 2336 0 0) "url/" "recentf" "places" "org-roam.db" "org-persist/" "init.el~" "init.el" "ido.last" "hunspell/" "eshell/" "elpaca/" "elpa/" "early-init.el~" "early-init.el" "customs.el~" "customs.el" "auto-save-list/" "../" "./")
+ ("c:/Users/Haoming Xia/AppData/Roaming/.emacs.d/" (26930 2864 0 0) "url/" "recentf" "places" "org-roam.db" "org-persist/" "init.el~" "init.el" "ido.last~" "ido.last" "hunspell/" "flycheck_init.el" "eshell/" "elpaca/" "elpa/" "early-init.el~" "early-init.el" "customs.el~" "customs.el" "auto-save-list/" "../" "./")
 
  ("c:/Users/Haoming Xia/AppData/" (26492 63846 0 0) "Roaming/" "LocalLow/" "Local/" "../" "./")
 
