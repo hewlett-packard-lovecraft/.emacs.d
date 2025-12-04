@@ -1,0 +1,323 @@
+;;; init.el --- Howard's Emacs configuration
+;;; Commentary:
+;; A basic config for editing Org files and LaTeX. Works on Windows.
+;;
+;;; Code:
+
+;; elpaca installer
+(defvar elpaca-installer-version 0.11)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil :depth 1 :inherit ignore
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (<= emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
+
+(elpaca-no-symlink-mode)
+
+;; ;; use-package
+;; Install use-package support
+(elpaca elpaca-use-package
+  ;; Enable use-package :ensure support for Elpaca.
+  (elpaca-use-package-mode))
+
+
+;;When installing a package used in the init file itself,
+;;e.g. a package which adds a use-package key word,
+;;use the :wait recipe keyword to block until that package is installed/configured.
+;;For example:
+;;(use-package general :ensure (:wait t) :demand t)
+
+;; Expands to: (elpaca evil (use-package evil :demand t))
+;; (use-package evil :ensure t :demand t)
+
+;;Turns off elpaca-use-package-mode current declaration
+;;Note this will cause evaluate the declaration immediately. It is not deferred.
+;;Useful for configuring built-in emacs features.
+
+;; theme
+(use-package standard-themes
+  :ensure t
+  :init
+  ;; This makes the Modus commands listed below consider only the Ef
+  ;; themes.  For an alternative that includes Modus and all
+  ;; derivative themes (like Ef), enable the
+  ;; `modus-themes-include-derivatives-mode' instead.  The manual of
+  ;; the Ef themes has a section that explains all the possibilities:
+  ;;
+  ;; - Evaluate `(info "(standard-themes) Working with other Modus themes or taking over Modus")'
+  ;; - Visit <https://protesilaos.com/emacs/standard-themes#h:d8ebe175-cd61-4e0b-9b84-7a4f5c7e09cd>
+  (standard-themes-take-over-modus-themes-mode 1)
+  :bind
+  (("<f5>" . modus-themes-rotate)
+   ("C-<f5>" . modus-themes-select)
+   ("M-<f5>" . modus-themes-load-random))
+  :config
+  ;; All customisations here.
+  (setq modus-themes-mixed-fonts t)
+  (setq modus-themes-italic-constructs t)
+
+  ;; Finally, load your theme of choice (or a random one with
+  ;; `modus-themes-load-random', `modus-themes-load-random-dark',
+  ;; `modus-themes-load-random-light').
+  (modus-themes-load-theme 'standard-light))
+
+
+(use-package undo-fu :ensure t :demand t)
+
+;;; Vim Bindings
+(use-package evil
+  :ensure t
+  :demand t
+  :bind (("<escape>" . keyboard-escape-quit))
+  :init
+  ;; allows for using cgn
+  ;; (setq evil-search-module 'evil-search)
+  (setq evil-want-keybinding nil)
+  ;; no vim insert bindings
+  (setq evil-undo-system 'undo-fu)
+  :config
+  (evil-mode 1))
+
+;;; Vim Bindings Everywhere else
+(use-package evil-collection
+  :ensure t
+  :after evil
+  :config
+  (setq evil-want-integration t)
+  :custom (evil-collection-setup-minibuffer t)
+  :init (evil-collection-init))
+
+;; vim-commentary for Emacs
+;; (Use gcc to comment out a line, gc to comment out the target of a motion
+;; (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection etc.)
+
+(use-package evil-commentary
+  :ensure t
+  :after evil
+  :diminish
+  :config (evil-commentary-mode +1))
+
+(use-package ag
+  :ensure t
+  )
+
+(use-package projectile
+  :ensure t
+  :init
+  (projectile-mode +1)
+  :bind (:map projectile-mode-map
+              ("M-p" . projectile-command-map)
+              ("C-c p" . projectile-command-map))
+  :config
+  (setq projectile-project-search-path '("~/git" "~/.config/emacs")))
+
+
+(use-package highlight-numbers
+  :ensure t
+  :hook (prog-mode . highlight-numbers-mode))
+
+(use-package highlight-escape-sequences
+  :ensure t
+  :hook (prog-mode . hes-mode))
+
+(use-package super-save
+  :ensure t
+  :config
+  ;; automatically save buffers associated with files on buffer switch
+  ;; and on windows switch
+  ;; add integration with ace-window
+  (add-to-list 'super-save-triggers 'ace-window)
+  (super-save-mode +1)
+  )
+
+(use-package ido
+  :config
+  (ido-mode +1)
+  (setq ido-everywhere t
+        ido-enable-flex-matching t))
+
+(use-package ido-vertical-mode
+  :ensure t
+  :after ido
+  :config
+  (ido-vertical-mode +1)
+  (setq ido-vertical-define-keys 'C-n-C-p-up-and-down))
+
+(use-package ido-completing-read+
+  :ensure t
+  :config (ido-ubiquitous-mode +1))
+
+(use-package flx-ido
+  :ensure t
+  :config (flx-ido-mode +1))
+
+;; Company for auto-completion - Use C-n and C-p to navigate the tooltip.
+(use-package company
+  :ensure t
+  :diminish company-mode
+  :hook (prog-mode . company-mode)
+  :config
+  (setq company-minimum-prefix-length 1
+        company-idle-delay 0.1
+        company-selection-wrap-around t
+        company-tooltip-align-annotations t
+        company-frontends '(company-pseudo-tooltip-frontend ; show tooltip even for single candidate
+                            company-echo-metadata-frontend))
+  (define-key company-active-map (kbd "C-n") 'company-select-next)
+  (define-key company-active-map (kbd "C-p") 'company-select-previous))
+
+;; add icons
+
+;; linter
+(use-package flycheck
+  :ensure t
+  :config
+  (global-flycheck-mode +1)
+  (sentence-end-double-space nil)
+  )
+
+
+(use-package which-key
+  :ensure t
+  :config
+  (which-key-mode +1)
+  (diminish 'which-key-mode))
+
+(use-package iedit
+  :ensure t
+  )
+
+;; Org Mode
+(use-package org
+  :defer t
+  :hook ((org-mode . visual-line-mode)
+         (org-mode . org-indent-mode)))
+
+(use-package org-bullets
+  :ensure t
+  :hook (org-mode . org-bullets-mode))
+
+;; Useful major modes
+(use-package markdown-mode
+  :ensure t
+  :defer t
+  :hook (markdown-mode . visual-line-mode))
+
+(use-package yasnippet
+  :ensure t
+  )
+
+(use-package nerd-icons
+  :ensure t
+  ;; :custom
+  ;; The Nerd Font you want to use in GUI
+  ;; "Symbols Nerd Font Mono" is the default and is recommended
+  ;; but you can use any other Nerd Font if you want
+  ;; (nerd-icons-font-family "Symbols Nerd Font Mono")
+  )
+
+(use-package all-the-icons
+  :ensure t
+  :config
+  (add-to-list 'all-the-icons-extension-icon-alist '("m" all-the-icons-fileicon "matlab" :face all-the-icons-orange)))
+
+(add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
+
+(use-package org-roam
+  :ensure t
+  :defer t
+  :custom
+  (org-roam-directory "~/../../OneDrive/Documents/RoamNotes")
+  (org-roam-db-autosync-mode)
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert))
+  :config
+  (org-roam-setup))
+
+;; autoformat
+(use-package format-all
+  :ensure t
+  :preface
+  (defun ian/format-code ()
+    "Auto-format whole buffer."
+    (interactive)
+    (if (derived-mode-p 'prolog-mode)
+        (prolog-indent-buffer)
+      (format-all-buffer)))
+  :config
+  (global-set-key (kbd "M-F") #'ian/format-code)
+  (add-hook 'prog-mode-hook #'format-all-ensure-formatter))
+
+;; autocorrect
+
+(use-package ispell
+  :init
+  (setenv "DICTIONARY" "en_US")
+  (setenv "DICPATH" (file-name-concat (file-truename user-emacs-directory) "hunspell"))
+
+  ;; TODO: figure out why dicpath symbol void
+  ;;(setq dicpath '(file-name-concat (file-truename user-emacs-directory) "hunspell")
+  ;;enUS '(file-name-concat dicpath "en_US.aff")
+  ;;enCA '(file-name-concat dicpath "en_CA.aff"))
+
+  ;;:if (eq system-type 'windows-nt)
+  :custom
+  (ispell-local-dictionary "en_US")
+  (ispell-hunspell-dict-paths-alist
+   '(("en_US" "~/.emacs.d/hunspell/en_US.aff")
+     ("en_CA" "~/.emacs.d/hunspell/en_CA.aff")))
+  )
+
+;; flyspell
+(use-package flyspell :after ispell)
+
+(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
+
+(use-package flyspell-correct
+  :after flyspell
+  :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+
+;; Replace with flyspell-correct-helm if you are a helm person.
+(use-package flyspell-correct-ivy
+  :after flyspell-correct)
+
+;; custom
+(setq custom-file (expand-file-name "customs.el" user-emacs-directory))
+(add-hook 'elpaca-after-init-hook (lambda () (load custom-file 'noerror)))
+
+(provide 'init)
+;;; init.el ends here.

@@ -1,0 +1,15 @@
+hunspell -D
+winget install hunspell
+hunspell -D
+exit
+hunspell
+hunspell -D
+hunspell -D
+hunspell -d en_US init.el
+hunspell -d en_US 
+hunspell -d en_CA
+hunspell -D
+emacs
+emacsc
+hunspell -D
+exit
