@@ -1,8 +1,9 @@
 org-roam.db
 org-persist
 elpaca
+elpa
 auto-save-list
 *~
 recentf
 places
-
+projectile-bookmarks.eld
