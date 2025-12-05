@@ -1,0 +1,6 @@
+[submodule "site-lisp/lsp-ltex-plus"]
+	path = site-lisp/lsp-ltex-plus
+	url = git@github.com:emacs-languagetool/lsp-ltex-plus.git
+[submodule "site-lisp/flymake-vale"]
+	path = site-lisp/flymake-vale
+	url = https://github.com/tpeacock19/flymake-vale

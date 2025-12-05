@@ -13,3 +13,10 @@ emacs
 emacsc
 hunspell -D
 exit
+ls
+mkdir all-the-icons
+mv *.ttf all-the-icons/
+ls
+YourFontYourFont
+t
+exit
