@@ -1,3 +1,4 @@
+org-*
 org-roam.db
 org-persist
 elpaca
@@ -8,3 +9,10 @@ recentf
 places
 projectile-bookmarks.eld
 .cache
+dist/
+site-lsp
+auto-save-list/
+.lsp*
+server
+eshell
+ido*

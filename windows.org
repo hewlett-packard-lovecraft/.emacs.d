@@ -1,0 +1,89 @@
+#+title: Emacs on Windows Setup
+#+author: Hao Ming Xia
+
+* Windows on Emacs
+Some notes on Emacs on Windows setup if a reinstall is needed.
+
+** Hunspell on Windows
+1. WinGet: :: ~winget install hunspell~
+   - emacs ispell should pick it up immediately. Binary changes each version anyway.
+2. Dictionaries ::
+   - en_CA ::
+     - [[https://github.com/marcoagpinto/aoo-mozilla-en-dict/tree/master/en_CA%20(Kevin%20Atkinson)]]
+     - https://github.com/marcoagpinto/aoo-mozilla-en-dict/raw/refs/heads/master/en_CA%20(Kevin%20Atkinson)/2024-02-01ca.zip
+   - Extract to somewhere like :: 
+   #+begin_src elisp
+     (ispell-hunspell-dict-paths-alist
+      '(("en_US" "~/.emacs.d/hunspell/en_US.aff")
+        ("en_CA" "~/.emacs.d/hunspell/en_CA.aff")))
+   #+end_src
+     
+** Installation
+:PROPERTIES:
+:ORDERED:  t
+:END:
+Prefer [[https://www.msys2.org/][MSYS2]] over winget because the binary path is not version-dependent.
+~C:\msys64\mingw64\bin\runemacs.exe~ and not ~...\Programs\Emacs-30.2\~ etc.
+
+- Installation Guide ::  https://www.gnu.org/software/emacs/download.html
+- Run ::  ~pacman -S mingw-w64-x86_64-emacs~
+  
+*** Symbolic Link
+- Probably not needed unless migrating from ~winget~.
+#+begin_src powershell
+  mklink /d "$env:USERPROFILE\.emacs.d" "AppData\Roaming\AppData\Roaming\.emacs.d"
+#+end_src
+
+*** Shortcuts
+The quotes around the path are IMPORTANT. Icons are imported from the binary automagically 
+
+- Emacs :: 
+#+begin_src powershell
+  "C:\msys64\mingw64\bin\emacs" --daemon
+#+end_src
+
+- Emacs Client ::
+  #+begin_src powershell
+  C:\msys64\mingw64\bin\emacsclientw.exe -c "~/.emacs.d"
+  #+end_src
+  The path can be changed, but ~ alone seemed to slow down the startup for some reason
+  
+- Emacs :: 
+#+begin_src powershell
+  C:\msys64\mingw64\bin\runemacs.exe
+  #+end_src
+
+*** Autostart Emacs Server on Login
+Create a shortcut with ~Run~ -> ~shell:startup~ -> create a shortcut. Enable Windows Terminal first.
+#+begin_src powershell
+  "C:\Users\Haoming Xia\AppData\Local\Microsoft\WindowsApps\wt.exe" -w _quake nt --title "Emacs server" PowerShell -c "C:\msys64\mingw64\bin\emacs.exe --daemon"
+#+end_src
+
+** Org-mode
+Get paste from clipboard working.
+#+begin_src elisp
+      (use-package org
+        (setq org-export-in-background t)
+        (setq org-startup-with-inline-images t))
+
+      ;; get paste working
+      (use-package org-download
+          :ensure t
+          :after org
+          :defer nil
+          :custom
+          (org-download-method 'directory)
+          (org-download-image-dir "images")
+          (org-download-heading-lvl nil)
+          (org-download-timestamp "%Y%m%d-%H%M%S_")
+          ;; (org-image-actual-width 300)
+          (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)")
+
+          (add-hook 'dired-mode-hook 'org-download-enable)
+
+          :bind (:map org-mode-map
+                  ("C-M-Y" . org-download-yank)
+                  ("C-M-y" . org-download-screenshot)))
+#+end_src
+
+

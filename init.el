@@ -93,6 +93,7 @@
   ;; `modus-themes-load-random', `modus-themes-load-random-dark',
   ;; `modus-themes-load-random-light').
   (modus-themes-load-theme 'standard-light))
+;; (modus-themes-load-theme 'modus-operandi))
 
 (use-package diminish :ensure t)
 
@@ -159,21 +160,63 @@
   :diminish
   :config (evil-commentary-mode +1))
 
+(use-package evil-snipe :ensure t
+  :config
+  ;; enable everywhere - default is S
+  (evil-snipe-override-mode 1))
+
+
 (use-package ag
   :ensure t
   )
 
-(use-package projectile
-  :ensure t
-  :init
-  (setq projectile-project-search-path '("~/../../OneDrive/Documents/" ("~/.emacs.d" . 1)))
-  (projectile-mode +1)
-  :bind (:map projectile-mode-map
-              ("M-p" . projectile-command-map)
-              ("C-c p" . projectile-command-map))
+(use-package project
   :config
-  (setq projectile-project-search-path '("~/git" "~/.config/emacs")))
+  (defcustom project-root-markers
+    '("Cargo.toml" "compile_commands.json" "compile_flags.txt"
+      "project.clj" ".git" "deps.edn" "shadow-cljs.edn")
+    "Files or directories that indicate the root of a project."
+    :type '(repeat string)
+    :group 'project)
 
+  (defun project-root-p (path)
+    "Check if the current PATH has any of the project root markers."
+    (catch 'found
+      (dolist (marker project-root-markers)
+	(when (file-exists-p (concat path marker))
+          (throw 'found marker)))))
+
+  (defun project-find-root (path)
+    "Search up the PATH for `project-root-markers'."
+    (when-let ((root (locate-dominating-file path #'project-root-p)))
+      (cons 'transient (expand-file-name root))))
+
+  (defun project-save-some-buffers (&optional arg)
+    "Save some modified file-visiting buffers in the current project.
+
+Optional argument ARG (interactively, prefix argument) non-nil
+means save all with no questions."
+    (interactive "P")
+    (let* ((project-buffers (project-buffers (project-current)))
+           (pred (lambda () (memq (current-buffer) project-buffers))))
+      (funcall-interactively #'save-some-buffers arg pred)))
+
+  (define-advice project-compile (:around (fn) save-project-buffers)
+    "Only ask to save project-related buffers."
+    (let* ((project-buffers (project-buffers (project-current)))
+           (compilation-save-buffers-predicate
+            (lambda () (memq (current-buffer) project-buffers))))
+      (funcall fn)))
+
+  (define-advice recompile (:around (fn &optional edit-command) save-project-buffers)
+    "Only ask to save project-related buffers if inside a project."
+    (if (project-current)
+	(let* ((project-buffers (project-buffers (project-current)))
+               (compilation-save-buffers-predicate
+		(lambda () (memq (current-buffer) project-buffers))))
+          (funcall fn edit-command))
+      (funcall fn edit-command)))
+  )
 
 (use-package highlight-numbers
   :ensure t
@@ -194,27 +237,35 @@
   (diminish 'super-save-mode)
   )
 
-(use-package ido
-  :config
-  (ido-mode +1)
-  (setq ido-everywhere t
-        ido-enable-flex-matching t
-	ido-enable-prefix t))
+;; (use-package ido
+;;   :config
+;;   (ido-mode +1)
+;;   (setq ido-everywhere t
+;; 	ido-enable-prefix         nil
+;;         ido-enable-flex-matching t
+;; 	ido-virtual-buffers t
+;; 	ido-use-faces t
+;; 	ido-cannot-complete-command 'ido-next-match
+;; 	)
+;;   )
 
-(use-package ido-vertical-mode
-  :ensure t
-  :after ido
-  :config
-  (ido-vertical-mode +1)
-  (setq ido-vertical-define-keys 'C-n-C-p-up-and-down))
+;; (use-package ido-vertical-mode
+;;   :ensure t
+;;   :after ido
+;;   :config
+;;   (ido-vertical-mode +1)
+;;   (setq ido-vertical-define-keys 'C-n-C-p-up-and-down))
 
-(use-package ido-completing-read+
-  :ensure t
-  :config (ido-ubiquitous-mode +1))
+;; (use-package ido-completing-read+
+;;   :ensure t
+;;   :after ido
+;;   :config (ido-ubiquitous-mode +1))
 
-(use-package flx-ido
-  :ensure t
-  :config (flx-ido-mode +1))
+;; (use-package flx-ido
+;;   :after ido
+;;   :ensure t
+;;   :config (flx-ido-mode +1))
+
 
 ;; Company for auto-completion - Use C-n and C-p to navigate the tooltip.
 (use-package company
@@ -231,6 +282,67 @@
   (define-key company-active-map (kbd "C-n") 'company-select-next)
   (define-key company-active-map (kbd "C-p") 'company-select-previous)
   (define-key company-mode-map (kbd "TAB") 'company-complete-selection))
+
+;; reminder to replace this with icomplete-in-buffer completion
+
+;; icomplete: setup icomplete-vertical-mode / fido-mode / fido-vertical-mode
+;; replaces ido
+(use-package icomplete
+  :demand t
+  :config
+  (defun basic-completion-style ()
+    (setq completion-auto-wrap t
+          ;; completion-auto-select 'second-tab
+          ;; completion-auto-help 'always
+          completion-auto-help nil ;; show on ? and not TAB
+          completion-show-help nil
+          completions-format 'one-column
+          completions-max-height 10))
+
+  (defun icomplete-vertical-style ()
+    (setq completion-auto-wrap t
+          completion-auto-help nil
+          completions-max-height 15
+          completion-styles '(initials flex)
+          icomplete-in-buffer t
+          max-mini-window-height 10)
+
+    (icomplete-mode 1)
+    (icomplete-vertical-mode 1))
+
+
+  (defun fido-style ()
+    (setq completion-auto-wrap t
+          completion-auto-help nil
+          completions-max-height 15
+          completion-styles '(flex)
+          icomplete-in-buffer t
+          max-mini-window-height 10)
+
+    (fido-mode 1)
+    (fido-vertical-mode 1)
+    ;; (advice-add 'completion-at-point
+		;; :after #'minibuffer-hide-completions)
+    )
+
+
+    
+  ;; TRAMP: disable icomplete for remote files so c-x c-f doesn't cause delay
+  (defun icomplete-post-command-hook ()
+    (when (not (and (eq (icomplete--completion-table) 'read-file-name-internal)
+		    (file-remote-p (minibuffer-contents-no-properties))))
+      ;; Original function
+      (let ((non-essential t))
+	(icomplete-exhibit))))
+
+  ;; Bind C-r to show minibuffer history entries
+  (keymap-set minibuffer-mode-map "C-r" #'minibuffer-complete-history)
+
+  ;; enable
+  ;; (basic-completion-style)
+  ;; (icomplete-vertical-style)
+  (fido-style)
+  )
 
 ;; Consult
 (use-package consult
@@ -343,7 +455,7 @@
   :ensure t
   :commands (consult-notes
              consult-notes-search-in-all-notes
-             ;; if using org-roam 
+             ;; if using org-roam
              ;;consult-notes-org-roam-find-node
              ;; consult-notes-org-roam-find-node-relation
 	     )
@@ -368,7 +480,7 @@
   ;; available in the *Completions* buffer, add it to the
   ;; `completion-list-mode-map'.
   :bind (:map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
+	      ("M-A" . marginalia-cycle))
 
   ;; The :init section is always executed.
   :init
@@ -377,6 +489,14 @@
   ;; the mode gets enabled right away. Note that this forces loading the
   ;; package.
   (marginalia-mode))
+
+;; Enable orderless for completions
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles partial-completion))))
+  (completion-pcm-leading-wildcard t)) ;; Emacs 31: partial-completion behaves like substring
 
 ;; linter
 (use-package flycheck
@@ -430,8 +550,8 @@
   (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)")
 
   :bind (:map org-mode-map
-	      ("C-M-y" . org-download-yank)
-	      ("C-M-P" . org-download-clipboard)))
+	      ("C-M-Y" . org-download-yank)
+	      ("C-M-y" . org-download-screenshot)))
 
 ;; Remember that the website version of this manual shows the latest
 ;; developments, which may not be available in the package you are
@@ -483,7 +603,7 @@
   ;; Remember to check the doc string of each of those variables.
   (setq denote-directory (expand-file-name "~/../../OneDrive/Documents/Denote"))
   (setq denote-save-buffers nil)
-  (setq denote-known-keywords '("emacs" "philosophy" "politics" "economics"))
+  (setq denote-known-keywords '("cs202"))
   (setq denote-infer-keywords t)
   (setq denote-sort-keywords t)
   (setq denote-prompts '(title keywords))
@@ -501,8 +621,8 @@
   :ensure t
   ;; Bind those to some key for your convenience.
   :commands ( denote-journal-new-entry
-              denote-journal-new-or-existing-entry
-              denote-journal-link-or-create-entry )
+	      denote-journal-new-or-existing-entry
+	      denote-journal-link-or-create-entry )
   :bind ()
   :hook (calendar-mode . denote-journal-calendar-mode)
   :config
@@ -633,7 +753,6 @@
 ;; autocorrect
 
 (use-package ispell
-  :ensure nil
   :init
   (setenv "DICTIONARY" "en_US")
   (setenv "DICPATH" (file-name-concat (file-truename user-emacs-directory) "hunspell"))
@@ -645,7 +764,7 @@
 
   ;;:if (eq system-type 'windows-nt)
   :custom
-  (ispell-local-dictionary "en_US")
+  (ispell-local-dictionary "en_CA")
   (ispell-hunspell-dict-paths-alist
    '(("en_US" "~/.emacs.d/hunspell/en_US.aff")
      ("en_CA" "~/.emacs.d/hunspell/en_CA.aff")))
@@ -670,8 +789,11 @@
   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 
 ;; Replace with flyspell-correct-helm if you are a helm person.
-(use-package flyspell-correct-ido
-  :after flyspell-correct)
+;; (use-package flyspell-correct-ido
+;;   :after flyspell-correct)
+
+;; (use-package flyspell-correct-popup
+;;   :after flyspell-correct)
 
 ;; custom
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
