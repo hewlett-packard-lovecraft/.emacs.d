@@ -1,2 +1,0 @@
-;; Generated package description from highlight-escape-sequences.el  -*- no-byte-compile: t -*-
-(define-package "highlight-escape-sequences" "0.4" "Highlight escape sequences" 'nil :commit "08d846a7aa748209d65fecead2b6a766c3e5cb41" :authors '(("Dmitry Gutov" . "dgutov@yandex.ru") ("Pavel Matcula" . "dev.plvlml@gmail.com")) :maintainer '(("Dmitry Gutov" . "dgutov@yandex.ru") ("Pavel Matcula" . "dev.plvlml@gmail.com")) :keywords '("convenience") :url "https://github.com/dgutov/highlight-escape-sequences")

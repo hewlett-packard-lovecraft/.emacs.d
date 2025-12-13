@@ -1,40 +1,17 @@
 ;; ;; built-in emacs features
+;;;; User defined customs
 
-;; line numbers
-(global-display-line-numbers-mode 1)
-
-;; autoreload buffers
-(global-auto-revert-mode t)
-
-;; etc
-(tool-bar-mode -1)
-(cua-mode 1)
-
-;; remember last opened file
-(recentf-mode 1)
-
-;; restore the last cursor location of opened files
-(save-place-mode 1)
-
-;; context menu
-(context-menu-mode)
-
-;; ;; custom functions below
-
-;; open init file
-(defun myinitel()
+(defun initel()
   "Open the Emacs init file for editing."
   (interactive)
   (find-file user-init-file))
-
-;; stop starting at C:/
-(setq-default default-directory "~/")
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(column-number-mode t)
  '(cua-mode t)
  '(custom-safe-themes
    '("e4d2af79944ea414bd747aae4f773e1dce68b1c0ae50f9835b6c59a37d8e946c"
@@ -45,10 +22,19 @@
      "360e3ad3858b2639636e4de3e39f7dd2a1b5bb860a0980349da3392723823e6d"
      default))
  '(global-display-line-numbers-mode t)
+ '(package-selected-packages
+   '(avy company consult-denote denote-journal denote-silo diminish evil
+	 flx-ido flycheck highlight-escape-sequences iedit magit
+	 marginalia markdown-mode orderless projectile realgud
+	 standard-themes treesit-fold undo-fu yasnippet))
+ '(size-indication-mode t)
+ '(tab-bar-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:family "Iosevka NF" :foundry "outline" :slant normal :weight regular :height 102 :width normal)))))
+ '(default ((t (:family "Iosevka NF" :foundry "outline" :slant normal :weight regular :height 102 :width normal))))
+ '(menu ((t (:background "#333" :foreground "#eee"))))
+ '(tool-bar ((t (:background "#333" :foreground "#eee")))))

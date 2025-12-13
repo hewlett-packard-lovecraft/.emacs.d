@@ -1,0 +1,17 @@
+;;;; Emacs Bookmark Format Version 1;;;; -*- coding: utf-8-emacs; mode: lisp-data -*-
+;;; This format is meant to be slightly human-readable;
+;;; nevertheless, you probably don't want to edit it.
+;;; -*- End Of Bookmark File Format Version Stamp -*-
+(("orangepi5-git"
+ (filename . "/plink:hxia@orangepi5:~/git/")
+ (front-context-string . "labs-25fa-hewlet")
+ (rear-context-string . "096 12-07 19:44 ")
+ (position . 666)
+ (last-modified 26934 25987 853510 0))
+("wsl2-git"
+ (filename . "/plink:haoming@localhost#2222:~/git/")
+ (front-context-string . "labs-25fa-hewlet")
+ (rear-context-string . "096 11-24 16:41 ")
+ (position . 1677)
+ (last-modified 26934 26108 555590 0))
+)

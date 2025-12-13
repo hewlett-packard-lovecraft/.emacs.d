@@ -4,7 +4,6 @@
 ;;
 ;;; Code:
 
-
 ;; elpaca installer
 (defvar elpaca-installer-version 0.11)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
@@ -47,6 +46,10 @@
 
 (elpaca-no-symlink-mode)
 
+;; Custom file
+(setq custom-file (expand-file-name "customs.el" user-emacs-directory))
+(add-hook 'elpaca-after-init-hook (lambda () (load custom-file 'noerror)))
+
 ;; ;; use-package
 ;; Install use-package support
 (elpaca elpaca-use-package
@@ -67,60 +70,118 @@
 ;;Note this will cause evaluate the declaration immediately. It is not deferred.
 ;;Useful for configuring built-in emacs features.
 
-;; theme
-(use-package standard-themes
-  :ensure t
-  :init
-  ;; This makes the Modus commands listed below consider only the Ef
-  ;; themes.  For an alternative that includes Modus and all
-  ;; derivative themes (like Ef), enable the
-  ;; `modus-themes-include-derivatives-mode' instead.  The manual of
-  ;; the Ef themes has a section that explains all the possibilities:
-  ;;
-  ;; - Evaluate `(info "(standard-themes) Working with other Modus themes or taking over Modus")'
-  ;; - Visit <https://protesilaos.com/emacs/standard-themes#h:d8ebe175-cd61-4e0b-9b84-7a4f5c7e09cd>
-  (standard-themes-take-over-modus-themes-mode 1)
-  :bind
-  (("<f5>" . modus-themes-rotate)
-   ("C-<f5>" . modus-themes-select)
-   ("M-<f5>" . modus-themes-load-random))
-  :config
-  ;; All customisations here.
-  (setq modus-themes-mixed-fonts t)
-  (setq modus-themes-italic-constructs t)
+(use-package emacs :ensure nil
+  :custom
+  ;; ;; dape
+  (window-sides-vertical t)
 
-  ;; Finally, load your theme of choice (or a random one with
-  ;; `modus-themes-load-random', `modus-themes-load-random-dark',
-  ;; `modus-themes-load-random-light').
-  (modus-themes-load-theme 'standard-light))
-;; (modus-themes-load-theme 'modus-operandi))
+  ;; ;; corfu
+  ;; TAB cycle if there are only few candidates
+  (completion-cycle-threshold 3)
+
+  ;; Enable indentation+completion using the TAB key.
+  ;; `completion-at-point' is often bound to M-TAB.
+  (tab-always-indent 'complete)
+
+  ;; Emacs 30 and newer: Disable Ispell completion function.
+  ;; Try `cape-dict' as an alternative.
+  (text-mode-ispell-word-completion nil)
+
+  ;; Hide commands in M-x which do not apply to the current mode.  Corfu
+  ;; commands are hidden, since they are not used via M-x. This setting is
+  ;; useful beyond Corfu.
+  (read-extended-command-predicate #'command-completion-default-include-p)
+
+  :config
+  ;; line numbers
+  (electric-pair-mode 1)
+  ;; (add-hook 'latex-mode-hook #'display-line-numbers-mode)
+
+  (global-display-line-numbers-mode 1)
+
+  ;; autoreload buffers
+  (global-auto-revert-mode t)
+
+  ;; replace sound with flash
+  (setq visible-bell t)
+
+  ;; to disable all sounds including flash
+  ;; (setq ring-bell-function 'ignore)
+
+  ;; ;; etc
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+  (cua-mode 1)
+
+  ;; remember last opened file
+  (recentf-mode 1)
+
+  ;; restore the last cursor location of opened files
+  (save-place-mode 1)
+
+  ;; context menu
+  (context-menu-mode 1))
+
+;; Set up AuCTeX to load with the builtin TeX package
+(use-package auctex
+  :ensure (:repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
+		 :pre-build (("make" "elpa"))
+		 :build (:not elpaca--compile-info) ;; Make will take care of this step
+		 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+		 :version (lambda (_) (require 'auctex) AUCTeX-version)))
+(use-package latex
+  :ensure nil
+  :hook ((LaTeX-mode . prettify-symbols-mode))
+  :bind (:map LaTeX-mode-map
+	      ("C-S-e" . latex-math-from-calc))
+  :config
+  ;; Format math as a Latex string with Calc
+  (defun latex-math-from-calc ()
+    "Evaluate `calc' on the contents of line at point."
+    (interactive)
+    (cond ((region-active-p)
+	   (let* ((beg (region-beginning))
+		  (end (region-end))
+		  (string (buffer-substring-no-properties beg end)))
+	     (kill-region beg end)
+	     (insert (calc-eval `(,string calc-language latex
+					  calc-prefer-frac t
+					  calc-angle-mode rad)))))
+	  (t (let ((l (thing-at-point 'line)))
+	       (end-of-line 1) (kill-line 0)
+	       (insert (calc-eval `(,l
+				    calc-language latex
+				    calc-prefer-frac t
+				    calc-angle-mode rad))))))))
+
 
 (use-package diminish :ensure t)
 
+;; tab-bar
+(use-package tab-bar
+  :bind (
+	 ("C-c C-<tab>" . tab-bar-switch-to-next-tab)
+	 ("C-c C-S-<tab>" . tab-bar-switch-to-prev-tab))
+  :config
+  (setq tab-bar-show 1)                      ;; hide bar if <= 1 tabs open
+  (setq tab-bar-close-button-show nil)       ;; hide tab close / X button
+  ;; (setq tab-bar-new-tab-choice "*dashboard*");; buffer to show in new tabs
+  (setq tab-bar-tab-hints t)                 ;; show tab numbers
+  (setq tab-bar-format '(tab-bar-format-tabs tab-bar-separator)) ;; elements to include in bar
 
-;; ;; tab-bar
-;; (use-package tab-bar
-;;   :init
-;;   (tab-bar-mode 1)                           ;; enable tab bar
-;;   :config
-;;   (setq tab-bar-show 1)                      ;; hide bar if <= 1 tabs open
-;;   (setq tab-bar-close-button-show nil)       ;; hide tab close / X button
-;;   (setq tab-bar-new-tab-choice "*dashboard*");; buffer to show in new tabs
-;;   (setq tab-bar-tab-hints t)                 ;; show tab numbers
-;;   (setq tab-bar-format '(tab-bar-format-tabs tab-bar-separator)) ;; elements to include in bar
+  ;; look and feel
+  ;; modeline settings
+  '(mode-line ((t (:underline nil :overline nil :box (:line-width 8 :color "#353644" :style nil) :foreground "white" :background "#353644"))))
+  '(mode-line-buffer-id ((t (:weight bold))))
+  '(mode-line-emphasis ((t (:weight bold))))
+  '(mode-line-highlight ((((class color) (min-colors 88)) (:box (:line-width 2 :color "grey40" :style released-button))) (t (:inherit (highlight)))))
+  '(mode-line-inactive ((t (:weight light :underline nil :overline nil :box (:line-width 8 :color "#565063" :style nil) :foreground "white" :background "#565063" :inherit (mode-line)))))
+  ;; tab bar settings
+  '(tab-bar ((t (:inherit mode-line))))
+  '(tab-bar-tab ((t (:inherit mode-line :foreground "white"))))
+  '(tab-bar-tab-inactive ((t (:inherit mode-line-inactive :foreground "black"))))
 
-;;   :custom
-;;   ;; modeline settings
-;;   '(mode-line ((t (:underline nil :overline nil :box (:line-width 8 :color "#353644" :style nil) :foreground "white" :background "#353644"))))
-;;   '(mode-line-buffer-id ((t (:weight bold))))
-;;   '(mode-line-emphasis ((t (:weight bold))))
-;;   '(mode-line-highlight ((((class color) (min-colors 88)) (:box (:line-width 2 :color "grey40" :style released-button))) (t (:inherit (highlight)))))
-;;   '(mode-line-inactive ((t (:weight light :underline nil :overline nil :box (:line-width 8 :color "#565063" :style nil) :foreground "white" :background "#565063" :inherit (mode-line)))))
-;;   ;; tab bar settings
-;;   '(tab-bar ((t (:inherit mode-line))))
-;;   '(tab-bar-tab ((t (:inherit mode-line :foreground "white"))))
-;;   '(tab-bar-tab-inactive ((t (:inherit mode-line-inactive :foreground "black"))))
-;;   )
+  (tab-bar-mode 1))
 
 ;;; Vim Bindings
 (use-package undo-fu :ensure t :demand t)
@@ -139,16 +200,23 @@
   (with-eval-after-load 'evil-maps ; avoid conflict with company tooltip selection
     (define-key evil-insert-state-map (kbd "C-n") nil)
     (define-key evil-insert-state-map (kbd "C-p") nil))
-  )
+
+  (defun my/display-set-relative ()
+    (setq display-line-numbers 'relative))     ; or 'visual
+  (defun my/display-set-absolute ()
+    (setq display-line-numbers t))
+  (add-hook 'evil-insert-state-entry-hook #'my/display-set-absolute)
+  (add-hook 'evil-insert-state-exit-hook #'my/display-set-relative))
 
 ;;; Vim Bindings Everywhere else
 (use-package evil-collection
   :ensure t
   :after evil
-  :config
-  (setq evil-want-integration t)
+
   :custom (evil-collection-setup-minibuffer t)
-  :init (evil-collection-init))
+  (evil-want-integration t)
+  (with-eval-after-load 'flymake (evil-collection-flymake-setup))
+  :config(evil-collection-init))
 
 ;; vim-commentary for Emacs
 ;; (Use gcc to comment out a line, gc to comment out the target of a motion
@@ -161,61 +229,14 @@
   :config (evil-commentary-mode +1))
 
 (use-package evil-snipe :ensure t
+  :after evil
   :config
-  ;; enable everywhere - default is S
+  ;; add exceptions, otherwise enable everywhere
+  (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
   (evil-snipe-override-mode 1))
-
 
 (use-package ag
   :ensure t
-  )
-
-(use-package project
-  :config
-  (defcustom project-root-markers
-    '("Cargo.toml" "compile_commands.json" "compile_flags.txt"
-      "project.clj" ".git" "deps.edn" "shadow-cljs.edn")
-    "Files or directories that indicate the root of a project."
-    :type '(repeat string)
-    :group 'project)
-
-  (defun project-root-p (path)
-    "Check if the current PATH has any of the project root markers."
-    (catch 'found
-      (dolist (marker project-root-markers)
-	(when (file-exists-p (concat path marker))
-          (throw 'found marker)))))
-
-  (defun project-find-root (path)
-    "Search up the PATH for `project-root-markers'."
-    (when-let ((root (locate-dominating-file path #'project-root-p)))
-      (cons 'transient (expand-file-name root))))
-
-  (defun project-save-some-buffers (&optional arg)
-    "Save some modified file-visiting buffers in the current project.
-
-Optional argument ARG (interactively, prefix argument) non-nil
-means save all with no questions."
-    (interactive "P")
-    (let* ((project-buffers (project-buffers (project-current)))
-           (pred (lambda () (memq (current-buffer) project-buffers))))
-      (funcall-interactively #'save-some-buffers arg pred)))
-
-  (define-advice project-compile (:around (fn) save-project-buffers)
-    "Only ask to save project-related buffers."
-    (let* ((project-buffers (project-buffers (project-current)))
-           (compilation-save-buffers-predicate
-            (lambda () (memq (current-buffer) project-buffers))))
-      (funcall fn)))
-
-  (define-advice recompile (:around (fn &optional edit-command) save-project-buffers)
-    "Only ask to save project-related buffers if inside a project."
-    (if (project-current)
-	(let* ((project-buffers (project-buffers (project-current)))
-               (compilation-save-buffers-predicate
-		(lambda () (memq (current-buffer) project-buffers))))
-          (funcall fn edit-command))
-      (funcall fn edit-command)))
   )
 
 (use-package highlight-numbers
@@ -236,6 +257,24 @@ means save all with no questions."
   (super-save-mode +1)
   (diminish 'super-save-mode)
   )
+
+(use-package project :ensure nil
+  :config
+  (setq vc-handled-backends '(Git))
+  (setq project-vc-extra-root-markers '(".project-root"))
+  (defun my-vc-off-if-remote ()
+    (if (file-remote-p (buffer-file-name))
+	(setq-local vc-handled-backends nil)))
+  (add-hook 'find-file-hook 'my-vc-off-if-remote))
+
+
+(use-package project-x
+  :ensure (:host github :repo "karthink/project-x")
+  :after project
+  :config
+  (setq project-x-local-identifier '(".project"))
+  (setq project-x-save-interval 600)    ;Save project state every 10 min
+  (project-x-mode 1))
 
 ;; (use-package ido
 ;;   :config
@@ -266,24 +305,87 @@ means save all with no questions."
 ;;   :ensure t
 ;;   :config (flx-ido-mode +1))
 
-
-;; Company for auto-completion - Use C-n and C-p to navigate the tooltip.
-(use-package company
+;; Corfu for auto-completion
+(use-package corfu
   :ensure t
-  :diminish 'company-mode
-  :hook (prog-mode . company-mode)
-  :config
-  (setq company-minimum-prefix-length 1
-        company-idle-delay 0.1
-        company-selection-wrap-around t
-        company-tooltip-align-annotations t
-        company-frontends '(company-pseudo-tooltip-frontend ; show tooltip even for single candidate
-                            company-echo-metadata-frontend))
-  (define-key company-active-map (kbd "C-n") 'company-select-next)
-  (define-key company-active-map (kbd "C-p") 'company-select-previous)
-  (define-key company-mode-map (kbd "TAB") 'company-complete-selection))
+  ;; Optional customizations
+  :custom
 
-;; reminder to replace this with icomplete-in-buffer completion
+  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  (corfu-preselect 'prompt)      ;; Preselect the prompt
+  (corfu-on-exact-match 'insert) ;; Configure handling of exact matches
+
+  ;; Enable Corfu only for certain modes. See also `global-corfu-modes'.
+  ;; :hook ((prog-mode . corfu-mode)
+  ;;        (shell-mode . corfu-mode)
+  ;;        (eshell-mode . corfu-mode))
+
+  :init
+  ;; Recommended: Enable Corfu globally.  Recommended since many modes provide
+  ;; Capfs and Dabbrev can be used globally (M-/).  See also the customization
+  ;; variable `global-corfu-modes' to exclude certain modes.
+  (global-corfu-mode)
+
+  ;; Enable optional extension modes:
+  (corfu-history-mode)
+  (corfu-popupinfo-mode)
+
+  ;; auto trigger
+  ;; :config
+  ;; (setq corfu-auto t
+  ;;     corfu-auto-delay 0.1
+  ;;     corfu-auto-trigger "." ;; Custom trigger characters
+  ;; corfu-quit-no-match 'separator) ;; or t
+  )
+(use-package cape
+  :ensure t
+  ;; Bind prefix keymap providing all Cape commands under a mnemonic key.
+  ;; Press C-c p ? to for help.
+  :bind ("C-c p" . cape-prefix-map) ;; Alternative key: M-<tab>, M-p, M-+
+  ;; Alternatively bind Cape commands individually.
+  ;; :bind (("C-c p d" . cape-dabbrev)
+  ;;        ("C-c p h" . cape-history)
+  ;;        ("C-c p f" . cape-file)
+  ;;        ...)
+  :init
+  ;; Add to the global default value of `completion-at-point-functions' which is
+  ;; used by `completion-at-point'.  The order of the functions matters, the
+  ;; first function returning a result wins.  Note that the list of buffer-local
+  ;; completion functions takes precedence over the global list.
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block)
+  ;; (add-hook 'completion-at-point-functions #'cape-history)
+  ;; ...
+  )
+
+;; Use Dabbrev with Corfu!
+;; (use-package dabbrev
+;;   ;; Swap M-/ and C-M-/
+;;   :bind (("M-/" . dabbrev-completion)
+;;          ("C-M-/" . dabbrev-expand))
+;;   :config
+;;   (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
+;;   (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
+;;   (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
+;;   (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
+;;   (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
+
+(use-package recentf :ensure nil
+  :config
+  (global-set-key (kbd "C-x C-r") 'recentf-open)
+  (recentf-mode t)
+  (setq recentf-max-saved-items 50)
+
+  (defun recentf-open ()
+    (interactive)
+    (if (find-file (completing-read "Find recent file: " recentf-list))
+	(message "Opening file...")
+      (message "Aborting")))
+  )
 
 ;; icomplete: setup icomplete-vertical-mode / fido-mode / fido-vertical-mode
 ;; replaces ido
@@ -292,7 +394,7 @@ means save all with no questions."
   :config
   (defun basic-completion-style ()
     (setq completion-auto-wrap t
-          ;; completion-auto-select 'second-tab
+          completion-auto-select 'second-tab
           ;; completion-auto-help 'always
           completion-auto-help nil ;; show on ? and not TAB
           completion-show-help nil
@@ -313,21 +415,15 @@ means save all with no questions."
 
   (defun fido-style ()
     (setq completion-auto-wrap t
-          completion-auto-help nil
+          completion-auto-help 'lazy
           completions-max-height 15
           completion-styles '(flex)
           icomplete-in-buffer t
           max-mini-window-height 10)
 
     (fido-mode 1)
-    (fido-vertical-mode 1)
-    ;; (advice-add 'completion-at-point
-		;; :after #'minibuffer-hide-completions)
-    )
+    (fido-vertical-mode 1))
 
-
-    
-  ;; TRAMP: disable icomplete for remote files so c-x c-f doesn't cause delay
   (defun icomplete-post-command-hook ()
     (when (not (and (eq (icomplete--completion-table) 'read-file-name-internal)
 		    (file-remote-p (minibuffer-contents-no-properties))))
@@ -339,7 +435,7 @@ means save all with no questions."
   (keymap-set minibuffer-mode-map "C-r" #'minibuffer-complete-history)
 
   ;; enable
-  ;; (basic-completion-style)
+  (basic-completion-style)
   ;; (icomplete-vertical-style)
   (fido-style)
   )
@@ -418,7 +514,7 @@ means save all with no questions."
 
   ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
+	xref-show-definitions-function #'consult-xref)
 
   ;; Configure other variables and modes in the :config section,
   ;; after lazily loading the package.
@@ -449,8 +545,6 @@ means save all with no questions."
   ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
   )
 
-
-
 (use-package consult-notes
   :ensure t
   :commands (consult-notes
@@ -459,8 +553,16 @@ means save all with no questions."
              ;;consult-notes-org-roam-find-node
              ;; consult-notes-org-roam-find-node-relation
 	     )
+  :bind
+  ( :map global-map
+    ("C-c n s" . consult-notes)
+    ("C-c C-n" . consult-notes-search-in-all-notes)
+    )
   :config
-  ;; (setq consult-notes-file-dir-sources '(("Name"  ?key  "path/to/dir"))) ;; Set notes dir(s), see below
+  (setq consult-notes-file-dir-sources '(
+					 ("Denote"  ?o  "C:\\Users\\Haoming Xia\\OneDrive\\Documents\\Denote")
+					 )) ;; Set notes dir(s), see below
+
   ;; Set org-roam integration, denote integration, or org-heading integration e.g.:
   ;; (setq consult-notes-org-headings-files '("~/path/to/file1.org"
   ;;                                         "~/path/to/file2.org"))
@@ -470,7 +572,6 @@ means save all with no questions."
     (consult-notes-denote-mode))
   ;; search only for text files in denote dir
   (setq consult-notes-denote-files-function (lambda () (denote-directory-files nil t t))))
-
 
 
 ;; Enable rich annotations using the Marginalia package
@@ -498,15 +599,14 @@ means save all with no questions."
   (completion-category-overrides '((file (styles partial-completion))))
   (completion-pcm-leading-wildcard t)) ;; Emacs 31: partial-completion behaves like substring
 
-;; linter
-(use-package flycheck
-  :ensure t
-  :config
-  (global-flycheck-mode +1)
-  )
+;; Flymake
+;; (use-package flymake-collection
+;;   :ensure t
+;;   :hook (after-init . 'flymake-collection-hook-setup))
+
 
 (use-package flymake-vale
-  :load-path "~/.emacs.d/site-lisp/flymake-vale/"
+  :ensure (:host github :repo "tpeacock19/flymake-vale")
   :config
   (add-hook 'text-mode-hook #'flymake-vale-load)
   (add-hook 'latex-mode-hook #'flymake-vale-load)
@@ -531,6 +631,7 @@ means save all with no questions."
   :hook ((org-mode . visual-line-mode)
          (org-mode . org-indent-mode))
   :config
+  (setq org-src-fontify-natively t)
   (setq org-startup-with-inline-images t))
 
 (use-package org-bullets
@@ -597,7 +698,7 @@ means save all with no questions."
     ("C-c C-d C-i" . denote-dired-link-marked-notes)
     ("C-c C-d C-r" . denote-dired-rename-files)
     ("C-c C-d C-k" . denote-dired-rename-marked-files-with-keywords)
-    ("C-c C-d C-R" . denote-dired-rename-marked-files-using-front-matter))
+    ("C-c C-d C-R" . denote-dired-rename-marked-files-using-front-matter) )
 
   :config
   ;; Remember to check the doc string of each of those variables.
@@ -611,11 +712,10 @@ means save all with no questions."
   (setq denote-keywords-to-not-infer-regexp nil)
   (setq denote-rename-confirmations '(rewrite-front-matter modify-file-name))
 
-  ;; Pick dates, where relevant, with Org's advanced interface:
-  (setq denote-date-prompt-use-org-read-date t)
-
   ;; Automatically rename Denote buffers using the `denote-rename-buffer-format'.
-  (denote-rename-buffer-mode 1))
+  (setq denote-rename-buffer-mode 1)
+  ;; Pick dates, where relevant, with Org's advanced interface:
+  (setq denote-date-prompt-use-org-read-date t))
 
 (use-package denote-journal
   :ensure t
@@ -650,7 +750,7 @@ means save all with no questions."
 ;;   (setq denote-silo-directories
 ;;         (list denote-directory
 ;; 	      "~/../../OneDrive/Documents/Denote/"
-;;               "~/../../OneDrive/Documents/Journal/")))
+;;               "~/../../OneDrive/Documents/Journal/"))
 
 (use-package consult-denote
   :ensure t
@@ -666,57 +766,107 @@ means save all with no questions."
   :defer t
   :hook (markdown-mode . visual-line-mode))
 
+;; (use-package realgud :ensure t)
 
-;; LSP servers
-;; (use-package lsp-mode
-;;   :ensure t
-;;   :hook ((
-;; 	  ;; (c-mode          ; clangd
-;;           ;;  c++-mode        ; clangd
-;;           ;;  c-or-c++-mode   ; clangd
-;;           ;;  js-mode         ; ts-ls (tsserver wrapper)
-;;           ;;  js-jsx-mode     ; ts-ls (tsserver wrapper)
-;;           ;;  typescript-mode ; ts-ls (tsserver wrapper)
-;;           ;;  python-mode     ; pyright
-;;           ;; web-mode        ; ts-ls/HTML/CSS
-;;           ;;  haskell-mode    ; haskell-language-server
-;;           ;; lua-mode        ; lua-language-server
-;; 	  ;; text-mode
-;; 	  ;; org-mode
-;;           ) . lsp)
-;;   :config
-;;   (setq lsp-log-io t)
-;;   )
+;; tree-sitter
 
-;; (use-package lsp-ui :ensure t)
+(use-package treesit-langs
+  :ensure (:host github :repo "emacs-tree-sitter/treesit-langs")
+  :ensure (:wait t)
+  :config (treesit-langs-major-mode-setup))
 
-;; (use-package lsp-ltex-plus
-;;   :load-path "site-lisp/lsp-ltex-plus/"
-;;   :hook ((org-mode text-mode) . (lambda ()
-;; 		       (setq lsp-ltex-plus-version "18.2.0")
-;;                        (require 'lsp-ltex-plus)
-;;                        (lsp)))  ; or lsp-deferred
-;;   ;; :hook ('org-mode-hook . (lambda () require 'lsp-ltex-plus (lsp-deferred)))
-;;   :init
-;;   (setq lsp-ltex-plus-version "18.2.0")
-;;   (setq lsp-ltex-plus-log-level "fine"))
+(use-package treesit-fold
+  :ensure (:host github :repo "emacs-tree-sitter/treesit-fold")
+  :ensure (:wait t))
 
-;; (use-package dap-mode
-;;   :defer
-;;   :config
-;; (setq dap-auto-configure-features '(sessions locals controls tooltip)))
+;;; dape
+(use-package dape
+  :defer t
+  :ensure t
+  ;; refer to evil-collection binds
+  :preface
+  ;; By default dape shares the same keybinding prefix as `gud'
+  ;; If you do not want to use any prefix, set it to nil.
+  (setq dape-key-prefix "\C-x\C-a")
+  :hook
+  ;; Save breakpoints on quit
+  (kill-emacs . dape-breakpoint-save)
+  ;; Load breakpoints on startup
+  (after-init . dape-breakpoint-load)
 
+  :custom
+  ;; Turn on global bindings for setting breakpoints with mouse
+  (dape-breakpoint-global-mode +1)
+
+  ;; Info buffers to the right
+  (dape-buffer-window-arrangement 'right)
+  ;; Info buffers like gud (gdb-mi)
+  (dape-buffer-window-arrangement 'gud)
+  (dape-info-hide-mode-line nil)
+
+  :config
+  ;; Pulse source line (performance hit)
+  (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
+
+  ;; Save buffers on startup, useful for interpreted languages
+  (add-hook 'dape-start-hook (lambda () (save-some-buffers t t)))
+
+  ;; Kill compile buffer on build success
+  (add-hook 'dape-compile-hook #'kill-buffer))
+
+;; For a more ergonomic Emacs and `dape' experience
+(use-package repeat
+  :custom
+  (repeat-mode +1))
+
+
+;;; LSP with Eglot
+(use-package eldoc
+  :init
+  (global-eldoc-mode))
+
+(use-package eglot
+  :defer t
+  ;; refer to evil-collection bindings
+  :hook ((python-ts-mode c++-ts-mode c-ts-mode) . eglot-ensure)
+  :hook ((python-mode c++-mode c-mode) . eglot-ensure)
+  :config
+  (add-to-list 'eglot-server-programs
+	       '((python-ts-mode . ("pyright-langserver" "--stdio"))
+                 (c-ts-mode c++-ts-mode . ("clangd" "-j=8"
+					   "--log=error"
+					   "--malloc-trim"
+					   "--background-index"
+					   "--clang-tidy"
+					   "--cross-file-rename"
+					   "--completion-style=detailed"
+					   "--pch-storage=memory"
+					   "--header-insertion=never"
+					   "--header-insertion-decorators=0")
+			    ;; (LaTeX-mode tex-mode . (""))
+			    ))))
+
+(use-package eglot-booster
+  :ensure (:wait t)
+  :ensure (:host github
+		 :repo "jdtsmith/eglot-booster")
+  :after eglot
+  :config
+  (eglot-booster-mode t)
+  (setq eglot-booster-io-only t))
+
+;; snippets
 (use-package yasnippet
   :ensure t
   )
 
 (use-package nerd-icons
   :ensure t
-  ;; :custom
+  :custom
   ;; The Nerd Font you want to use in GUI
   ;; "Symbols Nerd Font Mono" is the default and is recommended
   ;; but you can use any other Nerd Font if you want
-  ;; (nerd-icons-font-family "Symbols Nerd Font Mono")
+  (nerd-icons-font-family "Symbols Nerd Font Mono")
   )
 
 (use-package all-the-icons
@@ -731,8 +881,18 @@ means save all with no questions."
 
 
 (use-package transient :ensure t)
+
 (use-package magit
   :ensure t
+  :config
+  (setq magit-tramp-pipe-stty-settings 'pty)
+  ;; don't show the diff by default in the commit buffer. Use `C-c C-d' to display it
+  (setq magit-commit-show-diff nil)
+  ;; don't show git variables in magit branch
+  (setq magit-branch-direct-configure nil)
+  ;; don't automatically refresh the status buffer after running a git command
+  (setq magit-refresh-status-buffer nil)
+
   :bind (("C-x g" . magit-status)
          ("C-x C-g" . magit-status)))
 
@@ -795,9 +955,52 @@ means save all with no questions."
 ;; (use-package flyspell-correct-popup
 ;;   :after flyspell-correct)
 
-;; custom
-(setq custom-file (expand-file-name "customs.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load custom-file 'noerror)))
+;;  /plink:haoming@localhost#2222:/home/haoming/git/labs-25fa-hewlett-packard-lovecraft
+;;  /plink:hxia@orangepi5:/home/haoming/git/labs-25fa-hewlett-packard-lovecraft
 
-(provide 'init)
+
+;;; TRAMP
+(use-package tramp
+  :ensure nil
+  :custom
+  (tramp-default-remote-shell "/bin/bash")
+
+  :config
+  ;; ;; per-host config
+  ;; (connection-local-set-profile-variables 'remote-path-with-bin
+  ;;                                         '(tramp-remote-path . ("~/.cargo/bin/" tramp-default-remote-path))
+  ;; 					  )
+  ;; (connection-local-set-profiles '(:application tramp :user "hxia" :machine "orangepi5")
+  ;; 				 'remote-path-with-bin)
+  ;; (connection-local-set-profiles '(:application tramp :user "haoming" :machine "localhost")
+  ;; 'remote-path-with-bin)
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+
+  ;;; various perf improvements
+  (setq remote-file-name-inhibit-locks t
+	tramp-use-scp-direct-remote-copying t
+	remote-file-name-inhibit-auto-save-visited t)
+
+  (setq tramp-copy-size-limit (* 1024 1024) ;; 1MB
+	tramp-verbose 2)
+
+  (connection-local-set-profile-variables
+   'remote-direct-async-process
+   '((tramp-direct-async-process . t)))
+
+  (connection-local-set-profiles
+   '(:application tramp :protocol "rsync") ;; scp if it breaks things
+   'remote-direct-async-process)
+
+  (with-eval-after-load 'tramp
+    (with-eval-after-load 'compile
+      (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
+  )
+
+(use-package shell :ensure nil
+  :config
+  (setq explicit-shell-file-name "/bin/bash"))
+
+
 ;;; init.el ends here.
+(provide 'init)

@@ -1,1 +1,0 @@
-("~/.emacs.d/" "c:/Users/Haoming Xia/OneDrive/Documents/Denote/")
