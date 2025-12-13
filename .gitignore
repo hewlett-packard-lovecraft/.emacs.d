@@ -1,5 +1,6 @@
 *~
 auto-save-list
+.org-id-locations
 org-*
 org-roam.db
 org-persist
@@ -10,15 +11,20 @@ elpaca
 elpa
 all
 recentf
+.project
 projects
 places
 projectile-bookmarks.eld
+project-window-list
 emacs-backtrace.txt
 ..emacs.d-*
 .cache
 site-lsp
+sit-lsp/*
 auto-save-list
 .lsp*
 server
 ido*
 ido.last
+transient
+tramp
