@@ -1,6 +1,7 @@
 ;; ;; built-in emacs features
 ;;;; User defined customs
 
+;; custom functions
 (defun initel()
   "Open the Emacs init file for editing."
   (interactive)

@@ -8,22 +8,26 @@
 
 (setq read-process-output-max (* 1024 1024))
 
-(setq native-comp-speed 2)
-;; (setq native-comp-speed 3) ;; faster but slower compile (?)
+;; (setq native-comp-speed 2)
+(setq native-comp-speed 3) ;; faster but slower compile (?)
 
 ;; lsp
 (setenv "LSP_USE_PLISTS" "true")
 
-;; Load themes early to avoid flickering
+;; Elpaca
+(setq package-enable-at-startup nil)
+
+;; Load themes, disable toolbar early to avoid flickering
 (load-theme 'modus-operandi t)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
-(when (eq system-type 'windows-nt)
-  (add-to-list 'exec-path (expand-file-name "C:\\msys64\\usr\\bin"))
-  (add-to-list 'exec-path (expand-file-name "C:\\Program Files\\Git\\git.exe"))
-  ;; more windows specific stuff
-  )
+(setq inhibit-startup-screen t)
+;; (setq initial-buffer-choice 'recentf-open-files)
 
-;; Elpaca
-(setq package-enable-at-startup nil)
+;; (when (eq system-type 'windows-nt)
+;;   (add-to-list 'exec-path (expand-file-name "C:\\msys64\\usr\\bin"))
+;;   (add-to-list 'exec-path (expand-file-name "C:\\Program Files\\Git\\git.exe"))
+;;   ;; more windows specific stuff
+;;   )
+

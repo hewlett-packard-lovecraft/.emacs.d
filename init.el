@@ -46,9 +46,13 @@
 
 (elpaca-no-symlink-mode)
 
-;; Custom file
+;; Custom files
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
 (add-hook 'elpaca-after-init-hook (lambda () (load custom-file 'noerror)))
+
+(setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
+(add-hook 'elpaca-after-init-hook (lambda () (load org-custom-file 'noerror)))
+
 
 ;; ;; use-package
 ;; Install use-package support
@@ -70,6 +74,7 @@
 ;;Note this will cause evaluate the declaration immediately. It is not deferred.
 ;;Useful for configuring built-in emacs features.
 
+;; ;; ;; emacs-builtins
 (use-package emacs :ensure nil
   :custom
   ;; ;; dape
@@ -95,7 +100,6 @@
   :config
   ;; line numbers
   (electric-pair-mode 1)
-  ;; (add-hook 'latex-mode-hook #'display-line-numbers-mode)
 
   (global-display-line-numbers-mode 1)
 
@@ -122,42 +126,59 @@
   ;; context menu
   (context-menu-mode 1))
 
-;; Set up AuCTeX to load with the builtin TeX package
-(use-package auctex
-  :ensure (:repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
-		 :pre-build (("make" "elpa"))
-		 :build (:not elpaca--compile-info) ;; Make will take care of this step
-		 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
-		 :version (lambda (_) (require 'auctex) AUCTeX-version)))
-(use-package latex
-  :ensure nil
-  :hook ((LaTeX-mode . prettify-symbols-mode))
-  :bind (:map LaTeX-mode-map
-	      ("C-S-e" . latex-math-from-calc))
-  :config
-  ;; Format math as a Latex string with Calc
-  (defun latex-math-from-calc ()
-    "Evaluate `calc' on the contents of line at point."
-    (interactive)
-    (cond ((region-active-p)
-	   (let* ((beg (region-beginning))
-		  (end (region-end))
-		  (string (buffer-substring-no-properties beg end)))
-	     (kill-region beg end)
-	     (insert (calc-eval `(,string calc-language latex
-					  calc-prefer-frac t
-					  calc-angle-mode rad)))))
-	  (t (let ((l (thing-at-point 'line)))
-	       (end-of-line 1) (kill-line 0)
-	       (insert (calc-eval `(,l
-				    calc-language latex
-				    calc-prefer-frac t
-				    calc-angle-mode rad))))))))
+;; (use-package dashboard
+;;   :ensure t
+;;   :config
+;;   ;; (setq initial-buffer-choice (lambda () (get-buffer-create dashboard-buffer-name)))
 
+;;   (add-hook 'elpaca-after-init-hook #'dashboard-insert-startupify-lists)
+;;   (add-hook 'elpaca-after-init-hook #'dashboard-initialize)
+;;   (dashboard-setup-startup-hook))
+
+;; Set up AuCTeX to load with the builtin TeX package
+;; (use-package auctex
+;;   :ensure (:repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
+;; 		 :pre-build (("make" "elpa"))
+;; 		 :build (:not elpaca--compile-info) ;; Make will take care of this step
+;; 		 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+;; 		 :version (lambda (_) (require 'auctex) AUCTeX-version)))
+;; (use-package latex
+;;   :ensure nil
+;;   :hook ((LaTeX-mode . prettify-symbols-mode))
+;;   :bind (:map LaTeX-mode-map
+;; 	      ("C-S-e" . latex-math-from-calc))
+;;   :config
+;;   ;; Format math as a Latex string with Calc
+;;   (defun latex-math-from-calc ()
+;;     "Evaluate `calc' on the contents of line at point."
+;;     (interactive)
+;;     (cond ((region-active-p)
+;; 	   (let* ((beg (region-beginning))
+;; 		  (end (region-end))
+;; 		  (string (buffer-substring-no-properties beg end)))
+;; 	     (kill-region beg end)
+;; 	     (insert (calc-eval `(,string calc-language latex
+;; 					  calc-prefer-frac t
+;; 					  calc-angle-mode rad)))))
+;; 	  (t (let ((l (thing-at-point 'line)))
+;; 	       (end-of-line 1) (kill-line 0)
+;; 	       (insert (calc-eval `(,l
+;; 				    calc-language latex
+;; 				    calc-prefer-frac t
+;; 				    calc-angle-mode rad))))))))
 
 (use-package diminish :ensure t)
 
-;; tab-bar
+;; (use-package modern-tab-bar
+;;   :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar" :protocol ssh)
+;;   :init
+;;   (setq tab-bar-show t
+;;         tab-bar-new-button nil
+;;         tab-bar-close-button-show nil)
+
+;;   (modern-tab-bar-mode))
+
+;; tab bar
 (use-package tab-bar
   :bind (
 	 ("C-c C-<tab>" . tab-bar-switch-to-next-tab)
@@ -167,19 +188,20 @@
   (setq tab-bar-close-button-show nil)       ;; hide tab close / X button
   ;; (setq tab-bar-new-tab-choice "*dashboard*");; buffer to show in new tabs
   (setq tab-bar-tab-hints t)                 ;; show tab numbers
-  (setq tab-bar-format '(tab-bar-format-tabs tab-bar-separator)) ;; elements to include in bar
+  ;; (setq tab-bar-format '(tab-bar-format-tabs tab-bar-separator)) ;; elements to include in bar
+  (setq tab-bar-format '(tab-bar-format-history tab-bar-format-tabs tab-bar-separator)) ;; elements to include in bar
 
   ;; look and feel
   ;; modeline settings
-  '(mode-line ((t (:underline nil :overline nil :box (:line-width 8 :color "#353644" :style nil) :foreground "white" :background "#353644"))))
-  '(mode-line-buffer-id ((t (:weight bold))))
-  '(mode-line-emphasis ((t (:weight bold))))
-  '(mode-line-highlight ((((class color) (min-colors 88)) (:box (:line-width 2 :color "grey40" :style released-button))) (t (:inherit (highlight)))))
-  '(mode-line-inactive ((t (:weight light :underline nil :overline nil :box (:line-width 8 :color "#565063" :style nil) :foreground "white" :background "#565063" :inherit (mode-line)))))
+  ;; '(mode-line ((t (:underline nil :overline nil :box (:line-width 8 :color "#353644" :style nil) :foreground "white" :background "#353644"))))
+  ;; '(mode-line-buffer-id ((t (:weight bold))))
+  ;; '(mode-line-emphasis ((t (:weight bold)))
+  ;; '(mode-line-highlight ((((class color) (min-colors 88)) (:box (:line-width 2 :color "grey40" :style released-button))) (t (:inherit (highlight)))))
+  ;; '(mode-line-inactive ((t (:weight light :underline nil :overline nil :box (:line-width 8 :color "#565063" :style nil) :foreground "white" :background "#565063" :inherit (mode-line)))))
   ;; tab bar settings
-  '(tab-bar ((t (:inherit mode-line))))
-  '(tab-bar-tab ((t (:inherit mode-line :foreground "white"))))
-  '(tab-bar-tab-inactive ((t (:inherit mode-line-inactive :foreground "black"))))
+  ;; '(tab-bar ((t (:inherit mode-line))))
+  ;; '(tab-bar-tab ((t (:inherit mode-line :foreground "white"))))
+  ;; '(tab-bar-tab-inactive ((t (:inherit mode-line-inactive :foreground "black"))))
 
   (tab-bar-mode 1))
 
@@ -261,7 +283,7 @@
 (use-package project :ensure nil
   :config
   (setq vc-handled-backends '(Git))
-  (setq project-vc-extra-root-markers '(".project-root"))
+  (setq project-vc-extra-root-markers '(".project" ".vscode"))
   (defun my-vc-off-if-remote ()
     (if (file-remote-p (buffer-file-name))
 	(setq-local vc-handled-backends nil)))
@@ -363,22 +385,22 @@
   )
 
 ;; Use Dabbrev with Corfu!
-;; (use-package dabbrev
-;;   ;; Swap M-/ and C-M-/
-;;   :bind (("M-/" . dabbrev-completion)
-;;          ("C-M-/" . dabbrev-expand))
-;;   :config
-;;   (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
-;;   (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
-;;   (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
-;;   (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
-;;   (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
+  :config
+  (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
+  (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
 
 (use-package recentf :ensure nil
   :config
   (global-set-key (kbd "C-x C-r") 'recentf-open)
-  (recentf-mode t)
   (setq recentf-max-saved-items 50)
+  (setq recentf-keep '(file-remote-p file-readable-p))
 
   (defun recentf-open ()
     (interactive)
@@ -443,6 +465,8 @@
 ;; Consult
 (use-package consult
   :ensure t
+  :config
+
   ;; Replace bindings. Lazily loaded by `use-package'.
   :bind (;; C-c bindings in `mode-specific-map'
          ("C-c M-x" . consult-mode-command)
@@ -555,14 +579,10 @@
 	     )
   :bind
   ( :map global-map
-    ("C-c n s" . consult-notes)
-    ("C-c C-n" . consult-notes-search-in-all-notes)
+    ("C-x n" . consult-notes)
+    ("C-c n s" . consult-notes-search-in-all-notes)
     )
   :config
-  (setq consult-notes-file-dir-sources '(
-					 ("Denote"  ?o  "C:\\Users\\Haoming Xia\\OneDrive\\Documents\\Denote")
-					 )) ;; Set notes dir(s), see below
-
   ;; Set org-roam integration, denote integration, or org-heading integration e.g.:
   ;; (setq consult-notes-org-headings-files '("~/path/to/file1.org"
   ;;                                         "~/path/to/file2.org"))
@@ -572,7 +592,6 @@
     (consult-notes-denote-mode))
   ;; search only for text files in denote dir
   (setq consult-notes-denote-files-function (lambda () (denote-directory-files nil t t))))
-
 
 ;; Enable rich annotations using the Marginalia package
 (use-package marginalia
@@ -632,7 +651,11 @@
          (org-mode . org-indent-mode))
   :config
   (setq org-src-fontify-natively t)
-  (setq org-startup-with-inline-images t))
+  (setq org-startup-with-inline-images t)
+
+  ;; syntax highlighting with minted (requires minted in miktex)
+  (add-to-list 'org-latex-packages-alist '("" "minted" nil))
+  (setq org-latex-src-block-backend 'minted))
 
 (use-package org-bullets
   :ensure t
@@ -648,6 +671,7 @@
   (org-download-heading-lvl nil)
   (org-download-timestamp "%Y%m%d-%H%M%S_")
   ;; (org-image-actual-width 300)
+  (org-image-actual-width (truncate (* (display-pixel-width) 0.8)))
   (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)")
 
   :bind (:map org-mode-map
@@ -769,6 +793,10 @@
 ;; (use-package realgud :ensure t)
 
 ;; tree-sitter
+(use-package treesit-auto
+  :ensure t
+  :config
+  (global-treesit-auto-mode))
 
 (use-package treesit-langs
   :ensure (:host github :repo "emacs-tree-sitter/treesit-langs")
@@ -788,11 +816,12 @@
   ;; By default dape shares the same keybinding prefix as `gud'
   ;; If you do not want to use any prefix, set it to nil.
   (setq dape-key-prefix "\C-x\C-a")
-  :hook
+
   ;; Save breakpoints on quit
-  (kill-emacs . dape-breakpoint-save)
+  ;; :hook
+  ;; (kill-emacs . dape-breakpoint-save)
   ;; Load breakpoints on startup
-  (after-init . dape-breakpoint-load)
+  ;; (after-init . dape-breakpoint-load)
 
   :custom
   ;; Turn on global bindings for setting breakpoints with mouse
@@ -801,7 +830,7 @@
   ;; Info buffers to the right
   (dape-buffer-window-arrangement 'right)
   ;; Info buffers like gud (gdb-mi)
-  (dape-buffer-window-arrangement 'gud)
+  ;; (dape-buffer-window-arrangement 'gud)
   (dape-info-hide-mode-line nil)
 
   :config

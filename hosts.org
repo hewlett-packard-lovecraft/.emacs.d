@@ -6,7 +6,6 @@
   - [[/plink:haoming@localhost#2222:/home/haoming/git/labs-25fa-hewlett-packard-lovecraft/lab5/]]
   - [[/plinkx:wsl2:/home/haoming/git/labs-25fa-hewlett-packard-lovecraft/lab5/answers.txt]]
 
-- lab5-debug ::
 
 - lab5-debug ::
   - [[/plink:haoming@localhost#2222|docker:root@cs202:/home/cs202-user/cs202-labs/lab5/build/]]
