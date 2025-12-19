@@ -672,7 +672,9 @@
   (org-download-timestamp "%Y%m%d-%H%M%S_")
   ;; (org-image-actual-width 300)
   (org-image-actual-width (truncate (* (display-pixel-width) 0.8)))
-  (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)")
+
+  (when (eq system-type 'windows-nt)
+    (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)"))
 
   :bind (:map org-mode-map
 	      ("C-M-Y" . org-download-yank)
@@ -793,6 +795,24 @@
 ;; (use-package realgud :ensure t)
 
 ;; tree-sitter
+(use-package treesit
+  :init
+  (when (eq system-type 'windows-nt)
+    (add-to-list 'treesit-extra-load-path (file-name-concat (file-truename user-emacs-directory) "tree-sitter"))
+    ;; (add-to-list 'treesit-extra-load-path "C:\\msys64\\mingw64\\bin")
+    ;; (add-to-list 'treesit-extra-load-path "C:\\msys64\\mingw64\\lib")
+    ;; (setenv "LD_LIBRARY_PATH" (expand-file-name "C:\\msys64\\mingw64\\lib"))
+    )
+  :config
+  ;; I don't understand why I need this - the file names are correct, it should just work?
+  (setq treesit-load-name-override-list '(
+					  (c "libtree-sitter-c")
+					  (c++ "libtree-sitter-cpp")
+					  (javascript "libtree-sitter-javascript")
+					  (typescript "libtree-sitter-typescript")
+					  (python "libtree-sitter-python")))
+  )
+
 (use-package treesit-auto
   :ensure t
   :config
@@ -862,7 +882,7 @@
   :config
   (add-to-list 'eglot-server-programs
 	       '((python-ts-mode . ("pyright-langserver" "--stdio"))
-                 (c-ts-mode c++-ts-mode . ("clangd" "-j=8"
+                 (c-ts-mode c++-ts-mode . ("clangd" "-j=24"
 					   "--log=error"
 					   "--malloc-trim"
 					   "--background-index"
