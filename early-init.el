@@ -28,6 +28,5 @@
 (when (eq system-type 'windows-nt)
   (add-to-list 'exec-path (expand-file-name "C:\\msys64\\usr\\bin"))
   ;; (add-to-list 'exec-path (expand-file-name "C:\\Program Files\\Git\\git.exe"))
-  ;; (setenv "LD_LIBRARY_PATH" (expand-file-name "C:\\msys64\\mingw64\\lib"))
   )
 

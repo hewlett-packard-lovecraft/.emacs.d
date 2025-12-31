@@ -799,29 +799,25 @@
   :init
   (when (eq system-type 'windows-nt)
     (add-to-list 'treesit-extra-load-path (file-name-concat (file-truename user-emacs-directory) "tree-sitter"))
-    ;; (add-to-list 'treesit-extra-load-path "C:\\msys64\\mingw64\\bin")
+    (add-to-list 'treesit-extra-load-path "C:\\msys64\\ucrt64\\lib")
     ;; (add-to-list 'treesit-extra-load-path "C:\\msys64\\mingw64\\lib")
     ;; (setenv "LD_LIBRARY_PATH" (expand-file-name "C:\\msys64\\mingw64\\lib"))
     )
   :config
   ;; I don't understand why I need this - the file names are correct, it should just work?
-  (setq treesit-load-name-override-list '(
-					  (c "libtree-sitter-c")
-					  (c++ "libtree-sitter-cpp")
-					  (javascript "libtree-sitter-javascript")
-					  (typescript "libtree-sitter-typescript")
-					  (python "libtree-sitter-python")))
+  ;; (setq treesit-load-name-override-list '(
+  ;; 					  (c "libtree-sitter-c")
+  ;; 					  (c++ "libtree-sitter-cpp")
+  ;; 					  (javascript "libtree-sitter-javascript")
+  ;; 					  (typescript "libtree-sitter-typescript")
+  ;; 					  (python "libtree-sitter-python")))
   )
 
 (use-package treesit-auto
   :ensure t
   :config
+  (setq treesit-auto-install 'prompt)
   (global-treesit-auto-mode))
-
-(use-package treesit-langs
-  :ensure (:host github :repo "emacs-tree-sitter/treesit-langs")
-  :ensure (:wait t)
-  :config (treesit-langs-major-mode-setup))
 
 (use-package treesit-fold
   :ensure (:host github :repo "emacs-tree-sitter/treesit-fold")
