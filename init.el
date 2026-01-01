@@ -80,6 +80,7 @@
 ;; ;; ;; emacs-builtins
 (use-package emacs :ensure nil
   :custom
+
   ;; ;; dape
   (window-sides-vertical t)
 
@@ -101,6 +102,7 @@
   (read-extended-command-predicate #'command-completion-default-include-p)
 
   :config
+
   ;; line numbers
   (electric-pair-mode 1)
 
@@ -129,97 +131,66 @@
   ;; context menu
   (context-menu-mode 1)
 
+  ;; other defaults https://www.patrickdelliott.com/emacs.d/
+  (setq enable-recursive-minibuffers t)
+
+  (setq backup-by-copying t)
+
+  (setq sentence-end-double-space nil)
+
+  (setq frame-inhibit-implied-resize t) ;; useless for a tiling window manager
+
+  (setq show-trailing-whitespace t) ;; self-explanatory
+
+  (setq user-full-name "Hao Ming Xia ") ;; my details
+  (setq user-mail-address "hx2314@nyu.edu")
+
+  (defalias 'yes-or-no-p 'y-or-n-p) ;; life is too short
+
+  (setq indent-tabs-mode nil) ;; no tabs
+
+  ;; keep backup and save files in a dedicated directory
+  (setq backup-directory-alist
+        `((".*" . ,(concat user-emacs-directory "backups")))
+        auto-save-file-name-transforms
+        `((".*" ,(concat user-emacs-directory "backups") t)))
+
+  (setq create-lockfiles nil) ;; no need to create lockfiles
+
+  (set-charset-priority 'unicode) ;; utf8 everywhere
+  (setq locale-coding-system 'utf-8
+        coding-system-for-read 'utf-8
+        coding-system-for-write 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+
+  ;; Don't persist a custom file
+  (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
+  (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
+  (setq enable-local-variables :all)     ; fix =defvar= warnings
+
+  (setq delete-by-moving-to-trash t) ;; use trash-cli rather than rm when deleting files.
+
+  ;; less noise when compiling elisp
+  (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+  (setq native-comp-async-report-warnings-errors nil)
+  (setq load-prefer-newer t)
+
+  (show-paren-mode t)
+
   ;; terminal stuff here
   (unless (display-graphic-p)
+    (put 'suspend-frame 'disabled t) ;; disable confusing suspend in GUI mode
     (menu-bar-mode -1))
 
   (setq xterm-extra-capabilities '(getSelection setSelection modifyOtherKeys)))
 
+;; terminal copy
 (use-package clipetty :ensure t
   :config
   :hook (after-init . global-clipetty-mode))
-
-;; (use-package dashboard
-;;   :ensure t
-;;   :config
-;;   ;; (setq initial-buffer-choice (lambda () (get-buffer-create dashboard-buffer-name)))
-
-;;   (add-hook 'elpaca-after-init-hook #'dashboard-insert-startupify-lists)
-;;   (add-hook 'elpaca-after-init-hook #'dashboard-initialize)
-;;   (dashboard-setup-startup-hook))
-
-;; Set up AuCTeX to load with the builtin TeX package
-(use-package tex
-  :ensure (:repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
-		 :pre-build (("make" "elpa"))
-		 :build (:not elpaca--compile-info) ;; Make will take care of this step
-		 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
-		 :version (lambda (_) (require 'auctex) AUCTeX-version))
-  :init
-  (setq TeX-parse-self t ; parse on load
-        reftex-plug-into-AUCTeX t
-        TeX-auto-save t  ; parse on save
-        TeX-view-program-selection '((output-pdf "PDF Tools"))
-        TeX-source-correlate-mode t
-        TeX-source-correlate-method 'synctex
-        TeX-source-correlate-start-server t
-        TeX-electric-sub-and-superscript t
-        TeX-engine 'luatex ;; use lualatex by default
-        TeX-save-query nil
-        TeX-electric-math (cons "\\(" "\\)")) ;; '$' inserts an in-line equation '\(...\)'
-
-  (add-hook 'TeX-mode-hook #'reftex-mode)
-  (add-hook 'TeX-mode-hook #'olivetti-mode)
-  (add-hook 'TeX-mode-hook #'turn-on-auto-fill)
-  (add-hook 'TeX-mode-hook #'prettify-symbols-mode)
-  (add-hook 'TeX-after-compilation-finished-functions
-            #'TeX-revert-document-buffer)
-  (add-hook 'TeX-mode-hook #'outline-minor-mode)
-  ;; :general
-  ;; (patrl/local-leader-keys
-  ;;   :keymaps 'LaTeX-mode-map
-  ;;   ;; "TAB" 'TeX-complete-symbol ;; FIXME let's 'TAB' do autocompletion (but it's kind of useless to be honest)
-  ;;   "=" '(reftex-toc :wk "reftex toc")
-  ;;   "(" '(reftex-latex :wk "reftex label")
-  ;;   ")" '(reftex-reference :wk "reftex ref")
-  ;;   "m" '(LaTeX-macro :wk "insert macro")
-  ;;   "s" '(LaTeX-section :wk "insert section header")
-  ;;   "e" '(LaTeX-environment :wk "insert environment")
-  ;;   "p" '(preview-at-point :wk "preview at point")
-  ;;   "f" '(TeX-font :wk "font")
-  ;; "c" '(TeX-command-run-all :wk "compile"))
-  )
-(use-package olivetti :ensure t)
-
-(use-package latex
-  :ensure nil
-  :hook ((LaTeX-mode . prettify-symbols-mode))
-  :bind (:map LaTeX-mode-map
-	      ("C-S-e" . latex-math-from-calc))
-  :config
-  ;; Format math as a Latex string with Calc
-  (defun latex-math-from-calc ()
-    "Evaluate `calc' on the contents of line at point."
-    (interactive)
-    (cond ((region-active-p)
-	   (let* ((beg (region-beginning))
-		  (end (region-end))
-		  (string (buffer-substring-no-properties beg end)))
-	     (kill-region beg end)
-	     (insert (calc-eval `(,string calc-language latex
-					  calc-prefer-frac t
-					  calc-angle-mode rad)))))
-	  (t (let ((l (thing-at-point 'line)))
-	       (end-of-line 1) (kill-line 0)
-	       (insert (calc-eval `(,l
-				    calc-language latex
-				    calc-prefer-frac t
-				    calc-angle-mode rad))))))))
-(use-package pdf-tools
-  :ensure t
-  :magic ("%PDF" . pdf-view-mode)
-  :config
-  (pdf-tools-install :no-query))
 
 (use-package diminish :ensure t)
 
@@ -261,19 +232,32 @@
 
 ;;; Vim Bindings
 (use-package undo-fu :ensure t :demand t)
+
 (use-package evil
   :ensure t
   :demand t
   :bind (("<escape>" . keyboard-escape-quit))
   :init
-  ;; allows for using cgn
-  (setq evil-search-module 'evil-search)
+  (setq evil-respect-visual-line-mode t) ;; respect visual lines
+
+  (setq evil-search-module 'isearch) ;; use emacs' built-in search functionality.
+  ;; (setq evil-search-module 'evil-search) ;; allows for using cgn
+
   (setq evil-want-keybinding nil)
   ;; no vim insert bindings
   (setq evil-undo-system 'undo-fu)
+  ;;  (setq evil-undo-system 'undo-redo)
   :config
-  (evil-mode 1)
-  (with-eval-after-load 'evil-maps ; avoid conflict with company tooltip selection
+  (evil-mode t)
+  ;; set the initial state for some kinds of buffers.
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  ;; (evil-set-initial-state 'dashboard-mode 'normal)
+  ;; buffers in which I want to immediately start typing should be in 'insert' state by default.
+  (evil-set-initial-state 'eshell-mode 'insert)
+  (evil-set-initial-state 'eat-mode 'insert)
+  (evil-set-initial-state 'magit-diff-mode 'insert)
+
+  (with-eval-after-load 'evil-maps ; avoid conflict with corfu tooltip selection
     (define-key evil-insert-state-map (kbd "C-n") nil)
     (define-key evil-insert-state-map (kbd "C-p") nil))
 
@@ -281,8 +265,10 @@
     (setq display-line-numbers 'relative))     ; or 'visual
   (defun my/display-set-absolute ()
     (setq display-line-numbers t))
+
   (add-hook 'evil-insert-state-entry-hook #'my/display-set-absolute)
   (add-hook 'evil-insert-state-exit-hook #'my/display-set-relative))
+
 
 ;;; Vim Bindings Everywhere else
 (use-package evil-collection
@@ -294,6 +280,7 @@
   (with-eval-after-load 'flymake (evil-collection-flymake-setup))
   :config(evil-collection-init))
 
+
 ;; vim-commentary for Emacs
 ;; (Use gcc to comment out a line, gc to comment out the target of a motion
 ;; (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection etc.)
@@ -304,12 +291,94 @@
   :diminish
   :config (evil-commentary-mode +1))
 
+(use-package evil-goggles
+  :ensure t
+  :after evil
+  :config
+  (evil-goggles-mode)
+
+  ;; optionally use diff-mode's faces; as a result, deleted text
+  ;; will be highlighed with `diff-removed` face which is typically
+  ;; some red color (as defined by the color theme)
+  ;; other faces such as `diff-added` will be used for other actions
+  (evil-goggles-use-diff-faces))
+
 (use-package evil-snipe :ensure t
   :after evil
   :config
   ;; add exceptions, otherwise enable everywhere
   (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
   (evil-snipe-override-mode 1))
+
+(use-package general
+  :ensure (:wait t)
+  :demand t
+  :config
+  (general-evil-setup)
+  ;; integrate general with evil
+
+  ;; 'SPC' as the global leader key
+  (general-create-definer my/leader-keys
+    :states '(normal insert visual emacs)
+    :keymaps 'override
+    :prefix "SPC" ;; set leader
+    :global-prefix "M-SPC") ;; access leader in insert mode)
+
+  ;; set up ',' as the local leader key
+  (general-create-definer my/local-leader-keys
+    :states '(normal insert visual emacs)
+    :keymaps 'override
+    :prefix "," ;; set local leader
+    :global-prefix "M-,") ;; access local leader in insert mode
+
+  (general-define-key
+   :states 'insert
+   "C-g" 'evil-normal-state) ;; don't stretch for ESC
+
+  (my/leader-keys
+    "SPC" '(execute-extended-command :wk "execute command") ;; an alternative to 'M-x'
+    "TAB" '(:keymap tab-prefix-map :wk "tab")) ;; remap tab bindings
+
+  (my/leader-keys
+    "w" '(:keymap evil-window-map :wk "window")) ;; window bindings
+
+  (my/leader-keys
+    "c" '(:ignore t :wk "code"))
+  (my/leader-keys
+    "SPC" '(execute-extended-command :wk "execute command") ;; an alternative to 'M-x'
+    "TAB" '(:keymap tab-prefix-map :wk "tab")) ;; remap tab bindings
+
+  (my/leader-keys
+    "w" '(:keymap evil-window-map :wk "window")) ;; window bindings
+
+  (my/leader-keys
+    "c" '(:ignore t :wk "code"))
+  ;; bookmark
+  (my/leader-keys
+    "B" '(:ignore t :wk "bookmark")
+    "Bs" '(bookmark-set :wk "set bookmark")
+    "Bj" '(bookmark-jump :wk "jump to bookmark"))
+
+  ;; universal argument
+  (my/leader-keys
+    "u" '(universal-argument :wk "universal prefix"))
+  ;; code
+  ;; see 'flymake'
+  (my/leader-keys
+    "c" '(:ignore t :wk "code"))
+
+  ;; open
+  (my/leader-keys
+    "o" '(:ignore t :wk "open")
+    "os" '(speedbar t :wk "speedbar")
+    "op" '(elpaca-log t :wk "elpaca"))
+
+
+  ;; search
+  ;; see 'consult'
+  (my/leader-keys
+    "s" '(:ignore t :wk "search"))
+  )
 
 (use-package ag
   :ensure t
@@ -341,7 +410,10 @@
   (defun my-vc-off-if-remote ()
     (if (file-remote-p (buffer-file-name))
 	(setq-local vc-handled-backends nil)))
-  (add-hook 'find-file-hook 'my-vc-off-if-remote))
+  (add-hook 'find-file-hook 'my-vc-off-if-remote)
+  :general
+  ;; assign built-in project.el bindings a new prefix
+  (my/leader-keys "p" '(:keymap project-prefix-map :wk "project")))
 
 
 (use-package project-x
@@ -700,6 +772,92 @@
 (use-package iedit
   :ensure t)
 
+;; LaTeX
+;; Set up AuCTeX to load with the builtin TeX package
+(use-package tex
+  :ensure (:repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
+		 :pre-build (("make" "elpa"))
+		 :build (:not elpaca--compile-info) ;; Make will take care of this step
+		 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+		 :version (lambda (_) (require 'auctex) AUCTeX-version))
+  :init
+  (setq TeX-parse-self t ; parse on load
+        reftex-plug-into-AUCTeX t
+        TeX-auto-save t  ; parse on save
+        TeX-view-program-selection '((output-pdf "PDF Tools"))
+        TeX-source-correlate-mode t
+        TeX-source-correlate-method 'synctex
+        TeX-source-correlate-start-server t
+        TeX-electric-sub-and-superscript t
+        TeX-engine 'luatex ;; use lualatex by default
+        TeX-save-query nil
+        TeX-electric-math (cons "\\(" "\\)")) ;; '$' inserts an in-line equation '\(...\)'
+
+  (add-hook 'TeX-mode-hook #'reftex-mode)
+  (add-hook 'TeX-mode-hook #'olivetti-mode)
+  (add-hook 'TeX-mode-hook #'turn-on-auto-fill)
+  (add-hook 'TeX-mode-hook #'prettify-symbols-mode)
+  (add-hook 'TeX-after-compilation-finished-functions
+            #'TeX-revert-document-buffer)
+  (add-hook 'TeX-mode-hook #'outline-minor-mode)
+
+  :general
+  (my/local-leader-keys
+    :keymaps 'LaTeX-mode-map
+    ;; "TAB" 'TeX-complete-symbol ;; FIXME let's 'TAB' do autocompletion (but it's kind of useless to be honest)
+    "=" '(reftex-toc :wk "reftex toc")
+    "(" '(reftex-latex :wk "reftex label")
+    ")" '(reftex-reference :wk "reftex ref")
+    "m" '(LaTeX-macro :wk "insert macro")
+    "s" '(LaTeX-section :wk "insert section header")
+    "e" '(LaTeX-environment :wk "insert environment")
+    "p" '(preview-at-point :wk "preview at point")
+    "f" '(TeX-font :wk "font")
+    "c" '(TeX-command-run-all :wk "compile"))
+
+  ;; :bind (:map LaTeX-mode-map
+  ;; 	      ("M-, S-e" . latex-math-from-calc))
+  ;; :config
+  ;; ;; Format math as a Latex string with Calc
+  ;; (defun latex-math-from-calc ()
+  ;;   "Evaluate `calc' on the contents of line at point."
+  ;;   (interactive)
+  ;;   (cond ((region-active-p)
+  ;; 	   (let* ((beg (region-beginning))
+  ;; 		  (end (region-end))
+  ;; 		  (string (buffer-substring-no-properties beg end)))
+  ;; 	     (kill-region beg end)
+  ;; 	     (insert (calc-eval `(,string calc-language latex
+  ;; 					  calc-prefer-frac t
+  ;; 					  calc-angle-mode rad)))))
+  ;; 	  (t (let ((l (thing-at-point 'line)))
+  ;; 	       (end-of-line 1) (kill-line 0)
+  ;; 	       (insert (calc-eval `(,l
+  ;; 				    calc-language latex
+  ;; 				    calc-prefer-frac t
+  ;; 				    calc-angle-mode rad)))))))
+
+  :config
+  (use-package evil-tex
+    :ensure t
+    :defer t
+    :after (evil)
+    :hook (LaTeX-mode . evil-tex-mode)
+    :general
+    (:keymaps 'evil-tex-mode-map
+              "M-]" 'evil-tex-brace-movement)
+    :hook (LaTeX-mode . evil-tex-mode))
+  )
+
+(use-package olivetti :ensure t)
+
+(use-package pdf-tools
+  :ensure t
+  :magic ("%PDF" . pdf-view-mode)
+  :config
+  (pdf-tools-install :no-query))
+
+
 ;; Org Mode
 (use-package org
   :hook ((org-mode . visual-line-mode)
@@ -940,6 +1098,7 @@
   )
 
 (use-package all-the-icons
+  :if (display-graphic-p)
   :ensure t
   :config
   (add-to-list 'all-the-icons-extension-icon-alist '("m" all-the-icons-fileicon "matlab" :face all-the-icons-orange)))
@@ -992,7 +1151,7 @@
   ;;enUS '(file-name-concat dicpath "en_US.aff")
   ;;enCA '(file-name-concat dicpath "en_CA.aff"))
 
-  ;;:if (eq system-type 'windows-nt)
+  :if (eq system-type 'windows-nt)
   :custom
   (ispell-local-dictionary "en_CA")
   (ispell-hunspell-dict-paths-alist
@@ -1084,94 +1243,94 @@
   )
 
 ;; declare linux specific packages here
-(unless (eq system-type 'windows-nt)
-  ;; does not work with powershell
-  (use-package eat
-    :ensure t
-    :hook (eshell-load-hook . eat-eshell-mode)
-    :hook (eshell-load-hook . eat-eshell-visual-command-mode)
-    :bind (("C-c e" . eat)
-	   ))
 
-  ;; tree-sitter, at least until it works on Windows
-  (use-package treesit
-    ;; :ensure (:host github :repo "https://github.com/mickeynp/combobulate" :branch "master")
-    :mode (("\\.tsx\\'" . tsx-ts-mode))
-    :preface
-    (defun mp-setup-install-grammars ()
-      "Install Tree-sitter grammars if they are absent."
-      (interactive)
-      (dolist (grammar
-	       ;; Note the version numbers. These are the versions that
-	       ;; are known to work with Combobulate *and* Emacs.
-	       '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-		 (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
-		 (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-		 (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-		 (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-		 (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
-		 (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-		 (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
-		 (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
-		 (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-		 (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-		 (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
-	(add-to-list 'treesit-language-source-alist grammar)
-	;; Only install `grammar' if we don't already have it
-	;; installed. However, if you want to *update* a grammar then
-	;; this obviously prevents that from happening.
-	(unless (treesit-language-available-p (car grammar))
-	  (treesit-install-language-grammar (car grammar)))))
+(use-package eat
+  :if (eq system-type 'gnu/linux)
+  :ensure t
+  :hook (eshell-load-hook . eat-eshell-mode)
+  :hook (eshell-load-hook . eat-eshell-visual-command-mode)
+  :bind (("C-c e" . eat)
+	 ))
 
-    ;; Optional. Combobulate works in both xxxx-ts-modes and
-    ;; non-ts-modes.
+;; tree-sitter, at least until it works on Windows
+(use-package treesit
+  :if (eq system-type 'gnu/linux)
+  :mode (("\\.tsx\\'" . tsx-ts-mode))
+  :preface
+  (defun mp-setup-install-grammars ()
+    "Install Tree-sitter grammars if they are absent."
+    (interactive)
+    (dolist (grammar
+	     ;; Note the version numbers. These are the versions that
+	     ;; are known to work with Combobulate *and* Emacs.
+	     '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+	       (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+	       (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+	       (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+	       (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+	       (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+	       (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+	       (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
+	       (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+	       (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+	       (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+	       (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+      (add-to-list 'treesit-language-source-alist grammar)
+      ;; Only install `grammar' if we don't already have it
+      ;; installed. However, if you want to *update* a grammar then
+      ;; this obviously prevents that from happening.
+      (unless (treesit-language-available-p (car grammar))
+	(treesit-install-language-grammar (car grammar)))))
 
-    ;; You can remap major modes with `major-mode-remap-alist'. Note
-    ;; that this does *not* extend to hooks! Make sure you migrate them
-    ;; also
+  ;; Optional. Combobulate works in both xxxx-ts-modes and
+  ;; non-ts-modes.
+
+  ;; You can remap major modes with `major-mode-remap-alist'. Note
+  ;; that this does *not* extend to hooks! Make sure you migrate them
+  ;; also
 
   ;;;;treesit-auto handles this
 
-    ;; (dolist (mapping
-    ;;          '((python-mode . python-ts-mode)
-    ;;            (css-mode . css-ts-mode)
-    ;;            (typescript-mode . typescript-ts-mode)
-    ;;            (js2-mode . js-ts-mode)
-    ;;            (bash-mode . bash-ts-mode)
-    ;;            (conf-toml-mode . toml-ts-mode)
-    ;;            (go-mode . go-ts-mode)
-    ;;            (css-mode . css-ts-mode)
-    ;;            (json-mode . json-ts-mode)
-    ;;            (js-json-mode . json-ts-mode)
-    ;; 	     (yaml-mode . yaml-ts-mode)
-    ;; 	     ))
-    ;;   (add-to-list 'major-mode-remap-alist mapping))
-    :config
-    (mp-setup-install-grammars)
-    ;; Do not forget to customize Combobulate to your liking:
-    ;;
-    ;;  M-x customize-group RET combobulate RET
-    ;;
-    ;; (use-package combobulate
-    ;;   :custom
-    ;;   ;; You can customize Combobulate's key prefix here.
-    ;;   ;; Note that you may have to restart Emacs for this to take effect!
-    ;;   (combobulate-key-prefix "C-c o")
-    ;;   :hook ((prog-mode . combobulate-mode))
-    ;;   ;; Amend this to the directory where you keep Combobulate's source
-    ;;   ;; code.
-    ;;   :load-path ("path-to-git-checkout-of-combobulate"))
-    )
-
-  (use-package treesit-auto
-    :ensure t
-    :custom
-    (treesit-auto-install 'prompt)
-    :config
-    (setq treesit-auto-langs '(cmake))
-    (global-treesit-auto-mode))
-
+  ;; (dolist (mapping
+  ;;          '((python-mode . python-ts-mode)
+  ;;            (css-mode . css-ts-mode)
+  ;;            (typescript-mode . typescript-ts-mode)
+  ;;            (js2-mode . js-ts-mode)
+  ;;            (bash-mode . bash-ts-mode)
+  ;;            (conf-toml-mode . toml-ts-mode)
+  ;;            (go-mode . go-ts-mode)
+  ;;            (css-mode . css-ts-mode)
+  ;;            (json-mode . json-ts-mode)
+  ;;            (js-json-mode . json-ts-mode)
+  ;; 	     (yaml-mode . yaml-ts-mode)
+  ;; 	     ))
+  ;;   (add-to-list 'major-mode-remap-alist mapping))
+  :config
+  (mp-setup-install-grammars)
+  ;; Do not forget to customize Combobulate to your liking:
+  ;;
+  ;;  M-x customize-group RET combobulate RET
+  ;;
+  ;; (use-package combobulate
+  ;;   :custom
+  ;;   ;; You can customize Combobulate's key prefix here.
+  ;;   ;; Note that you may have to restart Emacs for this to take effect!
+  ;;   (combobulate-key-prefix "C-c o")
+  ;;   :hook ((prog-mode . combobulate-mode))
+  ;;   ;; Amend this to the directory where you keep Combobulate's source
+  ;;   ;; code.
+  ;;   :load-path ("path-to-git-checkout-of-combobulate"))
   )
+
+(use-package treesit-auto
+  :if (eq system-type 'gnu/linux)
+  :ensure t
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (setq treesit-auto-langs '(cmake))
+  (global-treesit-auto-mode))
+
 
 ;;; init.el ends here.
 (provide 'init)
