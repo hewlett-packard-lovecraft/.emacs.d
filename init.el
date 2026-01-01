@@ -189,6 +189,7 @@
   ;;   "f" '(TeX-font :wk "font")
   ;; "c" '(TeX-command-run-all :wk "compile"))
   )
+(use-package olivetti :ensure t)
 
 (use-package latex
   :ensure nil
@@ -214,6 +215,11 @@
 				    calc-language latex
 				    calc-prefer-frac t
 				    calc-angle-mode rad))))))))
+(use-package pdf-tools
+  :ensure t
+  :magic ("%PDF" . pdf-view-mode)
+  :config
+  (pdf-tools-install :no-query))
 
 (use-package diminish :ensure t)
 
@@ -261,7 +267,7 @@
   :bind (("<escape>" . keyboard-escape-quit))
   :init
   ;; allows for using cgn
-  ;; (setq evil-search-module 'evil-search)
+  (setq evil-search-module 'evil-search)
   (setq evil-want-keybinding nil)
   ;; no vim insert bindings
   (setq evil-undo-system 'undo-fu)
@@ -678,7 +684,7 @@
   :ensure (:host github :repo "tpeacock19/flymake-vale")
   :config
   (add-hook 'text-mode-hook #'flymake-vale-load)
-  (add-hook 'latex-mode-hook #'flymake-vale-load)
+  (add-hook 'tex-mode-hook #'flymake-vale-load)
   (add-hook 'org-mode-hook #'flymake-vale-load)
   (add-hook 'markdown-mode-hook #'flymake-vale-load)
   (add-hook 'message-mode-hook #'flymake-vale-load)
