@@ -1,4 +1,4 @@
-;; ;; Org.el
+;; ;; Org.el  -*- lexical-binding: t; -*-
 ;; org files
 
 ;; LaTeX

@@ -1,4 +1,4 @@
-;;; performance
+;;; performance  -*- lexical-binding: t; -*-
 ;; temporarily increase GC threshold during startup
 (setq gc-cons-threshold most-positive-fixnum)
 

@@ -1,4 +1,4 @@
-;; ;; built-in emacs features
+;; ;; built-in emacs features  -*- lexical-binding: t; -*-
 ;;;; User defined customs
 
 ;; custom functions

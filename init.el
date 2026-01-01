@@ -1,4 +1,4 @@
-;;; init.el --- Howard's Emacs configuration
+;;; enit.el --- Howard's Emacs configuration  -*- lexical-binding: t; -*-
 ;;; Commentary:
 ;; A basic config for editing Org files and LaTeX. Works on Windows.
 ;;
@@ -52,6 +52,9 @@
 
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
 (add-hook 'elpaca-after-init-hook (lambda () (load org-custom-file 'noerror)))
+
+(setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
+(add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
 
 
 ;; ;; use-package
@@ -124,7 +127,17 @@
   (save-place-mode 1)
 
   ;; context menu
-  (context-menu-mode 1))
+  (context-menu-mode 1)
+
+  ;; terminal stuff here
+  (unless (display-graphic-p)
+    (menu-bar-mode -1))
+
+  (setq xterm-extra-capabilities '(getSelection setSelection modifyOtherKeys)))
+
+(use-package clipetty :ensure t
+  :config
+  :hook (after-init . global-clipetty-mode))
 
 ;; (use-package dashboard
 ;;   :ensure t
@@ -136,36 +149,71 @@
 ;;   (dashboard-setup-startup-hook))
 
 ;; Set up AuCTeX to load with the builtin TeX package
-;; (use-package auctex
-;;   :ensure (:repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
-;; 		 :pre-build (("make" "elpa"))
-;; 		 :build (:not elpaca--compile-info) ;; Make will take care of this step
-;; 		 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
-;; 		 :version (lambda (_) (require 'auctex) AUCTeX-version)))
-;; (use-package latex
-;;   :ensure nil
-;;   :hook ((LaTeX-mode . prettify-symbols-mode))
-;;   :bind (:map LaTeX-mode-map
-;; 	      ("C-S-e" . latex-math-from-calc))
-;;   :config
-;;   ;; Format math as a Latex string with Calc
-;;   (defun latex-math-from-calc ()
-;;     "Evaluate `calc' on the contents of line at point."
-;;     (interactive)
-;;     (cond ((region-active-p)
-;; 	   (let* ((beg (region-beginning))
-;; 		  (end (region-end))
-;; 		  (string (buffer-substring-no-properties beg end)))
-;; 	     (kill-region beg end)
-;; 	     (insert (calc-eval `(,string calc-language latex
-;; 					  calc-prefer-frac t
-;; 					  calc-angle-mode rad)))))
-;; 	  (t (let ((l (thing-at-point 'line)))
-;; 	       (end-of-line 1) (kill-line 0)
-;; 	       (insert (calc-eval `(,l
-;; 				    calc-language latex
-;; 				    calc-prefer-frac t
-;; 				    calc-angle-mode rad))))))))
+(use-package tex
+  :ensure (:repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
+		 :pre-build (("make" "elpa"))
+		 :build (:not elpaca--compile-info) ;; Make will take care of this step
+		 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+		 :version (lambda (_) (require 'auctex) AUCTeX-version))
+  :init
+  (setq TeX-parse-self t ; parse on load
+        reftex-plug-into-AUCTeX t
+        TeX-auto-save t  ; parse on save
+        TeX-view-program-selection '((output-pdf "PDF Tools"))
+        TeX-source-correlate-mode t
+        TeX-source-correlate-method 'synctex
+        TeX-source-correlate-start-server t
+        TeX-electric-sub-and-superscript t
+        TeX-engine 'luatex ;; use lualatex by default
+        TeX-save-query nil
+        TeX-electric-math (cons "\\(" "\\)")) ;; '$' inserts an in-line equation '\(...\)'
+
+  (add-hook 'TeX-mode-hook #'reftex-mode)
+  (add-hook 'TeX-mode-hook #'olivetti-mode)
+  (add-hook 'TeX-mode-hook #'turn-on-auto-fill)
+  (add-hook 'TeX-mode-hook #'prettify-symbols-mode)
+  (add-hook 'TeX-after-compilation-finished-functions
+            #'TeX-revert-document-buffer)
+  (add-hook 'TeX-mode-hook #'outline-minor-mode)
+  ;; :general
+  ;; (patrl/local-leader-keys
+  ;;   :keymaps 'LaTeX-mode-map
+  ;;   ;; "TAB" 'TeX-complete-symbol ;; FIXME let's 'TAB' do autocompletion (but it's kind of useless to be honest)
+  ;;   "=" '(reftex-toc :wk "reftex toc")
+  ;;   "(" '(reftex-latex :wk "reftex label")
+  ;;   ")" '(reftex-reference :wk "reftex ref")
+  ;;   "m" '(LaTeX-macro :wk "insert macro")
+  ;;   "s" '(LaTeX-section :wk "insert section header")
+  ;;   "e" '(LaTeX-environment :wk "insert environment")
+  ;;   "p" '(preview-at-point :wk "preview at point")
+  ;;   "f" '(TeX-font :wk "font")
+  ;; "c" '(TeX-command-run-all :wk "compile"))
+  )
+
+(use-package latex
+  :ensure nil
+  :hook ((LaTeX-mode . prettify-symbols-mode))
+  :bind (:map LaTeX-mode-map
+	      ("C-S-e" . latex-math-from-calc))
+  :config
+  ;; Format math as a Latex string with Calc
+  (defun latex-math-from-calc ()
+    "Evaluate `calc' on the contents of line at point."
+    (interactive)
+    (cond ((region-active-p)
+	   (let* ((beg (region-beginning))
+		  (end (region-end))
+		  (string (buffer-substring-no-properties beg end)))
+	     (kill-region beg end)
+	     (insert (calc-eval `(,string calc-language latex
+					  calc-prefer-frac t
+					  calc-angle-mode rad)))))
+	  (t (let ((l (thing-at-point 'line)))
+	       (end-of-line 1) (kill-line 0)
+	       (insert (calc-eval `(,l
+				    calc-language latex
+				    calc-prefer-frac t
+				    calc-angle-mode rad))))))))
 
 (use-package diminish :ensure t)
 
@@ -356,12 +404,13 @@
   (corfu-popupinfo-mode)
 
   ;; auto trigger
-  ;; :config
-  ;; (setq corfu-auto t
-  ;;     corfu-auto-delay 0.1
-  ;;     corfu-auto-trigger "." ;; Custom trigger characters
-  ;; corfu-quit-no-match 'separator) ;; or t
+  :config
+  (setq corfu-auto t
+	corfu-auto-delay 0.1
+	corfu-auto-trigger "." ;; Custom trigger characters
+	corfu-quit-no-match 'separator) ;; or t
   )
+
 (use-package cape
   :ensure t
   ;; Bind prefix keymap providing all Cape commands under a mnemonic key.
@@ -383,6 +432,7 @@
   ;; (add-hook 'completion-at-point-functions #'cape-history)
   ;; ...
   )
+
 
 ;; Use Dabbrev with Corfu!
 (use-package dabbrev
@@ -646,7 +696,6 @@
 
 ;; Org Mode
 (use-package org
-  :defer t
   :hook ((org-mode . visual-line-mode)
          (org-mode . org-indent-mode))
   :config
@@ -794,38 +843,8 @@
 
 ;; (use-package realgud :ensure t)
 
-;; tree-sitter
-(use-package treesit
-  :init
-  (when (eq system-type 'windows-nt)
-    (add-to-list 'treesit-extra-load-path (file-name-concat (file-truename user-emacs-directory) "tree-sitter"))
-    (add-to-list 'treesit-extra-load-path "C:\\msys64\\ucrt64\\lib")
-    ;; (add-to-list 'treesit-extra-load-path "C:\\msys64\\mingw64\\lib")
-    ;; (setenv "LD_LIBRARY_PATH" (expand-file-name "C:\\msys64\\mingw64\\lib"))
-    )
-  :config
-  ;; I don't understand why I need this - the file names are correct, it should just work?
-  ;; (setq treesit-load-name-override-list '(
-  ;; 					  (c "libtree-sitter-c")
-  ;; 					  (c++ "libtree-sitter-cpp")
-  ;; 					  (javascript "libtree-sitter-javascript")
-  ;; 					  (typescript "libtree-sitter-typescript")
-  ;; 					  (python "libtree-sitter-python")))
-  )
-
-(use-package treesit-auto
-  :ensure t
-  :config
-  (setq treesit-auto-install 'prompt)
-  (global-treesit-auto-mode))
-
-(use-package treesit-fold
-  :ensure (:host github :repo "emacs-tree-sitter/treesit-fold")
-  :ensure (:wait t))
-
 ;;; dape
 (use-package dape
-  :defer t
   :ensure t
   ;; refer to evil-collection binds
   :preface
@@ -1042,10 +1061,111 @@
       (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
   )
 
-(use-package shell :ensure nil
-  :config
-  (setq explicit-shell-file-name "/bin/bash"))
+;; wrapper around terminal
+(use-package mistty
+  :ensure t
+  :bind (("C-c s" . mistty)
 
+         ;; bind here the shortcuts you'd like the
+         ;; shell to handle instead of Emacs.
+         :map mistty-prompt-map
+
+         ;; fish: directory history
+         ("M-<up>" . mistty-send-key)
+         ("M-<down>" . mistty-send-key)
+         ("M-<left>" . mistty-send-key)
+         ("M-<right>" . mistty-send-key))
+  )
+
+;; declare linux specific packages here
+(unless (eq system-type 'windows-nt)
+  ;; does not work with powershell
+  (use-package eat
+    :ensure t
+    :hook (eshell-load-hook . eat-eshell-mode)
+    :hook (eshell-load-hook . eat-eshell-visual-command-mode)
+    :bind (("C-c e" . eat)
+	   ))
+
+  ;; tree-sitter, at least until it works on Windows
+  (use-package treesit
+    ;; :ensure (:host github :repo "https://github.com/mickeynp/combobulate" :branch "master")
+    :mode (("\\.tsx\\'" . tsx-ts-mode))
+    :preface
+    (defun mp-setup-install-grammars ()
+      "Install Tree-sitter grammars if they are absent."
+      (interactive)
+      (dolist (grammar
+	       ;; Note the version numbers. These are the versions that
+	       ;; are known to work with Combobulate *and* Emacs.
+	       '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+		 (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+		 (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+		 (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+		 (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+		 (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+		 (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+		 (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
+		 (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+		 (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+		 (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+		 (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+	(add-to-list 'treesit-language-source-alist grammar)
+	;; Only install `grammar' if we don't already have it
+	;; installed. However, if you want to *update* a grammar then
+	;; this obviously prevents that from happening.
+	(unless (treesit-language-available-p (car grammar))
+	  (treesit-install-language-grammar (car grammar)))))
+
+    ;; Optional. Combobulate works in both xxxx-ts-modes and
+    ;; non-ts-modes.
+
+    ;; You can remap major modes with `major-mode-remap-alist'. Note
+    ;; that this does *not* extend to hooks! Make sure you migrate them
+    ;; also
+
+  ;;;;treesit-auto handles this
+
+    ;; (dolist (mapping
+    ;;          '((python-mode . python-ts-mode)
+    ;;            (css-mode . css-ts-mode)
+    ;;            (typescript-mode . typescript-ts-mode)
+    ;;            (js2-mode . js-ts-mode)
+    ;;            (bash-mode . bash-ts-mode)
+    ;;            (conf-toml-mode . toml-ts-mode)
+    ;;            (go-mode . go-ts-mode)
+    ;;            (css-mode . css-ts-mode)
+    ;;            (json-mode . json-ts-mode)
+    ;;            (js-json-mode . json-ts-mode)
+    ;; 	     (yaml-mode . yaml-ts-mode)
+    ;; 	     ))
+    ;;   (add-to-list 'major-mode-remap-alist mapping))
+    :config
+    (mp-setup-install-grammars)
+    ;; Do not forget to customize Combobulate to your liking:
+    ;;
+    ;;  M-x customize-group RET combobulate RET
+    ;;
+    ;; (use-package combobulate
+    ;;   :custom
+    ;;   ;; You can customize Combobulate's key prefix here.
+    ;;   ;; Note that you may have to restart Emacs for this to take effect!
+    ;;   (combobulate-key-prefix "C-c o")
+    ;;   :hook ((prog-mode . combobulate-mode))
+    ;;   ;; Amend this to the directory where you keep Combobulate's source
+    ;;   ;; code.
+    ;;   :load-path ("path-to-git-checkout-of-combobulate"))
+    )
+
+  (use-package treesit-auto
+    :ensure t
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (setq treesit-auto-langs '(cmake))
+    (global-treesit-auto-mode))
+
+  )
 
 ;;; init.el ends here.
 (provide 'init)
