@@ -254,7 +254,7 @@
   ;; (evil-set-initial-state 'dashboard-mode 'normal)
   ;; buffers in which I want to immediately start typing should be in 'insert' state by default.
   (evil-set-initial-state 'eshell-mode 'insert)
-  (evil-set-initial-state 'eat-mode 'insert)
+  ;; (evil-set-initial-state 'eat-mode 'insert)
   (evil-set-initial-state 'magit-diff-mode 'insert)
 
   (with-eval-after-load 'evil-maps ; avoid conflict with corfu tooltip selection
