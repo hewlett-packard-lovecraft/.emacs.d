@@ -16,6 +16,7 @@ org-persist
 recentf
 .project
 projects
+projects.eld
 places
 projectile-bookmarks.eld
 project-window-list
