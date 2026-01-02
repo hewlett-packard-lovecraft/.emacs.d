@@ -18,6 +18,7 @@
 (setq package-enable-at-startup nil)
 
 ;; Load themes, disable toolbar early to avoid flickering
+
 (load-theme 'modus-operandi t)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
@@ -29,4 +30,3 @@
   (add-to-list 'exec-path (expand-file-name "C:\\msys64\\usr\\bin"))
   ;; (add-to-list 'exec-path (expand-file-name "C:\\Program Files\\Git\\git.exe"))
   )
-

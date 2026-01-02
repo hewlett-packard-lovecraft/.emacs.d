@@ -47,15 +47,14 @@
 (elpaca-no-symlink-mode)
 
 ;; Custom files
-(setq custom-file (expand-file-name "customs.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load custom-file 'noerror)))
+(setq customs-file (expand-file-name "customs.el" user-emacs-directory))
+(add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
 
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load org-custom-file 'noerror)))
+(add-hook 'emamcs-startup-hook (lambda () (load org-custom-file 'noerror)))
 
 (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
-
+(add-hook 'emacs-startup-hook (lambda () (load wsl-t-custom-file 'noerror)))
 
 ;; ;; use-package
 ;; Install use-package support
@@ -1130,6 +1129,7 @@
   :ensure t
   :commands format-all-mode
   :hook (prog-mode . format-all-mode)
+  :bind ("M-F" . format-all-buffer)
   :config
   (setq-default format-all-formatters
                 '(("C"     (astyle "--mode=c"))
