@@ -102,14 +102,15 @@
   (read-extended-command-predicate #'command-completion-default-include-p)
 
   :config
-
   ;; line numbers
-  (electric-pair-mode 1)
-
   (global-display-line-numbers-mode 1)
+  (setq display-line-numbers-type 'relative)
 
   ;; autoreload buffers
   (global-auto-revert-mode t)
+
+  ;; autopairs
+  (electric-pair-mode 1)
 
   ;; replace sound with flash
   (setq visible-bell t)
@@ -151,16 +152,16 @@
 
   ;; keep backup and save files in a dedicated directory
   (setq backup-directory-alist
-        `((".*" . ,(concat user-emacs-directory "backups")))
-        auto-save-file-name-transforms
-        `((".*" ,(concat user-emacs-directory "backups") t)))
+	`((".*" . ,(concat user-emacs-directory "backups")))
+	auto-save-file-name-transforms
+	`((".*" ,(concat user-emacs-directory "backups") t)))
 
   (setq create-lockfiles nil) ;; no need to create lockfiles
 
   (set-charset-priority 'unicode) ;; utf8 everywhere
   (setq locale-coding-system 'utf-8
-        coding-system-for-read 'utf-8
-        coding-system-for-write 'utf-8)
+	coding-system-for-read 'utf-8
+	coding-system-for-write 'utf-8)
   (set-terminal-coding-system 'utf-8)
   (set-keyboard-coding-system 'utf-8)
   (set-selection-coding-system 'utf-8)
@@ -191,6 +192,11 @@
 (use-package clipetty :ensure t
   :config
   :hook (after-init . global-clipetty-mode))
+
+;; gui get path from shell
+(use-package exec-path-from-shell :ensure t
+  :if (and (display-graphic-p) (memq window-system '(mac ns x pgtk)))
+  :hook (after-init . (exec-path-from-shell-initialize)))
 
 (use-package diminish :ensure t)
 
@@ -261,14 +267,7 @@
     (define-key evil-insert-state-map (kbd "C-n") nil)
     (define-key evil-insert-state-map (kbd "C-p") nil))
 
-  (defun my/display-set-relative ()
-    (setq display-line-numbers 'relative))     ; or 'visual
-  (defun my/display-set-absolute ()
-    (setq display-line-numbers t))
-
-  (add-hook 'evil-insert-state-entry-hook #'my/display-set-absolute)
-  (add-hook 'evil-insert-state-exit-hook #'my/display-set-relative))
-
+  )
 
 ;;; Vim Bindings Everywhere else
 (use-package evil-collection
@@ -845,7 +844,7 @@
     :hook (LaTeX-mode . evil-tex-mode)
     :general
     (:keymaps 'evil-tex-mode-map
-              "M-]" 'evil-tex-brace-movement)
+	      "M-]" 'evil-tex-brace-movement)
     :hook (LaTeX-mode . evil-tex-mode))
   )
 
@@ -855,7 +854,8 @@
   :ensure t
   :magic ("%PDF" . pdf-view-mode)
   :config
-  (pdf-tools-install :no-query))
+  (pdf-tools-install :no-query)
+ (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1))))
 
 
 ;; Org Mode
@@ -941,7 +941,7 @@
 
   :config
   ;; Remember to check the doc string of each of those variables.
-  (setq denote-directory (expand-file-name "~/../../OneDrive/Documents/Denote"))
+  (setq denote-directory (expand-file-name "~/Documents/Denote/"))
   (setq denote-save-buffers nil)
   (setq denote-known-keywords '("cs202"))
   (setq denote-infer-keywords t)
@@ -1128,16 +1128,12 @@
 ;; autoformat
 (use-package format-all
   :ensure t
-  :preface
-  (defun ian/format-code ()
-    "Auto-format whole buffer."
-    (interactive)
-    (if (derived-mode-p 'prolog-mode)
-        (prolog-indent-buffer)
-      (format-all-buffer)))
+  :commands format-all-mode
+  :hook (prog-mode . format-all-mode)
   :config
-  (global-set-key (kbd "M-F") #'ian/format-code)
-  (add-hook 'prog-mode-hook #'format-all-ensure-formatter))
+  (setq-default format-all-formatters
+                '(("C"     (astyle "--mode=c"))
+                  ("Shell" (shfmt "-i" "4" "-ci")))))
 
 ;; autocorrect
 
