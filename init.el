@@ -250,10 +250,10 @@
 
   (setq evil-want-keybinding nil)
   ;; no vim insert bindings
+  (setq evil-disable-insert-state-bindings t)
   (setq evil-undo-system 'undo-fu)
-  ;;  (setq evil-undo-system 'undo-redo)
+  ;;  (setq evil-undo-system 'undo-redo) ;; built-in, C-r for redo and u for undo
   :config
-  (evil-mode t)
   ;; set the initial state for some kinds of buffers.
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   ;; (evil-set-initial-state 'dashboard-mode 'normal)
@@ -266,47 +266,18 @@
     (define-key evil-insert-state-map (kbd "C-n") nil)
     (define-key evil-insert-state-map (kbd "C-p") nil))
 
-  )
+  (evil-mode t))
 
 ;;; Vim Bindings Everywhere else
 (use-package evil-collection
   :ensure t
   :after evil
-
-  :custom (evil-collection-setup-minibuffer t)
+  :custom
+  (evil-collection-setup-minibuffer t)
   (evil-want-integration t)
   (with-eval-after-load 'flymake (evil-collection-flymake-setup))
   :config(evil-collection-init))
 
-
-;; vim-commentary for Emacs
-;; (Use gcc to comment out a line, gc to comment out the target of a motion
-;; (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection etc.)
-
-(use-package evil-commentary
-  :ensure t
-  :after evil
-  :diminish
-  :config (evil-commentary-mode +1))
-
-(use-package evil-goggles
-  :ensure t
-  :after evil
-  :config
-  (evil-goggles-mode)
-
-  ;; optionally use diff-mode's faces; as a result, deleted text
-  ;; will be highlighed with `diff-removed` face which is typically
-  ;; some red color (as defined by the color theme)
-  ;; other faces such as `diff-added` will be used for other actions
-  (evil-goggles-use-diff-faces))
-
-(use-package evil-snipe :ensure t
-  :after evil
-  :config
-  ;; add exceptions, otherwise enable everywhere
-  (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
-  (evil-snipe-override-mode 1))
 
 (use-package general
   :ensure (:wait t)
@@ -332,6 +303,12 @@
   (general-define-key
    :states 'insert
    "C-g" 'evil-normal-state) ;; don't stretch for ESC
+
+  (general-unbind '(normal motion)
+    :with 'ignore
+    [remap evil-substitute] ;; prevent S and s conflict
+    [remap evil-change-whole-line]
+    )
 
   (my/leader-keys
     "SPC" '(execute-extended-command :wk "execute command") ;; an alternative to 'M-x'
@@ -377,6 +354,66 @@
   (my/leader-keys
     "s" '(:ignore t :wk "search"))
   )
+
+;; vim-commentary for Emacs
+;; (Use gcc to comment out a line, gc to comment out the target of a motion
+;; (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection etc.)
+
+(use-package evil-commentary
+  :ensure t
+  :after evil
+  :diminish
+  :config (evil-commentary-mode +1))
+
+(use-package evil-goggles
+  :ensure t
+  :after evil
+  :config
+  (evil-goggles-mode)
+
+  ;; optionally use diff-mode's faces; as a result, deleted text
+  ;; will be highlighed with `diff-removed` face which is typically
+  ;; some red color (as defined by the color theme)
+  ;; other faces such as `diff-added` will be used for other actions
+  (evil-goggles-use-diff-faces))
+
+;; https://howardabrams.com/hamacs/ha-evil.html#orgf9898ca
+(use-package evil-surround
+  :ensure t
+  :config
+  (defun evil-surround-elisp ()
+    (push '(?\` . ("`" . "'")) evil-surround-pairs-alist))
+  (defun evil-surround-org ()
+    (push '(?\" . ("“" . "”")) evil-surround-pairs-alist)
+    (push '(?\' . ("‘" . "’")) evil-surround-pairs-alist)
+    (push '(?b . ("*" . "*")) evil-surround-pairs-alist)
+    (push '(?* . ("*" . "*")) evil-surround-pairs-alist)
+    (push '(?i . ("/" . "/")) evil-surround-pairs-alist)
+    (push '(?/ . ("/" . "/")) evil-surround-pairs-alist)
+    (push '(?= . ("=" . "=")) evil-surround-pairs-alist)
+    (push '(?~ . ("~" . "~")) evil-surround-pairs-alist))
+
+  (global-evil-surround-mode 1)
+
+  :hook
+  (org-mode . evil-surround-org)
+  (emacs-lisp-mode . evil-surround-elisp))
+
+(use-package evil-snipe :ensure t
+  :after evil :demand t
+  :hook (magit-mode-hook . turn-off-evil-snipe-override-mode)
+  :general
+  (general-def '(normal motion) ;; needs a special override for some reason
+    "s" 'evil-snipe-s
+    "S" 'evil-snipe-S)
+  ;; (general-def '(normal motion) ;; needs a special override for some reason
+  ;;   "s" 'evil-snipe-s
+  ;;   "S" 'evil-snipe-S)
+
+  :config
+  (setq evil-snipe-scope 'whole-visible)
+  (setq evil-snipe-smart-case t)
+  (evil-snipe-override-mode 1))
 
 (use-package ag
   :ensure t
@@ -703,11 +740,11 @@
              ;;consult-notes-org-roam-find-node
              ;; consult-notes-org-roam-find-node-relation
 	     )
-  :bind
-  ( :map global-map
-    ("C-x n" . consult-notes)
-    ("C-c n s" . consult-notes-search-in-all-notes)
-    )
+  :bind (
+	 :map global-map
+	 ("C-x n" . consult-notes)
+	 ("C-c n s" . consult-notes-search-in-all-notes)
+	 )
   :config
   ;; Set org-roam integration, denote integration, or org-heading integration e.g.:
   ;; (setq consult-notes-org-headings-files '("~/path/to/file1.org"
@@ -762,6 +799,7 @@
 
 
 (use-package which-key
+  :demand t
   :ensure t
   :config
   (which-key-mode +1)
@@ -847,14 +885,21 @@
     :hook (LaTeX-mode . evil-tex-mode))
   )
 
-(use-package olivetti :ensure t)
+(use-package olivetti
+  :ensure t
+  :demand t
+  :init
+  (setq olivetti-body-width 120)
+  (setq olivetti-style 'nil)
+  (setq olivetti-minimum-body-width 80)
+  )
 
 (use-package pdf-tools
   :ensure t
   :magic ("%PDF" . pdf-view-mode)
   :config
   (pdf-tools-install :no-query)
- (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1))))
+  (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1))))
 
 
 ;; Org Mode
@@ -1057,27 +1102,28 @@
   ;; refer to evil-collection bindings
   :hook ((python-ts-mode c++-ts-mode c-ts-mode) . eglot-ensure)
   :hook ((python-mode c++-mode c-mode) . eglot-ensure)
+  :hook ((LaTeX-mode) . eglot-ensure)
   :config
   (add-to-list 'eglot-server-programs
-	       '((python-ts-mode . ("pyright-langserver" "--stdio"))
-                 (c-ts-mode c++-ts-mode . ("clangd" "-j=24"
-					   "--log=error"
-					   "--malloc-trim"
-					   "--background-index"
-					   "--clang-tidy"
-					   "--cross-file-rename"
-					   "--completion-style=detailed"
-					   "--pch-storage=memory"
-					   "--header-insertion=never"
-					   "--header-insertion-decorators=0")
-			    ;; (LaTeX-mode tex-mode . (""))
-			    ))))
+	       '((c-or-c++-mode c-or-c++-ts-mode) . ("clangd" "-j=24"
+						     "--log=error"
+						     "--malloc-trim"
+						     "--background-index"
+						     "--clang-tidy"
+						     "--cross-file-rename"
+						     "--completion-style=detailed"
+						     "--pch-storage=memory"
+						     "--header-insertion=never"
+						     "--header-insertion-decorators=0")))
+  (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio")))
+  )
 
 (use-package eglot-booster
   :ensure (:wait t)
   :ensure (:host github
 		 :repo "jdtsmith/eglot-booster")
   :after eglot
+  :if (eq system-type 'gnu/linux)
   :config
   (eglot-booster-mode t)
   (setq eglot-booster-io-only t))
