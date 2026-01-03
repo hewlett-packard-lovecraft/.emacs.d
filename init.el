@@ -891,8 +891,8 @@
   :ensure t
   :magic ("%PDF" . pdf-view-mode)
   :config
-  (pdf-tools-install :no-query)
-  (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1))))
+  (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1)))
+  (pdf-tools-install :no-query))
 
 
 ;; Org Mode
