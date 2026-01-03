@@ -67,7 +67,6 @@
 ;;e.g. a package which adds a use-package key word,
 ;;use the :wait recipe keyword to block until that package is installed/configured.
 ;;For example:
-;;(use-package general :ensure (:wait t) :demand t)
 
 ;; Expands to: (elpaca evil (use-package evil :demand t))
 ;; (use-package evil :ensure t :demand t)
@@ -85,7 +84,7 @@
 
   ;; ;; corfu
   ;; TAB cycle if there are only few candidates
-  (completion-cycle-threshold 3)
+  (completion-cycle-threshold 5)
 
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
@@ -107,9 +106,6 @@
 
   ;; autoreload buffers
   (global-auto-revert-mode t)
-
-  ;; autopairs
-  (electric-pair-mode 1)
 
   ;; replace sound with flash
   (setq visible-bell t)
@@ -193,20 +189,18 @@
   :hook (after-init . global-clipetty-mode))
 
 ;; gui get path from shell
-(use-package exec-path-from-shell :ensure t
-  :if (and (display-graphic-p) (memq window-system '(mac ns x pgtk)))
-  :hook (after-init . (exec-path-from-shell-initialize)))
+(use-package exec-path-from-shell
+  :ensure t
+  :if (and (display-graphic-p) (memq window-system '(mac ns x)))
+  :hook (after-init . exec-path-from-shell-initialize))
+(use-package electric
+  :demand t
+  :ensure nil
+  :init
+  (electric-pair-mode +1) ;; automatically insert closing parens
+  (setq electric-pair-preserve-balance nil)) ;; more annoying than useful
 
 (use-package diminish :ensure t)
-
-;; (use-package modern-tab-bar
-;;   :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar" :protocol ssh)
-;;   :init
-;;   (setq tab-bar-show t
-;;         tab-bar-new-button nil
-;;         tab-bar-close-button-show nil)
-
-;;   (modern-tab-bar-mode))
 
 ;; tab bar
 (use-package tab-bar
@@ -236,11 +230,11 @@
   (tab-bar-mode 1))
 
 ;;; Vim Bindings
-(use-package undo-fu :ensure t :demand t)
+;; (use-package undo-fu :ensure t :demand t)
 
 (use-package evil
-  :ensure t
   :demand t
+  :ensure t
   :bind (("<escape>" . keyboard-escape-quit))
   :init
   (setq evil-respect-visual-line-mode t) ;; respect visual lines
@@ -251,8 +245,8 @@
   (setq evil-want-keybinding nil)
   ;; no vim insert bindings
   (setq evil-disable-insert-state-bindings t)
-  (setq evil-undo-system 'undo-fu)
-  ;;  (setq evil-undo-system 'undo-redo) ;; built-in, C-r for redo and u for undo
+
+  (setq evil-undo-system 'undo-redo) ;; built-in, C-r for redo and u for undo
   :config
   ;; set the initial state for some kinds of buffers.
   (evil-set-initial-state 'messages-buffer-mode 'normal)
@@ -400,7 +394,7 @@
   (emacs-lisp-mode . evil-surround-elisp))
 
 (use-package evil-snipe :ensure t
-  :after evil :demand t
+  :after evil
   :hook (magit-mode-hook . turn-off-evil-snipe-override-mode)
   :general
   (general-def '(normal motion) ;; needs a special override for some reason
@@ -575,7 +569,7 @@
 ;; icomplete: setup icomplete-vertical-mode / fido-mode / fido-vertical-mode
 ;; replaces ido
 (use-package icomplete
-  :demand t
+  :defer nil
   :config
   (defun basic-completion-style ()
     (setq completion-auto-wrap t
@@ -799,7 +793,7 @@
 
 
 (use-package which-key
-  :demand t
+  :defer nil
   :ensure t
   :config
   (which-key-mode +1)
@@ -887,7 +881,6 @@
 
 (use-package olivetti
   :ensure t
-  :demand t
   :init
   (setq olivetti-body-width 120)
   (setq olivetti-style 'nil)
@@ -1053,6 +1046,7 @@
 
 ;;; dape
 (use-package dape
+  :defer t
   :ensure t
   ;; refer to evil-collection binds
   :preface
@@ -1119,11 +1113,10 @@
   )
 
 (use-package eglot-booster
-  :ensure (:wait t)
+  :if (eq system-type 'gnu/linux)
   :ensure (:host github
 		 :repo "jdtsmith/eglot-booster")
   :after eglot
-  :if (eq system-type 'gnu/linux)
   :config
   (eglot-booster-mode t)
   (setq eglot-booster-io-only t))
@@ -1287,8 +1280,8 @@
 ;; declare linux specific packages here
 
 (use-package eat
-  :if (eq system-type 'gnu/linux)
   :ensure t
+  :if (eq system-type 'gnu/linux)
   :hook (eshell-load-hook . eat-eshell-mode)
   :hook (eshell-load-hook . eat-eshell-visual-command-mode)
   :bind (("C-c e" . eat)
