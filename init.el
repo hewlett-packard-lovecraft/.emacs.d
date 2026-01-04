@@ -4,6 +4,58 @@
 ;;
 ;;; Code:
 
+;; define custom functions early on so they still work if something breaks
+(defun initel()
+  "Open the Emacs init file for editing."
+  (interactive)
+  (find-file user-init-file))
+
+(defun +elpaca-reload-package (package &optional allp)
+  "Reload PACKAGE's features.
+If ALLP is non-nil (interactively, with prefix), load all of its
+features; otherwise only load ones that were already loaded.
+
+This is useful to reload a package after upgrading it.  Since a
+package may provide multiple features, to reload it properly
+would require either restarting Emacs or manually unloading and
+reloading each loaded feature.  This automates that process.
+
+Note that this unloads all of the package's symbols before
+reloading.  Any data stored in those symbols will be lost, so if
+the package would normally save that data, e.g. when a mode is
+deactivated or when Emacs exits, the user should do so before
+using this command."
+  (interactive
+   (list (let ((elpaca-overriding-prompt "Reload package: "))
+           (elpaca--read-queued))
+         current-prefix-arg))
+  ;; This finds features in the currently installed version of PACKAGE, so if
+  ;; it provided other features in an older version, those are not unloaded.
+  (when (yes-or-no-p (format "Unload all of %s's symbols and reload its features? " package))
+    (let* ((package-name (symbol-name package))
+           (package-dir (file-name-directory
+                         (locate-file package-name load-path (get-load-suffixes))))
+           (package-files (directory-files package-dir 'full (rx ".el" eos)))
+           (package-features
+            (cl-loop for file in package-files
+                     when (with-temp-buffer
+                            (insert-file-contents file)
+                            (when (re-search-forward (rx bol "(provide" (1+ space)) nil t)
+                              (goto-char (match-beginning 0))
+                              (cadadr (read (current-buffer)))))
+                     collect it)))
+      (unless allp
+        (setf package-features (seq-intersection package-features features)))
+      (dolist (feature package-features)
+        (ignore-errors
+          ;; Ignore error in case it's not loaded.
+          (unload-feature feature 'force)))
+      (dolist (feature package-features)
+        (require feature))
+      (when package-features
+        (message "Reloaded: %s" (mapconcat #'symbol-name package-features " "))))))
+
+
 ;; elpaca installer
 (defvar elpaca-installer-version 0.11)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
@@ -46,15 +98,19 @@
 
 (elpaca-no-symlink-mode)
 
-;; Custom files
-(setq customs-file (expand-file-name "customs.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
-
+;; startup files
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
-(add-hook 'emamcs-startup-hook (lambda () (load org-custom-file 'noerror)))
+(add-hook 'emacs-startup-hook (lambda () (load org-custom-file 'noerror)))
 
-(setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
-(add-hook 'emacs-startup-hook (lambda () (load wsl-t-custom-file 'noerror)))
+;; load wsl, terminal file unless on Windows
+(unless (eq system-type 'windows-nt)
+  (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
+  (add-hook 'emacs-startup-hook (lambda () (load wsl-t-custom-file 'noerror))))
+
+(when (display-graphic-p) ;; load customs file only when graphic
+  (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
+  (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror))))
+
 
 ;; ;; use-package
 ;; Install use-package support
@@ -78,7 +134,6 @@
 ;; ;; ;; emacs-builtins
 (use-package emacs :ensure nil
   :custom
-
   ;; ;; dape
   (window-sides-vertical t)
 
@@ -252,8 +307,8 @@
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   ;; (evil-set-initial-state 'dashboard-mode 'normal)
   ;; buffers in which I want to immediately start typing should be in 'insert' state by default.
-  (evil-set-initial-state 'eshell-mode 'insert)
-  ;; (evil-set-initial-state 'eat-mode 'insert)
+  ;; (evil-set-initial-state 'eshell-mode 'insert)
+  (evil-set-initial-state 'eat-mode 'emacs)
   (evil-set-initial-state 'magit-diff-mode 'insert)
 
   (with-eval-after-load 'evil-maps ; avoid conflict with corfu tooltip selection
@@ -510,13 +565,17 @@
   (corfu-history-mode)
   (corfu-popupinfo-mode)
 
-  ;; auto trigger
   :config
   (setq corfu-auto t
 	corfu-auto-delay 0.1
 	corfu-auto-trigger "." ;; Custom trigger characters
 	corfu-quit-no-match 'separator) ;; or t
   )
+
+(use-package corfu-terminal :ensure t
+  :unless (display-graphic-p)
+  :config
+  (corfu-terminal-mode +1))
 
 (use-package cape
   :ensure t
@@ -569,7 +628,6 @@
 ;; icomplete: setup icomplete-vertical-mode / fido-mode / fido-vertical-mode
 ;; replaces ido
 (use-package icomplete
-  :defer nil
   :config
   (defun basic-completion-style ()
     (setq completion-auto-wrap t
@@ -585,7 +643,7 @@
           completion-auto-help nil
           completions-max-height 15
           completion-styles '(initials flex)
-          icomplete-in-buffer t
+          ;; icomplete-in-buffer t
           max-mini-window-height 10)
 
     (icomplete-mode 1)
@@ -597,7 +655,7 @@
           completion-auto-help 'lazy
           completions-max-height 15
           completion-styles '(flex)
-          icomplete-in-buffer t
+          ;; icomplete-in-buffer t
           max-mini-window-height 10)
 
     (fido-mode 1)
@@ -610,13 +668,19 @@
       (let ((non-essential t))
 	(icomplete-exhibit))))
 
-  ;; Bind C-r to show minibuffer history entries
-  (keymap-set minibuffer-mode-map "C-r" #'minibuffer-complete-history)
+  (add-hook 'icomplete-minibuffer-setup-hook 'basic-completion-style)
 
+  :hook (after-init . fido-style)
+  :bind (:map minibuffer-mode-map ("C-r" . minibuffer-complete-history))
+
+  ;; Bind C-r to show minibuffer history entries
+  ;; (keymap-set minibuffer-mode-map "C-r" #'minibuffer-complete-history)
+
+  ;; :hook (icomplete-minibuffer-setup . fido-style)
   ;; enable
-  (basic-completion-style)
+  ;; (basic-completion-style)
   ;; (icomplete-vertical-style)
-  (fido-style)
+  ;; (fido-style)
   )
 
 ;; Consult
@@ -1046,14 +1110,20 @@
 
 ;;; dape
 (use-package dape
+  :unless (eq system-type 'windows-nt)
   :defer t
   :ensure t
   ;; refer to evil-collection binds
+
+  :bind ("C-c p" . cape-prefix-map) ;; Alternative key: M-<tab>, M-p, M-+
   :preface
   ;; By default dape shares the same keybinding prefix as `gud'
   ;; If you do not want to use any prefix, set it to nil.
   (setq dape-key-prefix "\C-x\C-a")
 
+  ;; :general
+  ;; assign built-in dape.el bindings a new prefix
+  ;; (my/leader-keys "a" '(:keymap dape-prefix-map :wk "dape")))
   ;; Save breakpoints on quit
   ;; :hook
   ;; (kill-emacs . dape-breakpoint-save)
@@ -1070,15 +1140,18 @@
   ;; (dape-buffer-window-arrangement 'gud)
   (dape-info-hide-mode-line nil)
 
-  :config
+  :hook (dape-display-source . pulse-momentary-highlight-one-line)
+  :hook (dape-start . (lambda () (save-some-buffers t t)))
+  :hook (dape-compile . kill-buffer)
   ;; Pulse source line (performance hit)
-  (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
+  ;; (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
 
   ;; Save buffers on startup, useful for interpreted languages
-  (add-hook 'dape-start-hook (lambda () (save-some-buffers t t)))
+  ;; (add-hook 'dape-start-hook (lambda () (save-some-buffers t t)))
 
   ;; Kill compile buffer on build success
-  (add-hook 'dape-compile-hook #'kill-buffer))
+  ;; (add-hook 'dape-compile-hook #'kill-buffer)
+  )
 
 ;; For a more ergonomic Emacs and `dape' experience
 (use-package repeat
@@ -1135,16 +1208,54 @@
   (nerd-icons-font-family "Symbols Nerd Font Mono")
   )
 
-(use-package all-the-icons
-  :if (display-graphic-p)
-  :ensure t
+(use-package nerd-icons-corfu :ensure t
+  :after nerd-icons
   :config
-  (add-to-list 'all-the-icons-extension-icon-alist '("m" all-the-icons-fileicon "matlab" :face all-the-icons-orange)))
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
 
-(use-package all-the-icons-dired
-  :ensure t
+  ;; ;; Optionally:
+  ;; (setq nerd-icons-corfu-mapping
+  ;; 	'((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
+  ;;         (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
+  ;;         ;; You can alternatively specify a function to perform the mapping,
+  ;;         ;; use this when knowing the exact completion candidate is important.
+  ;;         ;; Don't pass `:face' if the function already returns string with the
+  ;;         ;; face property, though.
+  ;;         (file :fn nerd-icons-icon-for-file :face font-lock-string-face)
+  ;;         ;; ...
+  ;;         (t :style "cod" :icon "code" :face font-lock-warning-face)))
+  ;; If you add an entry for t, the library uses that as fallback.
+  ;; The default fallback (when it's not specified) is the ? symbol.
+
+  ;; The Custom interface is also supported for tuning the variable above.
+  )
+(use-package nerd-icons-completion :ensure t
+  :after marginalia
   :config
-  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
+(use-package nerd-icons-dired :ensure t
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
+
+(use-package nerd-icons-mode-line
+  :ensure  (:host github :repo "grolongo/nerd-icons-mode-line")
+  :custom
+  (nerd-icons-mode-line-v-adjust 0.1) ; default value
+  (nerd-icons-mode-line-size 1.0) ; default value
+  :config (nerd-icons-mode-line-global-mode t))
+
+;; (use-package all-the-icons
+;;   :if (display-graphic-p)
+;;   :ensure t
+;;   :config
+;;   (add-to-list 'all-the-icons-extension-icon-alist '("m" all-the-icons-fileicon "matlab" :face all-the-icons-orange)))
+
+;; (use-package all-the-icons-dired
+;;   :ensure t
+;;   :config
+;;   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 
 
 (use-package transient :ensure t)
@@ -1160,8 +1271,10 @@
   ;; don't automatically refresh the status buffer after running a git command
   (setq magit-refresh-status-buffer nil)
 
-  :bind (("C-x g" . magit-status)
-         ("C-x C-g" . magit-status)))
+  :bind (("C-x M-g" . magit-status)
+	 :map project-prefix-map
+	 ("M-g" . magit-project-status))
+  )
 
 ;; autoformat
 (use-package format-all
@@ -1281,10 +1394,14 @@
 
 (use-package eat
   :ensure t
-  :if (eq system-type 'gnu/linux)
-  :hook (eshell-load-hook . eat-eshell-mode)
-  :hook (eshell-load-hook . eat-eshell-visual-command-mode)
+  ;; :if (eq system-type 'gnu/linux)
+  :custom
+  (eat-term-name "xterm-256color")
+  :hook (eshell-load . eat-eshell-mode)
+  :hook (eshell-load . eat-eshell-visual-command-mode)
   :bind (("C-c e" . eat)
+	 :map project-prefix-map
+	 ("t" . eat-project)
 	 ))
 
 ;; tree-sitter, at least until it works on Windows
