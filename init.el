@@ -1246,17 +1246,6 @@ using this command."
   (nerd-icons-mode-line-size 1.0) ; default value
   :config (nerd-icons-mode-line-global-mode t))
 
-;; (use-package all-the-icons
-;;   :if (display-graphic-p)
-;;   :ensure t
-;;   :config
-;;   (add-to-list 'all-the-icons-extension-icon-alist '("m" all-the-icons-fileicon "matlab" :face all-the-icons-orange)))
-
-;; (use-package all-the-icons-dired
-;;   :ensure t
-;;   :config
-;;   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
-
 
 (use-package transient :ensure t)
 
