@@ -1,8 +1,9 @@
-;;; enit.el --- Howard's Emacs configuration  -*- lexical-binding: t; -*-
+;;; init.el --- Howard's Emacs configuration  -*- lexical-binding: t; -*-
 ;;; Commentary:
 ;; A basic config for editing Org files and LaTeX. Works on Windows.
 ;;
 ;;; Code:
+;; (setq use-package-compute-statistics t)
 
 ;; define custom functions early on so they still work if something breaks
 (defun initel()
@@ -98,6 +99,9 @@ using this command."
 
 (elpaca-no-symlink-mode)
 
+(when (eq system-type 'windows-nt)
+  (setq elpaca-queue-limit 12))
+
 ;; startup files
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
 (add-hook 'emacs-startup-hook (lambda () (load org-custom-file 'noerror)))
@@ -132,7 +136,7 @@ using this command."
 ;;Useful for configuring built-in emacs features.
 
 ;; ;; ;; emacs-builtins
-(use-package emacs :ensure nil
+(use-package emacs
   :custom
   ;; ;; dape
   (window-sides-vertical t)
@@ -171,16 +175,20 @@ using this command."
   ;; ;; etc
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
+  ;; (menu-bar-mode -1)
+
   (cua-mode 1)
 
   ;; remember last opened file
-  (recentf-mode 1)
+  ;; (recentf-mode 1)
 
   ;; restore the last cursor location of opened files
   (save-place-mode 1)
 
-  ;; context menu
-  (context-menu-mode 1)
+  :hook (prog-mode . context-menu-mode)
+  :hook (conf-mode . context-menu-mode)
+  :hook (text-mode . context-menu-mode)
+  :config
 
   ;; other defaults https://www.patrickdelliott.com/emacs.d/
   (setq enable-recursive-minibuffers t)
@@ -236,7 +244,16 @@ using this command."
     (put 'suspend-frame 'disabled t) ;; disable confusing suspend in GUI mode
     (menu-bar-mode -1))
 
-  (setq xterm-extra-capabilities '(getSelection setSelection modifyOtherKeys)))
+  (setq xterm-extra-capabilities '(getSelection setSelection modifyOtherKeys))
+
+  (use-package tab-bar
+    :config
+    (setq tab-bar-show 1)                      ;; hide bar if <= 1 tabs open
+    (setq tab-bar-close-button-show nil)       ;; hide tab close / X button
+    ;; (setq tab-bar-new-tab-choice "*dashboard*");; buffer to show in new tabs
+    (setq tab-bar-tab-hints t)                 ;; show tab numbers
+    (setq tab-bar-format '(tab-bar-format-tabs tab-bar-separator)))
+  )
 
 ;; terminal copy
 (use-package clipetty :ensure t
@@ -258,32 +275,6 @@ using this command."
 (use-package diminish :ensure t)
 
 ;; tab bar
-(use-package tab-bar
-  :bind (
-	 ("C-c C-<tab>" . tab-bar-switch-to-next-tab)
-	 ("C-c C-S-<tab>" . tab-bar-switch-to-prev-tab))
-  :config
-  (setq tab-bar-show 1)                      ;; hide bar if <= 1 tabs open
-  (setq tab-bar-close-button-show nil)       ;; hide tab close / X button
-  ;; (setq tab-bar-new-tab-choice "*dashboard*");; buffer to show in new tabs
-  (setq tab-bar-tab-hints t)                 ;; show tab numbers
-  ;; (setq tab-bar-format '(tab-bar-format-tabs tab-bar-separator)) ;; elements to include in bar
-  (setq tab-bar-format '(tab-bar-format-history tab-bar-format-tabs tab-bar-separator)) ;; elements to include in bar
-
-  ;; look and feel
-  ;; modeline settings
-  ;; '(mode-line ((t (:underline nil :overline nil :box (:line-width 8 :color "#353644" :style nil) :foreground "white" :background "#353644"))))
-  ;; '(mode-line-buffer-id ((t (:weight bold))))
-  ;; '(mode-line-emphasis ((t (:weight bold)))
-  ;; '(mode-line-highlight ((((class color) (min-colors 88)) (:box (:line-width 2 :color "grey40" :style released-button))) (t (:inherit (highlight)))))
-  ;; '(mode-line-inactive ((t (:weight light :underline nil :overline nil :box (:line-width 8 :color "#565063" :style nil) :foreground "white" :background "#565063" :inherit (mode-line)))))
-  ;; tab bar settings
-  ;; '(tab-bar ((t (:inherit mode-line))))
-  ;; '(tab-bar-tab ((t (:inherit mode-line :foreground "white"))))
-  ;; '(tab-bar-tab-inactive ((t (:inherit mode-line-inactive :foreground "black"))))
-
-  (tab-bar-mode 1))
-
 ;;; Vim Bindings
 ;; (use-package undo-fu :ensure t :demand t)
 
@@ -464,9 +455,9 @@ using this command."
   (setq evil-snipe-smart-case t)
   (evil-snipe-override-mode 1))
 
-(use-package ag
-  :ensure t
-  )
+;; (use-package ag
+;;   :ensure t
+;;   )
 
 (use-package highlight-numbers
   :ensure t
@@ -613,6 +604,7 @@ using this command."
   (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
 
 (use-package recentf :ensure nil
+  :hook (after-init . recentf-mode)
   :config
   (global-set-key (kbd "C-x C-r") 'recentf-open)
   (setq recentf-max-saved-items 50)
@@ -1154,9 +1146,12 @@ using this command."
   )
 
 ;; For a more ergonomic Emacs and `dape' experience
+
 (use-package repeat
-  :custom
-  (repeat-mode +1))
+  :hook (dape-start . repeat-mode)
+  ;; :custom
+  ;; (repeat-mode +1)
+  )
 
 
 ;;; LSP with Eglot
@@ -1194,10 +1189,120 @@ using this command."
   (eglot-booster-mode t)
   (setq eglot-booster-io-only t))
 
-;; snippets
-(use-package yasnippet
-  :ensure t
+;; shamelessly stolen from patrick d elliot
+
+(use-package aas :ensure t
+  :hook (LaTeX-mode . aas-activate-for-major-mode)
+  :hook (org-mode . aas-activate-for-major-mode)
+  :config
+  ;; easy emoji entry in text mode.
+  (aas-set-snippets 'text-mode
+		    ":-)" "??"
+		    "8-)" "??"
+		    ":rofl" "??"
+		    ":lol" "??"
+		    "<3" "??"
+		    ":eyes" "??"
+		    ":dragon" "??"
+		    ":fire" "??"
+		    ":hole" "???"
+		    ":flush" "??"
+		    ":wow" "??"))
+
+(use-package laas :ensure t
+  ;; disables accent snippets - things like 'l (which expands to \textsl{}) end up being very disruptive in practice.
+  :init (setq laas-accent-snippets nil)
+  :hook ((LaTeX-mode . laas-mode)
+         (org-mode . laas-mode))
+  :config
+  (aas-set-snippets 'laas-mode
+		    ;; I need to make sure not to accidentally trigger the following, so I should only use impossible (or extremely rare) bigrams/trigrams.
+		    ;; "*b" (lambda () (interactive)
+		    ;;        (yas-expand-snippet "\\textbf{$1}$0"))
+		    ;; "*i" (lambda () (interactive)
+		    ;;     (yas-expand-snippet "\\textit{$1}$0"))
+		    "mx" (lambda () (interactive)
+			   (yas-expand-snippet "\\\\($1\\\\)$0"))
+		    "mq" (lambda () (interactive)
+			   (yas-expand-snippet "\\[$1\\]$0"))
+		    ;; "*I" (lambda () (interactive)
+		    ;;      (yas-expand-snippet "\\begin{enumerate}\n$>\\item $0\n\\end{enumerate}"))
+		    ;; "*e" (lambda () (interactive)
+		    ;;      (yas-expand-snippet "\\begin{exe}\n$>\\ex $0\n\\end{exe}"))
+		    ;; "*f" (lambda () (interactive)
+		    ;;      (yas-expand-snippet "\\begin{forest}\n[{$1}\n[{$2}]\n[{$0}]\n]\n\\end{forest}"))
+		    "*\"" (lambda () (interactive)
+			    (yas-expand-snippet "\\enquote{$1}$0"))
+		    :cond #'texmathp ; expand only while in math
+		    "Olon" "O(n \\log n)"
+		    ";:" "\\coloneq"
+		    ";;N" "\\mathbb{N}"
+		    ";T" "\\top"
+		    ";B" "\\bot"
+		    ";;x" "\\times"
+		    ";;v" "\\veebar"
+		    ";;u" "\\cup"
+		    ";;{" "\\subseteq"
+		    ";D" "\\Diamond"
+		    ";;b" "\\Box"
+		    ;; bind to functions!
+		    "sum" (lambda () (interactive)
+			    (yas-expand-snippet "\\sum_{$1}^{$2} $0"))
+		    "grandu" (lambda () (interactive)
+			       (yas-expand-snippet "\\bigcup\limits_{$1} $0"))
+		    "Span" (lambda () (interactive)
+			     (yas-expand-snippet "\\Span($1)$0"))
+		    "lam" (lambda () (interactive)
+			    (yas-expand-snippet "\\lambda $1_{$2}\\,.\\,$0"))
+		    ;; "set" (lambda () (interactive)
+		    ;;           (yas-expand-snippet "\\set{ $1 | $2} $0"))
+		    "txt" (lambda () (interactive)
+			    (yas-expand-snippet "\\text{$1} $0"))
+		    ";;o" (lambda () (interactive)
+			    (yas-expand-snippet "\\oplus"))
+		    ;; "ev" (lambda () (interactive)
+		    ;;             (yas-expand-snippet "\\left\\llbracket$3\\right\\rrbracket^$1_$2 $3"))
+		    ;; clash with event type sigs
+		    ;; add accent snippets
+		    :cond #'laas-object-on-left-condition
+		    "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
+
+(use-package yasnippet :ensure t
+  :hook (prog-mode . yas-minor-mode)
+  ;; :hook (yas-minor-mode . yas-reload-all)
+  :config
+  (yas-reload-all)
+  (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory ))
+  ;;(yas-global-mode +1)
   )
+
+(use-package tempel :ensure t
+  :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
+         ("M-*" . tempel-insert))
+  :general
+  ("M-p +" 'tempel-complete) ;; M-p completion prefix; see `cape'
+  (my/leader-keys
+    "ti" '(tempel-insert :wk "tempel insert"))
+  (:keymaps 'tempel-map
+            "TAB" 'tempel-next) ;; progress through fields via `TAB'
+  :init
+  (defun tempel-setup-capf ()
+    (add-hook 'completion-at-point-functions #'tempel-expand))
+
+  :hook (conf-mode . tempel-setup-capf)
+  :hook (prog-mode . tempel-setup-capf)
+  :hook (text-mode . tempel-setup-capf)
+  )
+
+(use-package tempel-collection :ensure t)
+
+(use-package simple-httpd :ensure t
+  :commands httpd-serve-directory)
+
+(use-package htmlize :ensure t)
+
+(use-package doom-snippets :ensure (:host github :repo "doomemacs/snippets" :files ("*.el" "*"))
+  :after yasnippet)
 
 (use-package nerd-icons
   :ensure t
