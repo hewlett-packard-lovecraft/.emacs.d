@@ -453,11 +453,8 @@ using this command."
   :config
   (setq evil-snipe-scope 'whole-visible)
   (setq evil-snipe-smart-case t)
+  (evil-snipe-mode +1)
   (evil-snipe-override-mode 1))
-
-;; (use-package ag
-;;   :ensure t
-;;   )
 
 (use-package highlight-numbers
   :ensure t
@@ -850,7 +847,6 @@ using this command."
 
 (use-package which-key
   :defer nil
-  :ensure t
   :config
   (which-key-mode +1)
   (diminish 'which-key-mode))
@@ -1102,7 +1098,7 @@ using this command."
 
 ;;; dape
 (use-package dape
-  :unless (eq system-type 'windows-nt)
+  ;; :unless (eq system-type 'windows-nt)
   :defer t
   :ensure t
   ;; refer to evil-collection binds
@@ -1365,9 +1361,15 @@ using this command."
   ;; don't automatically refresh the status buffer after running a git command
   (setq magit-refresh-status-buffer nil)
 
-  :bind (("C-x M-g" . magit-status)
+  ;; set global
+  (setq magit-define-global-key-bindings 'reccomended )
+
+  :bind (("C-x g" . magit-status)
+	 ("C-x M-g" . magit-dispatch)
+	 ("C-c g" . magit-dispatch)
+	 ("C-c f" . magit-file-dispatch)
 	 :map project-prefix-map
-	 ("M-g" . magit-project-status))
+	 ("g" . magit-project-status))
   )
 
 ;; autoformat
@@ -1470,6 +1472,7 @@ using this command."
 
 ;; wrapper around terminal
 (use-package mistty
+  :unless (eq system-type 'windows-nt)
   :ensure t
   :bind (("C-c s" . mistty)
 
@@ -1486,9 +1489,8 @@ using this command."
 
 ;; declare linux specific packages here
 
-(use-package eat
-  :ensure t
-  ;; :if (eq system-type 'gnu/linux)
+(use-package eat :ensure t
+  :unless (eq system-type 'windows-nt)
   :custom
   (eat-term-name "xterm-256color")
   :hook (eshell-load . eat-eshell-mode)
@@ -1577,6 +1579,10 @@ using this command."
   (setq treesit-auto-langs '(cmake))
   (global-treesit-auto-mode))
 
+(use-package nix-mode :ensure t
+  :mode "\\.nix\\'")
+
+(use-package cmake-mode :ensure t)
 
 ;;; init.el ends here.
 (provide 'init)
