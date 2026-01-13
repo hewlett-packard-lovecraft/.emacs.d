@@ -238,11 +238,8 @@ using this command."
   (setq load-prefer-newer t)
 
   (show-paren-mode t)
-
+  (put 'suspend-frame 'disabled t) ;; disable confusing suspend in GUI mode)
   ;; terminal stuff here
-  (unless (display-graphic-p)
-    (put 'suspend-frame 'disabled t) ;; disable confusing suspend in GUI mode
-    (menu-bar-mode -1))
 
   (setq xterm-extra-capabilities '(getSelection setSelection modifyOtherKeys))
 
@@ -1579,10 +1576,17 @@ using this command."
   (setq treesit-auto-langs '(cmake))
   (global-treesit-auto-mode))
 
+(use-package cmake-mode :ensure t)
+
 (use-package nix-mode :ensure t
+  :when (eq system-type 'gnu/linux)
   :mode "\\.nix\\'")
 
-(use-package cmake-mode :ensure t)
+(use-package direnv :ensure t
+  :when (eq system-type 'gnu/linux)
+  :config
+  (direnv-mode)
+  (add-to-list 'warning-suppress-types '(direnv)))
 
 ;;; init.el ends here.
 (provide 'init)

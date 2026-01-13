@@ -19,9 +19,12 @@
 
 ;; Load themes, disable toolbar early to avoid flickering
 
-(load-theme 'modus-operandi t)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
+
+(if (eq system-type 'windows-nt) ;; light theme on Windows to match the bar
+    (load-theme 'modus-operandi t)
+  (load-theme 'modus-vivendi t))
 
 (setq inhibit-startup-screen t)
 ;; (setq initial-buffer-choice 'recentf-open-files)

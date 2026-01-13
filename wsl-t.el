@@ -19,8 +19,5 @@
 	(lambda ()
 	  (string-trim (shell-command-to-string "powershell.exe -command Get-Clipboard")))))
 
-;; stolen directly from https://github.com/purcell/exec-path-from-shell/blob/master/exec-path-from-shell.el
-;; complaining about "exec-path-from-shell-mode not defined in .elc" or smth
-
-(when (and (display-graphic-p) (eq system-type 'gnu/linux))
-  )
+(unless (display-graphic-p)
+  (xterm-mouse-mode))
