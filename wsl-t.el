@@ -7,17 +7,18 @@
   (and (eq system-type 'gnu/linux)
        (getenv "WSLENV")))
 
-(when (and (wsl-p) (eq (display-graphic-p) nil))
-  ;; https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
-  (setq interprogram-cut-function
-	(lambda (text &optional _)
-	  (let ((process-connection-type nil))
-	    (let ((proc (start-process "clip.exe" "*Messages*" "clip.exe")))
-	      (process-send-string proc text)
-	      (process-send-eof proc)))))
-  (setq interprogram-paste-function
-	(lambda ()
-	  (string-trim (shell-command-to-string "powershell.exe -command Get-Clipboard")))))
+(defun setup-wsl-t () "Check if running in WSL and not graphically, then configure Emacs to use the Windows clipboard."
+       (when (and (wsl-p) (eq (display-graphic-p) nil))
+	 ;; https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
+	 (setq interprogram-cut-function
+	       (lambda (text &optional _)
+		 (let ((process-connection-type nil))
+		   (let ((proc (start-process "clip.exe" "*Messages*" "clip.exe")))
+		     (process-send-string proc text)
+		     (process-send-eof proc)))))
+	 (setq interprogram-paste-function
+	       (lambda ()
+		 (string-trim (shell-command-to-string "powershell.exe -command Get-Clipboard"))))))
 
-(unless (display-graphic-p)
-  (xterm-mouse-mode))
+(when (wsl-p)
+  (add-hook 'after-make-frame-functions 'setup-wsl-t))

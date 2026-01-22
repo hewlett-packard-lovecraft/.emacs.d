@@ -111,9 +111,8 @@ using this command."
   (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
   (add-hook 'emacs-startup-hook (lambda () (load wsl-t-custom-file 'noerror))))
 
-(when (display-graphic-p) ;; load customs file only when graphic
-  (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
-  (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror))))
+(setq customs-file (expand-file-name "customs.el" user-emacs-directory))
+(add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
 
 
 ;; ;; use-package
@@ -159,6 +158,9 @@ using this command."
   (read-extended-command-predicate #'command-completion-default-include-p)
 
   :config
+  (set-frame-font "Iosevka Nerd Font Mono-10" nil t)
+  ;; (add-to-list 'default-frame-alist '(font . "Iosevka Nerd Font Mono-10"))
+
   ;; line numbers
   (global-display-line-numbers-mode 1)
   (setq display-line-numbers-type 'relative)
@@ -1086,10 +1088,10 @@ using this command."
   (consult-denote-mode 1))
 
 ;; Useful major modes
-(use-package markdown-mode
-  :ensure t
-  :defer t
-  :hook (markdown-mode . visual-line-mode))
+;; (use-package markdown-mode
+;;   :ensure t
+;;   :defer t
+;; :hook (markdown-mode . visual-line-mode))
 
 ;; (use-package realgud :ensure t)
 
@@ -1587,6 +1589,36 @@ using this command."
   :config
   (direnv-mode)
   (add-to-list 'warning-suppress-types '(direnv)))
+
+(use-package markdown-mode
+  :ensure t
+  :mode ("README\\.md\\'" . gfm-mode)
+  :init (setq markdown-command "multimarkdown")
+  :bind (:map markdown-mode-map
+              ("C-c C-e" . markdown-do)))
+
+
+(use-package micromamba :ensure t
+  :unless (eq system-type 'windows-nt))
+
+(use-package jupyter :ensure t )
+
+(use-package drepl :ensure t)
+
+(use-package code-cells :ensure t
+  :unless (eq system-type 'windows-nt)
+  :hook (python-mode . code-cells-mode-maybe )
+  :bind (:map code-cells-mode-map
+              ("M-p" . code-cells-backward-cell)
+              ("M-n" . code-cells-forward-cell)
+              ("C-c C-c" . code-cells-eval)
+              ([remap jupyter-eval-line-or-region] . code-cells-eval)
+	      ([remap evil-search-next] . (code-cells-speed-key 'code-cells-forward-cell)) ;; n
+	      ([remap evil-paste-after] .  (code-cells-speed-key 'code-cells-backward-cell)) ;; p
+	      ([remap evil-backward-word-begin] . (code-cells-speed-key 'code-cells-eval-above)) ;; b
+	      ([remap evil-forward-word-end] . (code-cells-speed-key 'code-cells-eval)) ;; e
+	      ([remap evil-jump-forward] . (code-cells-speed-key 'outline-cycle)) ;; TAB
+	      ))
 
 ;;; init.el ends here.
 (provide 'init)
