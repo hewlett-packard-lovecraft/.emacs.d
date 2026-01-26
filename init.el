@@ -260,10 +260,11 @@ using this command."
   :hook (after-init . global-clipetty-mode))
 
 ;; gui get path from shell
-(use-package exec-path-from-shell
-  :ensure t
-  :if (and (display-graphic-p) (memq window-system '(mac ns x)))
-  :hook (after-init . exec-path-from-shell-initialize))
+;; (use-package exec-path-from-shell
+;;   :ensure t
+;;   :if (and (display-graphic-p) (memq window-system '(mac ns x)))
+;;   :hook (after-init . exec-path-from-shell-initialize))
+
 (use-package electric
   :demand t
   :ensure nil
@@ -1264,12 +1265,12 @@ using this command."
 
 (use-package yasnippet :ensure t
   :hook (prog-mode . yas-minor-mode)
-  ;; :hook (yas-minor-mode . yas-reload-all)
+  :hook (yas-minor-mode . yas-reload-all)
+  :hook (org-mode . yas-global-mode-enable-in-buffer)
+  :hook (LaTeX-mode . yas-global-mode-enable-in-buffer)
   :config
   (yas-reload-all)
-  (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory ))
-  ;;(yas-global-mode +1)
-  )
+  (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory )))
 
 (use-package tempel :ensure t
   :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
@@ -1613,11 +1614,12 @@ using this command."
               ("M-n" . code-cells-forward-cell)
               ("C-c C-c" . code-cells-eval)
               ([remap jupyter-eval-line-or-region] . code-cells-eval)
-	      ([remap evil-search-next] . (code-cells-speed-key 'code-cells-forward-cell)) ;; n
-	      ([remap evil-paste-after] .  (code-cells-speed-key 'code-cells-backward-cell)) ;; p
-	      ([remap evil-backward-word-begin] . (code-cells-speed-key 'code-cells-eval-above)) ;; b
-	      ([remap evil-forward-word-end] . (code-cells-speed-key 'code-cells-eval)) ;; e
-	      ([remap evil-jump-forward] . (code-cells-speed-key 'outline-cycle)) ;; TAB
+
+	      ([remap evil-search-next] . (lambda () (interactive) (code-cells-speed-key 'code-cells-forward-cell))) ;; n
+	      ([remap evil-paste-after] .  (lambda () (interactive)  (code-cells-speed-key 'code-cells-backward-cell))) ;; p
+	      ([remap evil-backward-word-begin] . (lambda () (interactive)  (code-cells-speed-key 'code-cells-eval-above))) ;; b
+	      ([remap evil-forward-word-end] . (lambda () (interactive)  (code-cells-speed-key 'code-cells-eval))) ;; e
+	      ([remap evil-jump-forward] . (lambda () (interactive)  (code-cells-speed-key 'outline-cycle))) ;; TAB
 	      ))
 
 ;;; init.el ends here.
