@@ -103,8 +103,8 @@ using this command."
   (setq elpaca-queue-limit 12))
 
 ;; startup files
-(setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
-(add-hook 'emacs-startup-hook (lambda () (load org-custom-file 'noerror)))
+;; (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
+;; (add-hook 'emacs-startup-hook (lambda () (load org-custom-file 'noerror)))
 
 ;; load wsl, terminal file unless on Windows
 (unless (eq system-type 'windows-nt)
@@ -158,7 +158,8 @@ using this command."
   (read-extended-command-predicate #'command-completion-default-include-p)
 
   :config
-  (set-frame-font "Iosevka Nerd Font Mono-10" nil t)
+  (unless (eq system-type 'windows-nt)
+    (set-frame-font "Iosevka Nerd Font Mono-10" nil t))
   ;; (add-to-list 'default-frame-alist '(font . "Iosevka Nerd Font Mono-10"))
 
   ;; line numbers
@@ -253,6 +254,10 @@ using this command."
     (setq tab-bar-tab-hints t)                 ;; show tab numbers
     (setq tab-bar-format '(tab-bar-format-tabs tab-bar-separator)))
   )
+
+(use-package savehist
+  :init
+  (savehist-mode))
 
 ;; terminal copy
 (use-package clipetty :ensure t
@@ -616,61 +621,72 @@ using this command."
 
 ;; icomplete: setup icomplete-vertical-mode / fido-mode / fido-vertical-mode
 ;; replaces ido
-(use-package icomplete
-  :config
-  (defun basic-completion-style ()
-    (setq completion-auto-wrap t
-          completion-auto-select 'second-tab
-          ;; completion-auto-help 'always
-          completion-auto-help nil ;; show on ? and not TAB
-          completion-show-help nil
-          completions-format 'one-column
-          completions-max-height 10))
+;; (use-package icomplete
+;;   :config
+;;   (defun basic-completion-style ()
+;;     (setq completion-auto-wrap t
+;;           completion-auto-select 'second-tab
+;;           ;; completion-auto-help 'always
+;;           completion-auto-help nil ;; show on ? and not TAB
+;;           completion-show-help nil
+;;           completions-format 'one-column
+;;           completions-max-height 10))
 
-  (defun icomplete-vertical-style ()
-    (setq completion-auto-wrap t
-          completion-auto-help nil
-          completions-max-height 15
-          completion-styles '(initials flex)
-          ;; icomplete-in-buffer t
-          max-mini-window-height 10)
+;;   (defun icomplete-vertical-style ()
+;;     (setq completion-auto-wrap t
+;;           completion-auto-help nil
+;;           completions-max-height 15
+;;           completion-styles '(initials flex)
+;;           ;; icomplete-in-buffer t
+;;           max-mini-window-height 10)
 
-    (icomplete-mode 1)
-    (icomplete-vertical-mode 1))
+;;     (icomplete-mode 1)
+;;     (icomplete-vertical-mode 1))
 
 
-  (defun fido-style ()
-    (setq completion-auto-wrap t
-          completion-auto-help 'lazy
-          completions-max-height 15
-          completion-styles '(flex)
-          ;; icomplete-in-buffer t
-          max-mini-window-height 10)
+;;   (defun fido-style ()
+;;     (setq completion-auto-wrap t
+;;           completion-auto-help 'lazy
+;;           completions-max-height 15
+;;           completion-styles '(flex)
+;;           ;; icomplete-in-buffer t
+;;           max-mini-window-height 10)
 
-    (fido-mode 1)
-    (fido-vertical-mode 1))
+;;     (fido-mode 1)
+;;     (fido-vertical-mode 1))
 
-  (defun icomplete-post-command-hook ()
-    (when (not (and (eq (icomplete--completion-table) 'read-file-name-internal)
-		    (file-remote-p (minibuffer-contents-no-properties))))
-      ;; Original function
-      (let ((non-essential t))
-	(icomplete-exhibit))))
+;;   (defun icomplete-post-command-hook ()
+;;     (when (not (and (eq (icomplete--completion-table) 'read-file-name-internal)
+;; 		    (file-remote-p (minibuffer-contents-no-properties))))
+;;       ;; Original function
+;;       (let ((non-essential t))
+;; 	(icomplete-exhibit))))
 
-  (add-hook 'icomplete-minibuffer-setup-hook 'basic-completion-style)
+;;   (add-hook 'icomplete-minibuffer-setup-hook 'basic-completion-style)
 
-  :hook (after-init . fido-style)
-  :bind (:map minibuffer-mode-map ("C-r" . minibuffer-complete-history))
+;;   :hook (after-init . fido-style)
+;;   :bind (:map minibuffer-mode-map ("C-r" . minibuffer-complete-history))
 
-  ;; Bind C-r to show minibuffer history entries
-  ;; (keymap-set minibuffer-mode-map "C-r" #'minibuffer-complete-history)
+;;   ;; Bind C-r to show minibuffer history entries
+;;   ;; (keymap-set minibuffer-mode-map "C-r" #'minibuffer-complete-history)
 
-  ;; :hook (icomplete-minibuffer-setup . fido-style)
-  ;; enable
-  ;; (basic-completion-style)
-  ;; (icomplete-vertical-style)
-  ;; (fido-style)
-  )
+;;   ;; :hook (icomplete-minibuffer-setup . fido-style)
+;;   ;; enable
+;;   ;; (basic-completion-style)
+;;   ;; (icomplete-vertical-style)
+;;   ;; (fido-style)
+;;   )
+
+(use-package vertico :ensure t
+  :custom
+  (vertico-scroll-margin 0) ;; Different scroll margin
+  (vertico-count 20) ;; Show more candidates
+  (vertico-resize t) ;; Grow and shrink the Vertico minibuffer
+  (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
+  :init
+  (vertico-mode)
+  (vertico-multiform-mode)
+  (setq vertico-cycle t))
 
 ;; Consult
 (use-package consult
@@ -796,6 +812,12 @@ using this command."
   ;; Set org-roam integration, denote integration, or org-heading integration e.g.:
   ;; (setq consult-notes-org-headings-files '("~/path/to/file1.org"
   ;;                                         "~/path/to/file2.org"))
+  (when (eq system-type 'windows-nt)
+    (setq consult-notes-file-dir-sources
+	  '(("Schoolwork"             ?s "~/../../OneDrive/Documents/00-schoolwork/")
+	    ("Org"             ?o "~/../../OneDrive/Documents/02-Org/")
+            ;; ("Org Refile"      ?r "~/Dropbox/Work/projects/notebook/org-refile/"
+	     )))
 
   (consult-notes-org-headings-mode)
   (when (locate-library "denote")
@@ -829,6 +851,25 @@ using this command."
   (completion-pcm-leading-wildcard t)) ;; Emacs 31: partial-completion behaves like substring
 
 ;; Flymake
+(use-package flymake :ensure nil
+  :bind (:map flymake-mode-map
+	      ("C-c f b" . flymake-show-buffer-diagnostics)
+	      ("C-c f p" . flymake-show-project-diagnostics))
+  :general
+  (my/leader-keys
+    :keymaps 'flymake-mode-map
+    "cf" '(consult-flymake :wk "consult flymake") ;; depends on consult
+    "cc" '(flymake-mode :wk "toggle flymake")) ;; depends on consult
+  :hook
+  (TeX-mode . flymake-mode) ;; this is now working
+  (emacs-lisp-mode . flymake-mode)
+  :custom
+  (flymake-no-changes-timeout nil)
+  (flymake-show-diagnostics-at-end-of-line)
+  :general
+  (general-nmap "] !" 'flymake-goto-next-error)
+  (general-nmap "[ !" 'flymake-goto-prev-error))
+
 ;; (use-package flymake-collection
 ;;   :ensure t
 ;;   :hook (after-init . 'flymake-collection-hook-setup))
@@ -934,9 +975,9 @@ using this command."
 (use-package olivetti
   :ensure t
   :init
-  (setq olivetti-body-width 120)
+  (setq olivetti-body-width 94)
   (setq olivetti-style 'nil)
-  (setq olivetti-minimum-body-width 80)
+  ;; (setq olivetti-minimum-body-width 50)
   )
 
 (use-package pdf-tools
@@ -946,6 +987,11 @@ using this command."
   (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1)))
   (pdf-tools-install :no-query))
 
+;; cdlatex
+(use-package cdlatex :ensure t
+  :config
+  (setq cdlatex-takeover-dollar nil)
+  :hook (org-mode . turn-on-org-cdlatex))
 
 ;; Org Mode
 (use-package org
@@ -957,7 +1003,11 @@ using this command."
 
   ;; syntax highlighting with minted (requires minted in miktex)
   (add-to-list 'org-latex-packages-alist '("" "minted" nil))
-  (setq org-latex-src-block-backend 'minted))
+  (setq org-latex-src-block-backend 'minted)
+
+  :bind (:map org-mode-map
+	      ("C-c d" . TeX-insert-dollar))
+  )
 
 (use-package org-bullets
   :ensure t
@@ -979,8 +1029,26 @@ using this command."
     (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)"))
 
   :bind (:map org-mode-map
-	      ("C-M-Y" . org-download-yank)
-	      ("C-M-y" . org-download-screenshot)))
+	      ("C-c Y" . org-download-yank)
+	      ("C-c y" . org-download-screenshot)))
+
+(use-package org-auctex
+  :ensure (:type git :host github :repo
+                 "karthink/org-auctex")
+  :hook (org-mode . org-auctex-mode))
+
+(use-package org-transclusion
+  :after org
+  :general
+  (my/leader-keys
+    "nt" '(org-transclusion-mode :wk "transclusion mode")))
+
+(use-package org-appear :ensure t
+  :after org
+  :hook (org-mode . org-appear-mode))
+
+;; (use-package citeproc :ensure t
+;;   :after org)
 
 ;; Remember that the website version of this manual shows the latest
 ;; developments, which may not be available in the package you are
@@ -1030,9 +1098,14 @@ using this command."
 
   :config
   ;; Remember to check the doc string of each of those variables.
-  (setq denote-directory (expand-file-name "~/Documents/Denote/"))
+
+  (when (eq system-type 'windows-nt)
+    (setq denote-directory (expand-file-name
+			    "~/../../OneDrive/Documents/00-Schoolwork/Denote/"
+			    )))
+
   (setq denote-save-buffers nil)
-  (setq denote-known-keywords '("cs202"))
+  (setq denote-known-keywords '("us-history-1865" "discrete" "data-management-and-analysis" "software-engineering"))
   (setq denote-infer-keywords t)
   (setq denote-sort-keywords t)
   (setq denote-prompts '(title keywords))
@@ -1064,21 +1137,25 @@ using this command."
   ;; Read the doc string of `denote-journal-title-format'.
   (setq denote-journal-title-format 'day-date-month-year))
 
-;; (use-package denote-silo
-;;   :ensure t
-;;   ;; Bind these commands to key bindings of your choice.
-;;   :commands ( denote-silo-create-note
-;;               denote-silo-open-or-create
-;;               denote-silo-select-silo-then-command
-;;               denote-silo-dired
-;;               denote-silo-cd )
-;;   :config
-;;   ;; Add your silos to this list.  By default, it only includes the
-;;   ;; value of the variable `denote-directory'.
-;;   (setq denote-silo-directories
-;;         (list denote-directory
-;; 	      "~/../../OneDrive/Documents/Denote/"
-;;               "~/../../OneDrive/Documents/Journal/"))
+(use-package denote-silo
+  :ensure t
+  ;; Bind these commands to key bindings of your choice.
+  :commands ( denote-silo-create-note
+              denote-silo-open-or-create
+              denote-silo-select-silo-then-command
+              denote-silo-dired
+              denote-silo-cd )
+  :config
+  ;; Add your silos to this list.  By default, it only includes the
+  ;; value of the variable `denote-directory'.
+
+  (when (eq system-type 'windows-nt)
+    (setq denote-silo-directories
+          (list denote-directory
+		"~/../../OneDrive/Documents/02-Org/Denote/"
+		"~/../../OneDrive/Documents/00-Schoolwork/Denote/"
+		;; "~/../../OneDrive/Documents/02-Org/Journal/"
+		))))
 
 (use-package consult-denote
   :ensure t
@@ -1174,6 +1251,7 @@ using this command."
 						     "--header-insertion=never"
 						     "--header-insertion-decorators=0")))
   (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio")))
+  (add-to-list 'eglot-server-programs '((org-mode markdown-mode) . ("harper-ls" "--stdio")))
   )
 
 (use-package eglot-booster
@@ -1299,6 +1377,8 @@ using this command."
 
 (use-package doom-snippets :ensure (:host github :repo "doomemacs/snippets" :files ("*.el" "*"))
   :after yasnippet)
+
+(use-package yasnippet-snippets :ensure t)
 
 (use-package nerd-icons
   :ensure t
@@ -1596,7 +1676,7 @@ using this command."
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown")
   :bind (:map markdown-mode-map
-              ("C-c C-e" . markdown-do)))
+	      ("C-c C-e" . markdown-do)))
 
 
 (use-package micromamba :ensure t
@@ -1610,10 +1690,10 @@ using this command."
   :unless (eq system-type 'windows-nt)
   :hook (python-mode . code-cells-mode-maybe )
   :bind (:map code-cells-mode-map
-              ("M-p" . code-cells-backward-cell)
-              ("M-n" . code-cells-forward-cell)
-              ("C-c C-c" . code-cells-eval)
-              ([remap jupyter-eval-line-or-region] . code-cells-eval)
+	      ("M-p" . code-cells-backward-cell)
+	      ("M-n" . code-cells-forward-cell)
+	      ("C-c C-c" . code-cells-eval)
+	      ([remap jupyter-eval-line-or-region] . code-cells-eval)
 
 	      ([remap evil-search-next] . (lambda () (interactive) (code-cells-speed-key 'code-cells-forward-cell))) ;; n
 	      ([remap evil-paste-after] .  (lambda () (interactive)  (code-cells-speed-key 'code-cells-backward-cell))) ;; p
@@ -1621,6 +1701,14 @@ using this command."
 	      ([remap evil-forward-word-end] . (lambda () (interactive)  (code-cells-speed-key 'code-cells-eval))) ;; e
 	      ([remap evil-jump-forward] . (lambda () (interactive)  (code-cells-speed-key 'outline-cycle))) ;; TAB
 	      ))
+
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker))
+
+(use-package yaml-mode :ensure t)
+
+(use-package dockerfile-mode :ensure t)
 
 ;;; init.el ends here.
 (provide 'init)
