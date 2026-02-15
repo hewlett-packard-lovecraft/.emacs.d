@@ -103,8 +103,8 @@ using this command."
   (setq elpaca-queue-limit 12))
 
 ;; startup files
-;; (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
-;; (add-hook 'emacs-startup-hook (lambda () (load org-custom-file 'noerror)))
+(setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
+(add-hook 'emacs-startup-hook (lambda () (load org-custom-file 'noerror)))
 
 ;; load wsl, terminal file unless on Windows
 (unless (eq system-type 'windows-nt)
@@ -810,16 +810,17 @@ using this command."
 	 )
   :config
   ;; Set org-roam integration, denote integration, or org-heading integration e.g.:
-  ;; (setq consult-notes-org-headings-files '("~/path/to/file1.org"
-  ;;                                         "~/path/to/file2.org"))
   (when (eq system-type 'windows-nt)
     (setq consult-notes-file-dir-sources
 	  '(("Schoolwork"             ?s "~/../../OneDrive/Documents/00-schoolwork/")
 	    ("Org"             ?o "~/../../OneDrive/Documents/02-Org/")
             ;; ("Org Refile"      ?r "~/Dropbox/Work/projects/notebook/org-refile/"
-	     )))
+	    ))
 
-  (consult-notes-org-headings-mode)
+    (setq consult-notes-org-headings-files '( "~/../../OneDrive/Documents/00-schoolwork/index.org"))
+    (consult-notes-org-headings-mode)
+    )
+
   (when (locate-library "denote")
     (consult-notes-denote-mode))
   ;; search only for text files in denote dir
@@ -976,8 +977,9 @@ using this command."
   :ensure t
   :init
   (setq olivetti-body-width 94)
-  (setq olivetti-style 'nil)
+  ;; (setq olivetti-style 'nil)
   ;; (setq olivetti-minimum-body-width 50)
+  ;; :hook (text-mode . olivetti-mode)
   )
 
 (use-package pdf-tools
@@ -990,8 +992,14 @@ using this command."
 ;; cdlatex
 (use-package cdlatex :ensure t
   :config
-  (setq cdlatex-takeover-dollar nil)
-  :hook (org-mode . turn-on-org-cdlatex))
+  ;; (setq cdlatex-takeover-dollar nil)
+  (setq cdlatex-use-dollar-to-ensure-math nil)
+  :hook (org-mode . turn-on-org-cdlatex)
+  :bind (:map org-mode-map
+	      ("C-c D" . (lambda () (interactive (cdlatex-dollar t)))))
+
+  ;; "*b" (lambda () (interactive)
+  )
 
 ;; Org Mode
 (use-package org
@@ -999,19 +1007,54 @@ using this command."
          (org-mode . org-indent-mode))
   :config
   (setq org-src-fontify-natively t)
-  (setq org-startup-with-inline-images t)
+  ;; (setq org-highlight-latex-and-related '(latex script entities))
 
   ;; syntax highlighting with minted (requires minted in miktex)
   (add-to-list 'org-latex-packages-alist '("" "minted" nil))
   (setq org-latex-src-block-backend 'minted)
 
+  ;; https://lucidmanager.org/productivity/ricing-org-mode/
+  (setq-default org-startup-indented t
+                org-pretty-entities t
+                org-use-sub-superscripts "{}"
+                org-hide-emphasis-markers t
+                org-startup-with-inline-images t
+                org-image-actual-width '(300))
+
   :bind (:map org-mode-map
 	      ("C-c d" . TeX-insert-dollar))
   )
 
+(use-package org-appear :ensure t
+  :hook
+  (org-mode . org-appear-mode))
+
+(use-package org-modern :ensure t
+  :hook
+  (org-mode . global-org-modern-mode)
+  :custom
+  (org-modern-keyword nil)
+  (org-modern-checkbox nil)
+  (org-modern-table nil))
+
+;; LaTeX previews
+(use-package org-fragtog
+  :ensure t
+  :after org
+  :custom
+  (org-startup-with-latex-preview t)
+  :hook
+  (org-mode . org-fragtog-mode)
+  :custom
+  (org-format-latex-options
+   (plist-put org-format-latex-options :scale 2)
+   (plist-put org-format-latex-options :foreground 'auto)
+   (plist-put org-format-latex-options :background 'auto)))
+
 (use-package org-bullets
   :ensure t
   :hook (org-mode . org-bullets-mode))
+
 
 (use-package org-download
   :ensure t
@@ -1022,11 +1065,10 @@ using this command."
   (org-download-image-dir "images")
   (org-download-heading-lvl nil)
   (org-download-timestamp "%Y%m%d-%H%M%S_")
-  ;; (org-image-actual-width 300)
-  (org-image-actual-width (truncate (* (display-pixel-width) 0.8)))
+  (org-image-actual-width 300)
+  ;; (org-image-actual-width (truncate (* (display-pixel-width) 0.8)))
 
-  (when (eq system-type 'windows-nt)
-    (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)"))
+  (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)")
 
   :bind (:map org-mode-map
 	      ("C-c Y" . org-download-yank)
@@ -1043,9 +1085,6 @@ using this command."
   (my/leader-keys
     "nt" '(org-transclusion-mode :wk "transclusion mode")))
 
-(use-package org-appear :ensure t
-  :after org
-  :hook (org-mode . org-appear-mode))
 
 ;; (use-package citeproc :ensure t
 ;;   :after org)
@@ -1141,10 +1180,10 @@ using this command."
   :ensure t
   ;; Bind these commands to key bindings of your choice.
   :commands ( denote-silo-create-note
-              denote-silo-open-or-create
-              denote-silo-select-silo-then-command
-              denote-silo-dired
-              denote-silo-cd )
+	      denote-silo-open-or-create
+	      denote-silo-select-silo-then-command
+	      denote-silo-dired
+	      denote-silo-cd )
   :config
   ;; Add your silos to this list.  By default, it only includes the
   ;; value of the variable `denote-directory'.
@@ -1682,7 +1721,14 @@ using this command."
 (use-package micromamba :ensure t
   :unless (eq system-type 'windows-nt))
 
-(use-package jupyter :ensure t )
+(use-package jupyter :ensure t :after org
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (julia . t)
+     (python . t)
+     (jupyter . t))))
 
 (use-package drepl :ensure t)
 

@@ -1,4 +1,4 @@
-;; ;; Org.el  -*- lexical-binding: t; -*-
+; ;; Org.el  -*- lexical-binding: t; -*-
 ;; org files
 
 ;; LaTeX
@@ -22,3 +22,19 @@
 		 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
 	       )
   )
+
+;; #+OPTIONS for PDF:
+;;     toc:t or nil: Toggle Table of Contents.
+;;     num:t or nil: Toggle section numbering.
+;;     tex:t or dvipng: Handle LaTeX fragments.
+;;     prop:t: Include property drawers.
+;;     ^:t or nil: Toggle super/subscripts (use ^{} for explicitly bracing
+
+;; https://orgmode.org/manual/Export-Settings.html
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (julia . t)
+   (python . t)
+   (jupyter . t)))
