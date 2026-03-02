@@ -569,6 +569,10 @@ using this command."
 	corfu-auto-delay 0.1
 	corfu-auto-trigger "." ;; Custom trigger characters
 	corfu-quit-no-match 'separator) ;; or t
+
+  ;; https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot
+  (setq completion-category-overrides '((eglot (styles orderless))
+					(eglot-capf (styles orderless))))
   )
 
 (use-package corfu-terminal :ensure t
@@ -812,6 +816,10 @@ using this command."
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
   ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
   )
+
+(use-package consult-yasnippet :ensure t :after (consult, yasnippet))
+
+(use-package consult-project-extra :ensure t)
 
 (use-package consult-notes
   :ensure t
@@ -1314,6 +1322,7 @@ using this command."
 						     "--header-insertion-decorators=0")))
   ;; (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio")))
   (add-to-list 'eglot-server-programs '((org-mode markdown-mode) . ("harper-ls" "--stdio")))
+
   )
 
 (use-package eglot-booster
@@ -1659,6 +1668,26 @@ using this command."
   :config
   (evil-set-initial-state 'vterm-mode 'emacs))
 
+
+;; indent-bars, since it has (optional) treesitter support
+(use-package indent-bars
+  :ensure t
+  :if (eq system-type 'gnu/linux)
+  :custom
+  (indent-bars-no-descend-lists 'skip) ; prevent extra bars in nested lists + skip intermediate bars
+  (indent-bars-treesit-support t)
+  (indent-bars-treesit-ignore-blank-lines-types '("module"))
+  ;; Add other languages as needed; check the wiki
+  (indent-bars-treesit-scope '((python function_definition class_definition for_statement
+				       if_statement with_statement while_statement)))
+  ;; Note: wrap likely not be needed if no-descend-list is enough
+  ;;(indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
+  ;;				      list list_comprehension
+  ;;				      dictionary dictionary_comprehension
+  ;;				      parenthesized_expression subscript)))
+  :hook ((python-base-mode yaml-mode) . indent-bars-mode))
+
+
 ;; Tree-sitter, at least until it works on Windows
 (use-package treesit
   :if (eq system-type 'gnu/linux)
@@ -1744,11 +1773,15 @@ using this command."
   :when (eq system-type 'gnu/linux)
   :mode "\\.nix\\'")
 
-(use-package direnv :ensure t
+;; (use-package direnv :ensure t
+;;   :when (eq system-type 'gnu/linux)
+;;   :config
+;;   (direnv-mode)
+;;   (add-to-list 'warning-suppress-types '(direnv)))
+
+(use-package envrc :ensure t
   :when (eq system-type 'gnu/linux)
-  :config
-  (direnv-mode)
-  (add-to-list 'warning-suppress-types '(direnv)))
+  :hook (after-init . envrc-global-mode))
 
 (use-package markdown-mode
   :ensure t
