@@ -19,25 +19,37 @@
 	       (lambda ()
 		 (string-trim (shell-command-to-string "powershell.exe -command Get-Clipboard"))))))
 
-(defun font-exists-p (font)
+(defun my/font-exists-p (font)
   "Return t if font exists, nil otherwise"
   (if (null (x-list-fonts font)) nil t))
 
-(defun set-frame-theme ()
+(defun my/server-set-font ()
   "Set theme based on whether FRAME is a GUI or TTY frame."
-  (with-selected-frame frame
-    (if (display-graphic-p)
-	(progn (disable-theme 'modus-vivendi)
-	       (enable-theme 'modus-operandi)
-	       (when (window-system)
-		 (cond ((font-exists-p "") (set-frame-font "Courier Prime:spacing=100:size=18" nil t))
-		       ((font-exists-p "Courier New") (set-frame-font "Courier New:spacing=100:size=18" nil t)))))
-      (progn (disable-theme 'modus-operandi) (enable-theme 'modus-vivendi)))))
+  (when (window-system)
+    (cond ((my/font-exists-p "Iosevka Nerd Font Mono") (set-frame-font "Iosevka Nerd Font Mono-12" nil t))
+	  ((my/font-exists-p "Courier Prime") (set-frame-font "Courier Prime:spacing=100:size=18" nil t))
+	  ((my/font-exists-p "Courier New") (set-frame-font "Courier New:spacing=100:size=18" nil t)))))
+
+(add-hook 'server-after-make-frame-hook 'toggle-frame-maximized t)
+(add-hook 'server-after-make-frame-hook 'my/server-set-font)
 
 (when (wsl-p)
   (add-hook 'after-make-frame-functions 'setup-wsl-t))
 
-(add-hook 'face-set-after-frame-functions 'set-frame-theme)
+(defun contextual-menubar (&optional frame)
+  "Display the menubar in FRAME (default: selected frame) if on a
+    graphical display, but hide it if in terminal."
+  (interactive)
+  (set-frame-parameter frame 'menu-bar-lines
+                       (if (display-graphic-p frame)
+                           1 0))
+
+  (setq xterm-extra-capabilities '(getSelection setSelection modifyOtherKeys))
+  (unless (display-graphic-p)
+    (xterm-mouse-mode 1))
+  )
+
+(add-hook 'after-make-frame-functions #'contextual-menubar)
 
 (provide 'wsl-t)
 ;;; wsl-t.el ends here

@@ -22,9 +22,10 @@
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
-(if (eq system-type 'windows-nt) ;; light theme on Windows to match the bar
-    (load-theme 'modus-operandi t)
-  (load-theme 'modus-vivendi t))
+;; (if (eq system-type 'windows-nt) ;; light theme on Windows to match the bar
+;;     (load-theme 'modus-operandi t)
+;; (load-theme 'modus-vivendi t))
+(load-theme 'modus-operandi t)
 
 (setq inhibit-startup-screen t)
 ;; (setq initial-buffer-choice 'recentf-open-files)

@@ -111,8 +111,9 @@ using this command."
   (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
   (add-hook 'emacs-startup-hook (lambda () (load wsl-t-custom-file 'noerror))))
 
-(setq customs-file (expand-file-name "customs.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
+(unless (eq system-type 'gnu/linux)
+  (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
+  (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror))))
 
 
 ;; ;; use-package
@@ -159,8 +160,9 @@ using this command."
 
   :config
   (unless (eq system-type 'windows-nt)
-    (set-frame-font "Iosevka Nerd Font Mono-10" nil t))
-  ;; (add-to-list 'default-frame-alist '(font . "Iosevka Nerd Font Mono-10"))
+    (set-frame-font "Iosevka Nerd Font Mono-12" nil t)
+    ;; (add-to-list 'default-frame-alist '(font . "Iosevka Nerd Font Mono-12")
+    )
 
   ;; line numbers
   (global-display-line-numbers-mode 1)
@@ -243,8 +245,6 @@ using this command."
   (show-paren-mode t)
   (put 'suspend-frame 'disabled t) ;; disable confusing suspend in GUI mode)
   ;; terminal stuff here
-
-  (setq xterm-extra-capabilities '(getSelection setSelection modifyOtherKeys))
 
   (use-package tab-bar
     :config
@@ -345,15 +345,21 @@ using this command."
     :prefix "," ;; set local leader
     :global-prefix "M-,") ;; access local leader in insert mode
 
-  (general-define-key
-   :states 'insert
-   "C-g" 'evil-normal-state) ;; don't stretch for ESC
+  ;; (general-define-key
+  ;;  :states 'insert
+  ;; "C-g" 'evil-normal-state) ;; don't stretch for ESC
 
   (general-unbind '(normal motion)
     :with 'ignore
     [remap evil-substitute] ;; prevent S and s conflict
     [remap evil-change-whole-line]
     )
+
+  (general-unbind
+    :states '(insert)
+    "C-k" ;; this was interfering with corfu completion
+    :states '(normal)
+    "C-;")
 
   (my/leader-keys
     "SPC" '(execute-extended-command :wk "execute command") ;; an alternative to 'M-x'
@@ -686,7 +692,19 @@ using this command."
   :init
   (vertico-mode)
   (vertico-multiform-mode)
-  (setq vertico-cycle t))
+  (setq vertico-cycle t)
+  :general
+  (:keymaps 'vertico-map
+            ;; keybindings to cycle through vertico results.
+            "C-j" 'vertico-next
+            "C-k" 'vertico-previous
+            "C-f" 'vertico-exit
+            "<backspace>" 'vertico-directory-delete-char
+            "C-<backspace>" 'vertico-directory-delete-word
+            "C-w" 'vertico-directory-delete-word
+            "RET" 'vertico-directory-enter)
+  (:keymaps 'minibuffer-local-map
+            "M-h" 'backward-kill-word))
 
 ;; Consult
 (use-package consult
@@ -1274,9 +1292,14 @@ using this command."
 (use-package eglot
   :defer t
   ;; refer to evil-collection bindings
-  :hook ((python-ts-mode c++-ts-mode c-ts-mode) . eglot-ensure)
-  :hook ((python-mode c++-mode c-mode) . eglot-ensure)
+  :hook ((python-ts-mode c++-ts-mode c-ts-mode cmake-ts-mode bash-ts-mode yaml-ts-mode nix-ts-mode dockerfile-tsmode ) . eglot-ensure)
+  :hook ((python-mode c++-mode c-mode cmake-mode bash-mode yaml-mode nix-mode dockerfile-mode) . eglot-ensure)
   :hook ((LaTeX-mode) . eglot-ensure)
+  :hook (((html-mode html-ts-mode) . eglot-ensure) ; start eglot for html files
+	 ((css-mode css-ts-mode) . eglot-ensure)   ; start eglot for css files
+	 ((js-mode js-ts-mode) . eglot-ensure)    ; start eglot for js files
+	 ((rjsx-mode rjsx-ts-mode) . eglot-ensure) ; start eglot for React/JSX files
+	 ((typescript-mode typescript-ts-mode) . eglot-ensure)) ; start eglot for ts files
   :config
   (add-to-list 'eglot-server-programs
 	       '((c-or-c++-mode c-or-c++-ts-mode) . ("clangd" "-j=24"
@@ -1289,7 +1312,7 @@ using this command."
 						     "--pch-storage=memory"
 						     "--header-insertion=never"
 						     "--header-insertion-decorators=0")))
-  (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio")))
+  ;; (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio")))
   (add-to-list 'eglot-server-programs '((org-mode markdown-mode) . ("harper-ls" "--stdio")))
   )
 
@@ -1607,19 +1630,36 @@ using this command."
   )
 
 ;; declare linux specific packages here
+(use-package vterm :ensure (vterm :post-build
+				  (progn
+				    (setq vterm-always-compile-module t)
+				    (require 'vterm)
+				    ;;print compilation info for elpaca
+				    (with-current-buffer (get-buffer-create vterm-install-buffer-name)
+				      (goto-char (point-min))
+				      (while (not (eobp))
+					(message "%S"
+						 (buffer-substring (line-beginning-position)
+								   (line-end-position)))
+					(forward-line)))
+				    (when-let* ((so (expand-file-name "./vterm-module.so"))
+						((file-exists-p so)))
+				      (make-symbolic-link
+				       so (expand-file-name (file-name-nondirectory so)
+							    "../../builds/vterm")
+				       'ok-if-already-exists))))
+  :if (eq system-type 'gnu/linux)
+  :commands (vterm vterm-other-window)
+  :hook (vterm-mode .  (lambda () (display-line-numbers-mode -1)))
+  :general
+  (+general-global-application
+   "t" '(:ignore t :which-key "terminal")
+   "tt" 'vterm-other-window
+   "t." 'vterm)
+  :config
+  (evil-set-initial-state 'vterm-mode 'emacs))
 
-(use-package eat :ensure t
-  :unless (eq system-type 'windows-nt)
-  :custom
-  (eat-term-name "xterm-256color")
-  :hook (eshell-load . eat-eshell-mode)
-  :hook (eshell-load . eat-eshell-visual-command-mode)
-  :bind (("C-c e" . eat)
-	 :map project-prefix-map
-	 ("t" . eat-project)
-	 ))
-
-;; tree-sitter, at least until it works on Windows
+;; Tree-sitter, at least until it works on Windows
 (use-package treesit
   :if (eq system-type 'gnu/linux)
   :mode (("\\.tsx\\'" . tsx-ts-mode))
