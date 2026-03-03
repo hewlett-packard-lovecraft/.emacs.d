@@ -53,6 +53,7 @@ tramp
 tree-sitter/*
 
 history
+dape-breakpoints
 
 *~
 *.elc
