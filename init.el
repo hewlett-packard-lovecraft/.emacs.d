@@ -185,7 +185,7 @@ using this command."
   (cua-mode 1)
 
   ;; remember last opened file
-  ;; (recentf-mode 1)
+  (recentf-mode 1)
 
   ;; restore the last cursor location of opened files
   (save-place-mode 1)
@@ -262,13 +262,13 @@ using this command."
 ;; terminal copy
 (use-package clipetty :ensure t
   :config
-  :hook (after-init . global-clipetty-mode))
+  :hook (elpaca-after-init . global-clipetty-mode))
 
 ;; gui get path from shell
 ;; (use-package exec-path-from-shell
 ;;   :ensure t
 ;;   :if (and (display-graphic-p) (memq window-system '(mac ns x)))
-;;   :hook (after-init . exec-path-from-shell-initialize))
+;;   :hook (elpaca-after-init . exec-path-from-shell-initialize))
 
 (use-package electric
   :demand t
@@ -338,12 +338,13 @@ using this command."
     :prefix "SPC" ;; set leader
     :global-prefix "M-SPC") ;; access leader in insert mode)
 
-  ;; set up ',' as the local leader key
+  ;; set up 'SPC m' as the local leader key
   (general-create-definer my/local-leader-keys
     :states '(normal insert visual emacs)
     :keymaps 'override
-    :prefix "," ;; set local leader
-    :global-prefix "M-,") ;; access local leader in insert mode
+    :prefix "SPC m" ;; set local leader
+    ;; :global-prefix "M-," ;; access local leader in insert mode
+    )
 
   ;; (general-define-key
   ;;  :states 'insert
@@ -377,8 +378,6 @@ using this command."
   (my/leader-keys
     "w" '(:keymap evil-window-map :wk "window")) ;; window bindings
 
-  (my/leader-keys
-    "c" '(:ignore t :wk "code"))
   ;; bookmark
   (my/leader-keys
     "B" '(:ignore t :wk "bookmark")
@@ -388,8 +387,8 @@ using this command."
   ;; universal argument
   (my/leader-keys
     "u" '(universal-argument :wk "universal prefix"))
-  ;; code
-  ;; see 'flymake'
+
+  ;; see 'flymake' (other stuff eventually)
   (my/leader-keys
     "c" '(:ignore t :wk "code"))
 
@@ -399,11 +398,13 @@ using this command."
     "os" '(speedbar t :wk "speedbar")
     "op" '(elpaca-log t :wk "elpaca"))
 
-
   ;; search
   ;; see 'consult'
   (my/leader-keys
     "s" '(:ignore t :wk "search"))
+
+  ;; debug
+  (my/leader-keys "a" '(:ignore t :wk "dape"))
   )
 
 ;; vim-commentary for Emacs
@@ -569,10 +570,15 @@ using this command."
 	corfu-auto-delay 0.1
 	corfu-auto-trigger "." ;; Custom trigger characters
 	corfu-quit-no-match 'separator) ;; or t
+  (setq corfu-popupinfo-delay (cons nil 1.0))
 
   ;; https://github.com/minad/corfu/wiki#configuring-corfu-for-eglot
   (setq completion-category-overrides '((eglot (styles orderless))
 					(eglot-capf (styles orderless))))
+
+  ;; desync
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
   )
 
 (use-package corfu-terminal :ensure t
@@ -616,9 +622,10 @@ using this command."
   (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
 
 (use-package recentf :ensure nil
-  :hook (after-init . recentf-mode)
+  :hook (elpaca-after-init . recentf-mode)
+  :bind ("C-x C-r" . recentf-open)
   :config
-  (global-set-key (kbd "C-x C-r") 'recentf-open)
+  ;; (global-set-key (kbd "C-x C-r") 'recentf-open)
   (setq recentf-max-saved-items 50)
   (setq recentf-keep '(file-remote-p file-readable-p))
 
@@ -877,40 +884,47 @@ using this command."
   (completion-category-overrides '((file (styles partial-completion))))
   (completion-pcm-leading-wildcard t)) ;; Emacs 31: partial-completion behaves like substring
 
+
+;; autoformat
+(use-package format-all
+  :ensure t
+  :commands format-all-mode
+  :hook (prog-mode . format-all-mode)
+  :bind ("M-F" . format-all-buffer)
+  :config
+  (setq-default format-all-formatters
+                '(("C"     (astyle "--mode=c"))
+                  ("Shell" (shfmt "-i" "4" "-ci")))))
+
 ;; Flymake
 (use-package flymake :ensure nil
   :bind (:map flymake-mode-map
-	      ("C-c f b" . flymake-show-buffer-diagnostics)
-	      ("C-c f p" . flymake-show-project-diagnostics))
+	      ("C-;" . flymake-show-buffer-diagnostics)
+	      ;; ("C-c C-;" . flymake-show-buffer-diagnostics)
+	      ;; ("C-c f p" . flymake-show-project-diagnostics)
+	      )
   :general
   (my/leader-keys
     :keymaps 'flymake-mode-map
-    "cf" '(consult-flymake :wk "consult flymake") ;; depends on consult
-    "cc" '(flymake-mode :wk "toggle flymake")) ;; depends on consult
+    "cc" '(consult-flymake :wk "consult flymake") ;; depends on consult
+    "cb" '(consult-show-buffer-diagnostics :wk "flymake-show-buffer-diagnostics") ;;
+    "cp" '(consuult-show-project-diagnostics :wk "flymake-show-project-diagnostics") ;;
+    "cf" '(flymake-mode :wk "flymake") ;;
+    )
   :hook
   (TeX-mode . flymake-mode) ;; this is now working
   (emacs-lisp-mode . flymake-mode)
   :custom
   (flymake-no-changes-timeout nil)
   (flymake-show-diagnostics-at-end-of-line)
+  ;; (flymake-no-changes-timeout 0.1)
   :general
   (general-nmap "] !" 'flymake-goto-next-error)
   (general-nmap "[ !" 'flymake-goto-prev-error))
 
-;; (use-package flymake-collection
-;;   :ensure t
-;;   :hook (after-init . 'flymake-collection-hook-setup))
-
-
-(use-package flymake-vale
-  :ensure (:host github :repo "tpeacock19/flymake-vale")
-  :config
-  (add-hook 'text-mode-hook #'flymake-vale-load)
-  (add-hook 'tex-mode-hook #'flymake-vale-load)
-  (add-hook 'org-mode-hook #'flymake-vale-load)
-  (add-hook 'markdown-mode-hook #'flymake-vale-load)
-  (add-hook 'message-mode-hook #'flymake-vale-load)
-  )
+(use-package flymake-collection
+  :ensure t
+  :hook (elpaca-after-init . 'flymake-collection-hook-setup))
 
 
 (use-package which-key
@@ -1230,36 +1244,53 @@ using this command."
   :config
   (consult-denote-mode 1))
 
-;; Useful major modes
-;; (use-package markdown-mode
-;;   :ensure t
-;;   :defer t
-;; :hook (markdown-mode . visual-line-mode))
-
-;; (use-package realgud :ensure t)
-
 ;;; dape
 (use-package dape
-  ;; :unless (eq system-type 'windows-nt)
-  :defer t
+  :if (eq system-type 'gnu/linux)
+  ;; :defer t
   :ensure t
   ;; refer to evil-collection binds
 
-  :bind ("C-c p" . cape-prefix-map) ;; Alternative key: M-<tab>, M-p, M-+
   :preface
   ;; By default dape shares the same keybinding prefix as `gud'
   ;; If you do not want to use any prefix, set it to nil.
   (setq dape-key-prefix "\C-x\C-a")
 
-  ;; :general
-  ;; assign built-in dape.el bindings a new prefix
-  ;; (my/leader-keys "a" '(:keymap dape-prefix-map :wk "dape")))
-  ;; Save breakpoints on quit
-  ;; :hook
-  ;; (kill-emacs . dape-breakpoint-save)
-  ;; Load breakpoints on startup
-  ;; (after-init . dape-breakpoint-load)
+  :general (my/leader-keys
+	     "a" '(:ignore t :wk "dape")
+	     "a<" '(dape-stack-select-up :wk "dape-stack-select-up")
+	     "a>" '(dape-stack-select-down :wk "dape-stack-select-down")
+	     "aB" '(dape-breakpoint-remove-all :wk "dape-breakpoint-remove-all")
+	     "aD" '(dape-disconnect-quit :wk "dape-disconnect-quit")
+	     "aK" '(dape-kill :wk "dape-kill")
+	     "aM" '(dape-disassemble :wk "dape-disassemble")
+	     "aR" '(dape-repl :wk "dape-repl")
+	     "aS" '(dape-select-stack :wk "dape-select-stack")
+	     "ab" '(dape-breakpoint-toggle :wk "dape-breakpoint-toggle")
+	     "ac" '(dape-continue :wk "dape-continue")
+	     "ad" '(dape :wk "dape")
+	     "ae" '(dape-breakpoint-expression :wk "dape-breakpoint-expression")
+	     "af" '(dape-restart-frame :wk "dape-restart-frame")
+	     "ah" '(dape-breakpoint-hints :wk "dape-breakpoint-hints")
+	     "ai" '(dape-info :wk "dape-info")
+	     "al" '(dape-breakpoint-log :wk "dape-breakpoint-log")
+	     "am" '(dape-memory :wk "dape-memory")
+	     "an" '(dape-next :wk "dape-next")
+	     "ao" '(dape-step-out :wk "dape-step-out")
+	     "ap" '(dape-pause :wk "dape-pause")
+	     "aq" '(dape-quit :wk "dape-quit")
+	     "ar" '(dape-restart :wk "dape-restart")
+	     "as" '(dape-step-in :wk "dape-step-in")
+	     "at" '(dape-select-thread :wk "dape-select-thread")
+	     "au" '(dape-until :wk "dape-until")
+	     "aw" '(dape-watch-dwim :wk "dape-watch-dwim")
+	     "ax" '(dape-evaluate-expression :wk "dape-evaluate-expression")
+	     )
 
+  ;; Save breakpoints on quit
+  :hook (kill-emacs . dape-breakpoint-save)
+  ;; Load breakpoints on startup
+  :hook (elpaca-after-init . dape-breakpoint-load)
   :custom
   ;; Turn on global bindings for setting breakpoints with mouse
   (dape-breakpoint-global-mode +1)
@@ -1270,23 +1301,18 @@ using this command."
   ;; (dape-buffer-window-arrangement 'gud)
   (dape-info-hide-mode-line nil)
 
-  :hook (dape-display-source . pulse-momentary-highlight-one-line)
-  :hook (dape-start . (lambda () (save-some-buffers t t)))
-  :hook (dape-compile . kill-buffer)
   ;; Pulse source line (performance hit)
-  ;; (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
-
+  :hook (dape-display-source . pulse-momentary-highlight-one-line)
   ;; Save buffers on startup, useful for interpreted languages
-  ;; (add-hook 'dape-start-hook (lambda () (save-some-buffers t t)))
-
-  ;; Kill compile buffer on build success
+  :hook (dape-start . (lambda () (save-some-buffers t t)))
   ;; (add-hook 'dape-compile-hook #'kill-buffer)
-  )
+  :hook (dape-compile . kill-buffer))
+
 
 ;; For a more ergonomic Emacs and `dape' experience
 
 (use-package repeat
-  :hook (dape-start . repeat-mode)
+  :hook (dape-start . (lambda () (repeat-mode +1)))
   ;; :custom
   ;; (repeat-mode +1)
   )
@@ -1322,11 +1348,12 @@ using this command."
 						     "--header-insertion-decorators=0")))
   ;; (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio")))
   (add-to-list 'eglot-server-programs '((org-mode markdown-mode) . ("harper-ls" "--stdio")))
-
+  (setq eglot-send-changes-idle-time 0.1)
   )
 
 (use-package eglot-booster
   :if (eq system-type 'gnu/linux)
+  :disabled
   :ensure (:host github
 		 :repo "jdtsmith/eglot-booster")
   :after eglot
@@ -1523,16 +1550,6 @@ using this command."
 	 ("g" . magit-project-status))
   )
 
-;; autoformat
-(use-package format-all
-  :ensure t
-  :commands format-all-mode
-  :hook (prog-mode . format-all-mode)
-  :bind ("M-F" . format-all-buffer)
-  :config
-  (setq-default format-all-formatters
-                '(("C"     (astyle "--mode=c"))
-                  ("Shell" (shfmt "-i" "4" "-ci")))))
 
 ;; autocorrect
 
@@ -1685,7 +1702,7 @@ using this command."
   ;;				      list list_comprehension
   ;;				      dictionary dictionary_comprehension
   ;;				      parenthesized_expression subscript)))
-  :hook ((python-base-mode yaml-mode) . indent-bars-mode))
+  :hook ((python-base-mode yaml-mode html-mode) . indent-bars-mode))
 
 
 ;; Tree-sitter, at least until it works on Windows
@@ -1781,18 +1798,19 @@ using this command."
 
 (use-package envrc :ensure t
   :when (eq system-type 'gnu/linux)
-  :hook (after-init . envrc-global-mode))
+  :hook (elpaca-after-init . envrc-global-mode))
+
+(use-package pet :ensure t
+  :when (eq system-type 'gnu/linux)
+  :hook (python-base-mode . (lambda () pet-mode -10)))
 
 (use-package markdown-mode
   :ensure t
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown")
   :bind (:map markdown-mode-map
-	      ("C-c C-e" . markdown-do)))
-
-
-(use-package micromamba :ensure t
-  :unless (eq system-type 'windows-nt))
+	      ("C-c C-e" . markdown-do))
+  :hook (markdown-mode . visual-line-mode))
 
 (use-package jupyter :ensure t :after org
   :config
@@ -1828,6 +1846,65 @@ using this command."
 (use-package yaml-mode :ensure t)
 
 (use-package dockerfile-mode :ensure t)
+
+;;; EMACS-SOLO-CLIPBOARD
+;;
+;;  Allows proper copy/pasting on terminals
+;;
+(use-package emacs-solo-clipboard
+  :ensure nil
+  :no-require t
+  :defer t
+  :init
+  (cond
+   ;; macOS: use pbcopy/pbpaste
+   ((eq system-type 'darwin)
+    (setq interprogram-cut-function
+	  (lambda (text &optional _)
+	    (let ((process-connection-type nil))
+	      (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
+		(process-send-string proc text)
+		(process-send-eof proc)))))
+    (setq interprogram-paste-function
+	  (lambda ()
+	    (shell-command-to-string "pbpaste"))))
+
+   ;; WSL (Windows Subsystem for Linux): Use clip.exe for copy and powershell.exe for paste
+   ((and (eq system-type 'gnu/linux)
+	 (getenv "WSLENV"))
+    (setq interprogram-cut-function
+	  (lambda (text &optional _)
+	    (let ((process-connection-type nil))
+	      (let ((proc (start-process "clip.exe" "*Messages*" "clip.exe")))
+		(process-send-string proc text)
+		(process-send-eof proc)))))
+    (setq interprogram-paste-function
+	  (lambda ()
+	    (string-trim (shell-command-to-string "powershell.exe -command Get-Clipboard")))))
+
+   ;; Linux with wl-copy/wl-paste (Wayland)
+   ((and (eq system-type 'gnu/linux) (executable-find "wl-copy"))
+    (setq interprogram-cut-function
+	  (lambda (text &optional _)
+	    (let ((process-connection-type nil))
+	      (let ((proc (start-process "wl-copy" "*Messages*" "wl-copy")))
+		(process-send-string proc text)
+		(process-send-eof proc)))))
+    (setq interprogram-paste-function
+	  (lambda ()
+	    (shell-command-to-string "wl-paste -n"))))
+
+   ;; Linux with xclip (X11)
+   ((and (eq system-type 'gnu/linux) (executable-find "xclip"))
+    (setq interprogram-cut-function
+	  (lambda (text &optional _)
+	    (let ((process-connection-type nil))
+	      (let ((proc (start-process "xclip" "*Messages*" "xclip" "-selection" "clipboard")))
+		(process-send-string proc text)
+		(process-send-eof proc)))))
+    (setq interprogram-paste-function
+	  (lambda ()
+	    (shell-command-to-string "xclip -selection clipboard -o"))))))
 
 ;;; init.el ends here.
 (provide 'init)

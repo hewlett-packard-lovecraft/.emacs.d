@@ -33,8 +33,8 @@
 (add-hook 'server-after-make-frame-hook 'toggle-frame-maximized t)
 (add-hook 'server-after-make-frame-hook 'my/server-set-font)
 
-(when (wsl-p)
-  (add-hook 'after-make-frame-functions 'setup-wsl-t))
+;; (when (wsl-p)
+;;   (add-hook 'after-make-frame-functions 'setup-wsl-t))
 
 (defun contextual-menubar (&optional frame)
   "Display the menubar in FRAME (default: selected frame) if on a
