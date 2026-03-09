@@ -26,9 +26,10 @@
 (defun my/server-set-font ()
   "Set theme based on whether FRAME is a GUI or TTY frame."
   (when (window-system)
-    (cond ((my/font-exists-p "Iosevka Nerd Font Mono") (set-frame-font "Iosevka Nerd Font Mono-12" nil t))
-	  ((my/font-exists-p "Courier Prime") (set-frame-font "Courier Prime:spacing=100:size=18" nil t))
-	  ((my/font-exists-p "Courier New") (set-frame-font "Courier New:spacing=100:size=18" nil t)))))
+    (cond ((my/font-exists-p "Iosevka NFM") (set-frame-font "Iosevka NFM-12" nil t))
+	  ;; ((my/font-exists-p "Courier Prime") (set-frame-font "Courier Prime:spacing=100:size=18" nil t))
+	  ;; ((my/font-exists-p "Courier New") (set-frame-font "Courier New:spacing=100:size=18" nil t))
+	  )))
 
 (add-hook 'server-after-make-frame-hook 'toggle-frame-maximized t)
 (add-hook 'server-after-make-frame-hook 'my/server-set-font)
@@ -37,7 +38,7 @@
 ;;   (add-hook 'after-make-frame-functions 'setup-wsl-t))
 
 (defun contextual-menubar (&optional frame)
-  "Display the menubar in FRAME (default: selected frame) if on a
+ "Display the menubar in FRAME (default: selected frame) if on a
     graphical display, but hide it if in terminal."
   (interactive)
   (set-frame-parameter frame 'menu-bar-lines

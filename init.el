@@ -99,8 +99,8 @@ using this command."
 
 (elpaca-no-symlink-mode)
 
-(when (eq system-type 'windows-nt)
-  (setq elpaca-queue-limit 12))
+(if (eq system-type 'windows-nt)
+    (setq elpaca-queue-limit 12))
 
 ;; startup files
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
@@ -109,11 +109,19 @@ using this command."
 ;; load wsl, terminal file unless on Windows
 (unless (eq system-type 'windows-nt)
   (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
-  (add-hook 'emacs-startup-hook (lambda () (load wsl-t-custom-file 'noerror))))
+  (add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
+  )
+
+
+(if (eq system-type 'windows-nt)
+    (add-to-list 'default-frame-alist '(font . "Iosevka NFM-12"))
+  ;; (add-hook 'after-make-frame-functions (lambda ()  (set-frame-font "Iosevka NFM-12" nil t)))
+  )
 
 (unless (eq system-type 'gnu/linux)
   (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
-  (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror))))
+  (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
+  )
 
 
 ;; ;; use-package
@@ -158,6 +166,9 @@ using this command."
   ;; useful beyond Corfu.
   (read-extended-command-predicate #'command-completion-default-include-p)
 
+  :hook (prog-mode . display-line-numbers-mode)
+  :hook (conf-mode . display-line-numbers-mode)
+  ;; :hook (text-mode . context-menu-mode)
   :config
   (unless (eq system-type 'windows-nt)
     (set-frame-font "Iosevka Nerd Font Mono-12" nil t)
@@ -165,8 +176,9 @@ using this command."
     )
 
   ;; line numbers
-  (global-display-line-numbers-mode 1)
+  ;; (global-display-line-numbers-mode 1) # instead use hook
   (setq display-line-numbers-type 'relative)
+  (setq column-number-mode t) ;; display column number in mode line
 
   ;; autoreload buffers
   (global-auto-revert-mode t)
@@ -899,9 +911,9 @@ using this command."
 ;; Flymake
 (use-package flymake :ensure nil
   :bind (:map flymake-mode-map
-	      ("C-;" . flymake-show-buffer-diagnostics)
-	      ;; ("C-c C-;" . flymake-show-buffer-diagnostics)
-	      ;; ("C-c f p" . flymake-show-project-diagnostics)
+	      ;; ("C-;" . flymake-show-buffer-diagnostics)
+	      ("C-c C-f C-b" . flymake-show-buffer-diagnostics)
+	      ;; ("C-c C-f C-p" . flymake-show-project-diagnostics)
 	      )
   :general
   (my/leader-keys
@@ -1017,9 +1029,13 @@ using this command."
   :ensure t
   :init
   (setq olivetti-body-width 94)
-  ;; (setq olivetti-style 'nil)
-  ;; (setq olivetti-minimum-body-width 50)
-  ;; :hook (text-mode . olivetti-mode)
+  (setq olivetti-style 'nil)
+  ;; (setq olivetti-style t)
+  ;; (setq olivetti-margin-width 10)
+  ;; (setq olivetti-style 'fancy)
+  (setq olivetti-minimum-body-width 50)
+  :hook (olivetti-mode . (lambda () (display-line-numbers-mode -1)))
+  :hook ((org-mode LaTeX-mode) . olivetti-mode)
   )
 
 (use-package pdf-tools
@@ -1346,9 +1362,36 @@ using this command."
 						     "--pch-storage=memory"
 						     "--header-insertion=never"
 						     "--header-insertion-decorators=0")))
-  ;; (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio")))
-  (add-to-list 'eglot-server-programs '((org-mode markdown-mode) . ("harper-ls" "--stdio")))
-  (setq eglot-send-changes-idle-time 0.1)
+
+  ;; harper-ls
+  (add-to-list 'eglot-server-programs
+               ;; '((english-prose-mode :language-id "plaintext") . ("harper-ls" "--stdio"))
+               '((org-mode :language-id "org") . ("harper-ls" "--stdio"))
+               ;; '((markdown-mode :language-id "markdown") . ("harper-ls" "--stdio"))
+	       )
+  (setq-default eglot-workspace-configuration
+		'(:harper-ls (:userDictPath ""
+					    :workspaceDictPath ""
+					    :fileDictPath ""
+					    :linters (:SpellCheck t
+								  :SpelledNumbers :json-false
+								  :AnA t
+								  :SentenceCapitalization t
+								  :UnclosedQuotes t
+								  :WrongQuotes :json-false
+								  :LongSentences t
+								  :RepeatedWords t
+								  :Spaces t
+								  :Matcher t
+								  :CorrectNumberSuffix t)
+					    :codeActions (:ForceStable :json-false)
+					    :markdown (:IgnoreLinkTitle :json-false)
+					    :diagnosticSeverity "hint"
+					    :isolateEnglish :json-false
+					    :dialect "Canadian"
+					    :maxFileLength 120000
+					    :ignoredLintsPath ""
+					    :excludePatterns [])))
   )
 
 (use-package eglot-booster
@@ -1640,7 +1683,7 @@ using this command."
 
 ;; wrapper around terminal
 (use-package mistty
-  :unless (eq system-type 'windows-nt)
+  :if (eq system-type 'gnu/linux)
   :ensure t
   :bind (("C-c s" . mistty)
 
@@ -1656,25 +1699,26 @@ using this command."
   )
 
 ;; declare linux specific packages here
-(use-package vterm :ensure (vterm :post-build
-				  (progn
-				    (setq vterm-always-compile-module t)
-				    (require 'vterm)
-				    ;;print compilation info for elpaca
-				    (with-current-buffer (get-buffer-create vterm-install-buffer-name)
-				      (goto-char (point-min))
-				      (while (not (eobp))
-					(message "%S"
-						 (buffer-substring (line-beginning-position)
-								   (line-end-position)))
-					(forward-line)))
-				    (when-let* ((so (expand-file-name "./vterm-module.so"))
-						((file-exists-p so)))
-				      (make-symbolic-link
-				       so (expand-file-name (file-name-nondirectory so)
-							    "../../builds/vterm")
-				       'ok-if-already-exists))))
+(use-package vterm
   :if (eq system-type 'gnu/linux)
+  :ensure (vterm :post-build
+		 (progn
+		   (setq vterm-always-compile-module t)
+		   (require 'vterm)
+		   ;;print compilation info for elpaca
+		   (with-current-buffer (get-buffer-create vterm-install-buffer-name)
+		     (goto-char (point-min))
+		     (while (not (eobp))
+		       (message "%S"
+				(buffer-substring (line-beginning-position)
+						  (line-end-position)))
+		       (forward-line)))
+		   (when-let* ((so (expand-file-name "./vterm-module.so"))
+			       ((file-exists-p so)))
+		     (make-symbolic-link
+		      so (expand-file-name (file-name-nondirectory so)
+					   "../../builds/vterm")
+		      'ok-if-already-exists))))
   :commands (vterm vterm-other-window)
   :hook (vterm-mode .  (lambda () (display-line-numbers-mode -1)))
   :general
@@ -1787,7 +1831,7 @@ using this command."
 (use-package cmake-mode :ensure t)
 
 (use-package nix-mode :ensure t
-  :when (eq system-type 'gnu/linux)
+  :if (eq system-type 'gnu/linux)
   :mode "\\.nix\\'")
 
 ;; (use-package direnv :ensure t
@@ -1812,19 +1856,23 @@ using this command."
 	      ("C-c C-e" . markdown-do))
   :hook (markdown-mode . visual-line-mode))
 
-(use-package jupyter :ensure t :after org
-  :config
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((emacs-lisp . t)
-     (julia . t)
-     (python . t)
-     (jupyter . t))))
+;; (use-package jupyter :ensure t
+;;   :if (eq system-type 'gnu/linux)
+;;   :config
+;;   (org-babel-do-load-languages
+;;    'org-babel-load-languages
+;;    '((emacs-lisp . t)
+;;      (julia . t)
+;;      (python . t)
+;;      (jupyter . t))))
 
-(use-package drepl :ensure t)
+(use-package drepl
+  :if (eq system-type 'gnu/linux)
+  :ensure t)
 
-(use-package code-cells :ensure t
-  :unless (eq system-type 'windows-nt)
+(use-package code-cells
+  :if (eq system-type 'gnu/linux)
+  :ensure t
   :hook (python-mode . code-cells-mode-maybe )
   :bind (:map code-cells-mode-map
 	      ("M-p" . code-cells-backward-cell)
@@ -1840,12 +1888,18 @@ using this command."
 	      ))
 
 (use-package docker
+  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   :ensure t
   :bind ("C-c d" . docker))
 
-(use-package yaml-mode :ensure t)
+(use-package yaml-mode
+  :if (eq system-type 'gnu/linux)
+  :ensure t)
 
-(use-package dockerfile-mode :ensure t)
+(use-package dockerfile-mode
+  :if (eq system-type 'gnu/linux)
+  :ensure t)
 
 ;;; EMACS-SOLO-CLIPBOARD
 ;;

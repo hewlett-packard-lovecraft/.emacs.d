@@ -32,9 +32,9 @@
 
 ;; https://orgmode.org/manual/Export-Settings.html
 
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((emacs-lisp . t)
-   (julia . t)
-   (python . t)
-   (jupyter . t)))
+;; (org-babel-do-load-languages
+;;  'org-babel-load-languages
+;;  '((emacs-lisp . t)
+;;    (julia . t)
+;;    (python . t)
+;;    (jupyter . t)))
