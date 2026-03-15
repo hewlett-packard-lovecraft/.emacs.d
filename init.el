@@ -58,15 +58,15 @@ using this command."
 
 
 ;; elpaca installer
-(defvar elpaca-installer-version 0.11)
+(defvar elpaca-installer-version 0.12)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-sources-directory (expand-file-name "sources/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
                               :ref nil :depth 1 :inherit ignore
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+                              :build (:not elpaca-activate)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-sources-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
        (default-directory repo))
@@ -97,32 +97,24 @@ using this command."
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
-(elpaca-no-symlink-mode)
+;; end elpaca-installer
+;; startup files
 
 (if (eq system-type 'windows-nt)
-    (setq elpaca-queue-limit 12))
+    (setq elpaca-queue-limit 12)
+  (elpaca-no-symlink-mode)
+  ;; (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
+  ;; (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
+  )
 
-;; startup files
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
-(add-hook 'emacs-startup-hook (lambda () (load org-custom-file 'noerror)))
+(add-hook 'elpaca-after-init-hook (lambda () (load org-custom-file 'noerror)))
 
 ;; load wsl, terminal file unless on Windows
 (unless (eq system-type 'windows-nt)
   (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
   (add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
   )
-
-
-(if (eq system-type 'windows-nt)
-    (add-to-list 'default-frame-alist '(font . "Iosevka NFM-12"))
-  ;; (add-hook 'after-make-frame-functions (lambda ()  (set-frame-font "Iosevka NFM-12" nil t)))
-  )
-
-(unless (eq system-type 'gnu/linux)
-  (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
-  (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
-  )
-
 
 ;; ;; use-package
 ;; Install use-package support
@@ -170,11 +162,6 @@ using this command."
   :hook (conf-mode . display-line-numbers-mode)
   ;; :hook (text-mode . context-menu-mode)
   :config
-  (unless (eq system-type 'windows-nt)
-    (set-frame-font "Iosevka Nerd Font Mono-12" nil t)
-    ;; (add-to-list 'default-frame-alist '(font . "Iosevka Nerd Font Mono-12")
-    )
-
   ;; line numbers
   ;; (global-display-line-numbers-mode 1) # instead use hook
   (setq display-line-numbers-type 'relative)
@@ -256,7 +243,6 @@ using this command."
 
   (show-paren-mode t)
   (put 'suspend-frame 'disabled t) ;; disable confusing suspend in GUI mode)
-  ;; terminal stuff here
 
   (use-package tab-bar
     :config
@@ -265,6 +251,16 @@ using this command."
     ;; (setq tab-bar-new-tab-choice "*dashboard*");; buffer to show in new tabs
     (setq tab-bar-tab-hints t)                 ;; show tab numbers
     (setq tab-bar-format '(tab-bar-format-tabs tab-bar-separator)))
+
+
+  ;; server stuff here
+  :hook (server-after-make-frame . (lambda ()
+                                     (when (display-graphic-p)
+				       (when (eq system-type 'windows-nt)
+					 (set-face-attribute 'default nil :font "Iosevka NFM-12"))
+				       (when (eq system-type 'gnu/linux)
+					 (set-face-attribute 'default nil :font "Iosevka Nerd Font-12")
+					 ))))
   )
 
 (use-package savehist
@@ -290,6 +286,20 @@ using this command."
   (setq electric-pair-preserve-balance nil)) ;; more annoying than useful
 
 (use-package diminish :ensure t)
+
+(use-package desktop
+  :ensure nil
+  :hook
+  (elpaca-after-init-hook
+   . (lambda ()
+       (desktop-save-mode 1) ; Enable the mode right before
+       (let ((key "--no-desktop"))
+         (when (member key command-line-args)
+           (setq command-line-args (delete key command-line-args))
+           (desktop-save-mode 0)))
+       (when desktop-save-mode
+         (desktop-read)
+         (setq inhibit-startup-screen t)))))
 
 ;; tab bar
 ;;; Vim Bindings
@@ -836,7 +846,12 @@ using this command."
   ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
   )
 
-(use-package consult-yasnippet :ensure t :after (consult, yasnippet))
+(use-package consult-yasnippet :ensure t
+  :after (yasnippet)
+  :bind (
+	 ("C-c & M-s" . consult-yasnippet)
+	 ("C-c & M-v" . consult-yasnippet-visit-snippet-file)
+	 ))
 
 (use-package consult-project-extra :ensure t)
 
@@ -903,10 +918,14 @@ using this command."
   :commands format-all-mode
   :hook (prog-mode . format-all-mode)
   :bind ("M-F" . format-all-buffer)
-  :config
-  (setq-default format-all-formatters
-                '(("C"     (astyle "--mode=c"))
-                  ("Shell" (shfmt "-i" "4" "-ci")))))
+  :hook (sql-mode . (lambda () (setq format-all-formatters
+				     '(("SQL" (sqlformat "-r"))))))
+  :hook ((sh-mode bash-ts-mode) . (lambda () (setq format-all-formatters
+						   '(("Shell" (shfmt "-i" "4" "-ci"))))))
+  :hook ((c-mode c-ts-mode) . (lambda () (setq format-all-formatters
+					       '(("C"     (astyle "--mode=c"))
+						 ))))
+  :hook (python-base-mode . (lambda () (setq format-all-show-errors 'error))))
 
 ;; Flymake
 (use-package flymake :ensure nil
@@ -929,15 +948,14 @@ using this command."
   :custom
   (flymake-no-changes-timeout nil)
   (flymake-show-diagnostics-at-end-of-line)
-  ;; (flymake-no-changes-timeout 0.1)
+  (flymake-no-changes-timeout 0.1)
   :general
   (general-nmap "] !" 'flymake-goto-next-error)
   (general-nmap "[ !" 'flymake-goto-prev-error))
 
-(use-package flymake-collection
-  :ensure t
-  :hook (elpaca-after-init . 'flymake-collection-hook-setup))
-
+;; (use-package flymake-collection
+;;   :ensure t
+;;   :hook (elpaca-after-init . 'flymake-collection-hook-setup))
 
 (use-package which-key
   :defer nil
@@ -951,30 +969,30 @@ using this command."
 ;; LaTeX
 ;; Set up AuCTeX to load with the builtin TeX package
 (use-package tex
-  :ensure (:repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
-		 :pre-build (("make" "elpa"))
-		 :build (:not elpaca--compile-info) ;; Make will take care of this step
-		 :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
-		 :version (lambda (_) (require 'auctex) AUCTeX-version))
+  :ensure (auctex :repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
+		  :pre-build (("make" "elpa"))
+		  :build (:not elpaca--compile-info) ;; Make will take care of this step
+		  :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+		  :version (lambda (_) (require 'auctex) AUCTeX-version))
   :init
   (setq TeX-parse-self t ; parse on load
-        reftex-plug-into-AUCTeX t
-        TeX-auto-save t  ; parse on save
-        TeX-view-program-selection '((output-pdf "PDF Tools"))
-        TeX-source-correlate-mode t
-        TeX-source-correlate-method 'synctex
-        TeX-source-correlate-start-server t
-        TeX-electric-sub-and-superscript t
-        TeX-engine 'luatex ;; use lualatex by default
-        TeX-save-query nil
-        TeX-electric-math (cons "\\(" "\\)")) ;; '$' inserts an in-line equation '\(...\)'
+	reftex-plug-into-AUCTeX t
+	TeX-auto-save t  ; parse on save
+	TeX-view-program-selection '((output-pdf "PDF Tools"))
+	TeX-source-correlate-mode t
+	TeX-source-correlate-method 'synctex
+	TeX-source-correlate-start-server t
+	TeX-electric-sub-and-superscript t
+	TeX-engine 'luatex ;; use lualatex by default
+	TeX-save-query nil
+	TeX-electric-math (cons "\\(" "\\)")) ;; '$' inserts an in-line equation '\(...\)'
 
   (add-hook 'TeX-mode-hook #'reftex-mode)
   (add-hook 'TeX-mode-hook #'olivetti-mode)
   (add-hook 'TeX-mode-hook #'turn-on-auto-fill)
   (add-hook 'TeX-mode-hook #'prettify-symbols-mode)
   (add-hook 'TeX-after-compilation-finished-functions
-            #'TeX-revert-document-buffer)
+	    #'TeX-revert-document-buffer)
   (add-hook 'TeX-mode-hook #'outline-minor-mode)
 
   :general
@@ -1060,7 +1078,7 @@ using this command."
 ;; Org Mode
 (use-package org
   :hook ((org-mode . visual-line-mode)
-         (org-mode . org-indent-mode))
+	 (org-mode . org-indent-mode))
   :config
   (setq org-src-fontify-natively t)
   ;; (setq org-highlight-latex-and-related '(latex script entities))
@@ -1071,11 +1089,11 @@ using this command."
 
   ;; https://lucidmanager.org/productivity/ricing-org-mode/
   (setq-default org-startup-indented t
-                org-pretty-entities t
-                org-use-sub-superscripts "{}"
-                org-hide-emphasis-markers t
-                org-startup-with-inline-images t
-                org-image-actual-width '(300))
+		org-pretty-entities t
+		org-use-sub-superscripts "{}"
+		org-hide-emphasis-markers t
+		org-startup-with-inline-images t
+		org-image-actual-width '(300))
 
   :bind (:map org-mode-map
 	      ("C-c d" . TeX-insert-dollar))
@@ -1092,6 +1110,9 @@ using this command."
   (org-modern-keyword nil)
   (org-modern-checkbox nil)
   (org-modern-table nil))
+
+;; TODO: wait until it gets added to MELPA https://github.com/jdtsmith/org-modern-indent
+;; https://github.com/jdtsmith/org-modern-indent
 
 ;; LaTeX previews
 (use-package org-fragtog
@@ -1132,7 +1153,8 @@ using this command."
 
 (use-package org-auctex
   :ensure (:type git :host github :repo
-                 "karthink/org-auctex")
+		 "karthink/org-auctex")
+  :after tex
   :hook (org-mode . org-auctex-mode))
 
 (use-package org-transclusion
@@ -1225,7 +1247,7 @@ using this command."
   ;; Use the "journal" subdirectory of the `denote-directory'.  Set this
   ;; to nil to use the `denote-directory' instead.
   (setq denote-journal-directory
-        (expand-file-name "journal" denote-directory))
+	(expand-file-name "journal" denote-directory))
   ;; Default keyword for new journal entries. It can also be a list of
   ;; strings.
   (setq denote-journal-keyword "journal")
@@ -1246,7 +1268,7 @@ using this command."
 
   (when (eq system-type 'windows-nt)
     (setq denote-silo-directories
-          (list denote-directory
+	  (list denote-directory
 		"~/../../OneDrive/Documents/02-Org/Denote/"
 		"~/../../OneDrive/Documents/00-Schoolwork/Denote/"
 		;; "~/../../OneDrive/Documents/02-Org/Journal/"
@@ -1342,7 +1364,7 @@ using this command."
 (use-package eglot
   :defer t
   ;; refer to evil-collection bindings
-  :hook ((python-ts-mode c++-ts-mode c-ts-mode cmake-ts-mode bash-ts-mode yaml-ts-mode nix-ts-mode dockerfile-tsmode ) . eglot-ensure)
+  :hook ((python-ts-mode c++-ts-mode c-ts-mode cmake-ts-mode bash-ts-mode yaml-ts-mode nix-ts-mode ) . eglot-ensure)
   :hook ((python-mode c++-mode c-mode cmake-mode bash-mode yaml-mode nix-mode dockerfile-mode) . eglot-ensure)
   :hook ((LaTeX-mode) . eglot-ensure)
   :hook (((html-mode html-ts-mode) . eglot-ensure) ; start eglot for html files
@@ -1365,9 +1387,9 @@ using this command."
 
   ;; harper-ls
   (add-to-list 'eglot-server-programs
-               ;; '((english-prose-mode :language-id "plaintext") . ("harper-ls" "--stdio"))
-               '((org-mode :language-id "org") . ("harper-ls" "--stdio"))
-               ;; '((markdown-mode :language-id "markdown") . ("harper-ls" "--stdio"))
+	       ;; '((english-prose-mode :language-id "plaintext") . ("harper-ls" "--stdio"))
+	       '((org-mode :language-id "org") . ("harper-ls" "--stdio"))
+	       ;; '((markdown-mode :language-id "markdown") . ("harper-ls" "--stdio"))
 	       )
   (setq-default eglot-workspace-configuration
 		'(:harper-ls (:userDictPath ""
@@ -1396,7 +1418,6 @@ using this command."
 
 (use-package eglot-booster
   :if (eq system-type 'gnu/linux)
-  :disabled
   :ensure (:host github
 		 :repo "jdtsmith/eglot-booster")
   :after eglot
@@ -1428,7 +1449,7 @@ using this command."
   ;; disables accent snippets - things like 'l (which expands to \textsl{}) end up being very disruptive in practice.
   :init (setq laas-accent-snippets nil)
   :hook ((LaTeX-mode . laas-mode)
-         (org-mode . laas-mode))
+	 (org-mode . laas-mode))
   :config
   (aas-set-snippets 'laas-mode
 		    ;; I need to make sure not to accidentally trigger the following, so I should only use impossible (or extremely rare) bigrams/trigrams.
@@ -1493,13 +1514,13 @@ using this command."
 
 (use-package tempel :ensure t
   :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
-         ("M-*" . tempel-insert))
+	 ("M-*" . tempel-insert))
   :general
   ("M-p +" 'tempel-complete) ;; M-p completion prefix; see `cape'
   (my/leader-keys
     "ti" '(tempel-insert :wk "tempel insert"))
   (:keymaps 'tempel-map
-            "TAB" 'tempel-next) ;; progress through fields via `TAB'
+	    "TAB" 'tempel-next) ;; progress through fields via `TAB'
   :init
   (defun tempel-setup-capf ()
     (add-hook 'completion-at-point-functions #'tempel-expand))
@@ -1597,8 +1618,9 @@ using this command."
 ;; autocorrect
 
 (use-package ispell
+  :if (eq system-type 'windows-nt)
   :init
-  (setenv "DICTIONARY" "en_US")
+  (setenv "DICTIONARY" "en_CA")
   (setenv "DICPATH" (file-name-concat (file-truename user-emacs-directory) "hunspell"))
 
   ;; TODO: figure out why dicpath symbol void
@@ -1606,7 +1628,6 @@ using this command."
   ;;enUS '(file-name-concat dicpath "en_US.aff")
   ;;enCA '(file-name-concat dicpath "en_CA.aff"))
 
-  :if (eq system-type 'windows-nt)
   :custom
   (ispell-local-dictionary "en_CA")
   (ispell-hunspell-dict-paths-alist
@@ -1616,15 +1637,15 @@ using this command."
 
 ;; flyspell
 (use-package flyspell
-  :after ispell
   :config
   (add-hook 'text-mode-hook 'flyspell-mode)
   (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 
-  (setq ispell-local-dictionary "en_US")
-  (setq ispell-hunspell-dict-paths-alist
-	'(("en_US" "~/.emacs.d/hunspell/en_US.aff")
-	  ("en_CA" "~/.emacs.d/hunspell/en_CA.aff")))
+  (setq ispell-local-dictionary "en_CA")
+  ;; (when (eq system-type 'windows-nt)
+  ;;   (setq ispell-hunspell-dict-paths-alist
+  ;; 	  '(("en_US" "~/.emacs.d/hunspell/en_US.aff")
+  ;; ("en_CA" "~/.emacs.d/hunspell/en_CA.aff"))))
   )
 
 (use-package flyspell-correct
@@ -1682,21 +1703,21 @@ using this command."
   )
 
 ;; wrapper around terminal
-(use-package mistty
-  :if (eq system-type 'gnu/linux)
-  :ensure t
-  :bind (("C-c s" . mistty)
+;; (use-package mistty
+;;   :if (eq system-type 'gnu/linux)
+;;   :ensure t
+;; :bind (("C-c s" . mistty) # snippet
 
-         ;; bind here the shortcuts you'd like the
-         ;; shell to handle instead of Emacs.
-         :map mistty-prompt-map
+;;          ;; bind here the shortcuts you'd like the
+;;          ;; shell to handle instead of Emacs.
+;;          :map mistty-prompt-map
 
-         ;; fish: directory history
-         ("M-<up>" . mistty-send-key)
-         ("M-<down>" . mistty-send-key)
-         ("M-<left>" . mistty-send-key)
-         ("M-<right>" . mistty-send-key))
-  )
+;;          ;; fish: directory history
+;;          ("M-<up>" . mistty-send-key)
+;;          ("M-<down>" . mistty-send-key)
+;;          ("M-<left>" . mistty-send-key)
+;;          ("M-<right>" . mistty-send-key))
+;;   )
 
 ;; declare linux specific packages here
 (use-package vterm
@@ -1731,22 +1752,37 @@ using this command."
 
 
 ;; indent-bars, since it has (optional) treesitter support
-(use-package indent-bars
-  :ensure t
-  :if (eq system-type 'gnu/linux)
-  :custom
+(use-package indent-bars :ensure t
+  :hook ((python-base-mode yaml-mode html-mode c-mode c++-mode) . indent-bars-mode)
+  :hook ((python-ts-mode yaml-ts-mode html-ts-mode c-ts-mode c++-ts-mode) . indent-bars-mode)
+  :custom ;; https://github.com/jdtsmith/indent-bars/wiki/indent%E2%80%90bars-config-Wiki#tree-sitter-config
+  (indent-bars-treesit-support t) ;; enable treesit
   (indent-bars-no-descend-lists 'skip) ; prevent extra bars in nested lists + skip intermediate bars
-  (indent-bars-treesit-support t)
-  (indent-bars-treesit-ignore-blank-lines-types '("module"))
-  ;; Add other languages as needed; check the wiki
+  ;; SET EITHER NO_DESCEND_LISTS OR TS_WRAP, NOT BOTH!
+  ;; (indent-bars-treesit-wrap '((python argument_list parameters
+  ;; 				      list list_comprehension
+  ;; 				      dictionary dictionary_comprehension
+  ;; 				      parenthesized_expression subscript)
+  ;; 			      (c argument_list parameter_list init_declarator parenthesized_expression)
+  ;; 			      (toml table array comment)
+  ;; 			      (yaml block_mapping_pair comment)
+  ;; 			      ))
   (indent-bars-treesit-scope '((python function_definition class_definition for_statement
 				       if_statement with_statement while_statement)))
-  ;; Note: wrap likely not be needed if no-descend-list is enough
-  ;;(indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
-  ;;				      list list_comprehension
-  ;;				      dictionary dictionary_comprehension
-  ;;				      parenthesized_expression subscript)))
-  :hook ((python-base-mode yaml-mode html-mode) . indent-bars-mode))
+  (indent-bars-treesit-ignore-blank-lines-types '("module")))
+
+(use-package editorconfig
+  :demand t
+  :config
+  (defun oxcl/update-indent-bars-with-editorconfig (size)
+    (when (bound-and-true-p indent-bars-mode)
+      (setq indent-bars-spacing-override size)
+      (indent-bars-reset)))
+  (dolist (_mode editorconfig-indentation-alist)
+    (let ((_varlist (cdr _mode)))
+      (setcdr _mode (append '((_ . oxcl/update-indent-bars-with-editorconfig))
+			    (if (listp _varlist) _varlist `(,_varlist))))))
+  (editorconfig-mode 1))
 
 
 ;; Tree-sitter, at least until it works on Windows
@@ -1786,22 +1822,27 @@ using this command."
   ;; that this does *not* extend to hooks! Make sure you migrate them
   ;; also
 
-  ;;;;treesit-auto handles this
+  ;;;;treesit-auto  is supposed to handle this
 
-  ;; (dolist (mapping
-  ;;          '((python-mode . python-ts-mode)
-  ;;            (css-mode . css-ts-mode)
-  ;;            (typescript-mode . typescript-ts-mode)
-  ;;            (js2-mode . js-ts-mode)
-  ;;            (bash-mode . bash-ts-mode)
-  ;;            (conf-toml-mode . toml-ts-mode)
-  ;;            (go-mode . go-ts-mode)
-  ;;            (css-mode . css-ts-mode)
-  ;;            (json-mode . json-ts-mode)
-  ;;            (js-json-mode . json-ts-mode)
-  ;; 	     (yaml-mode . yaml-ts-mode)
-  ;; 	     ))
-  ;;   (add-to-list 'major-mode-remap-alist mapping))
+  (dolist (mapping
+	   '((python-mode . python-ts-mode)
+	     (css-mode . css-ts-mode)
+	     (typescript-mode . typescript-ts-mode)
+	     (js2-mode . js-ts-mode)
+	     (bash-mode . bash-ts-mode)
+	     (conf-toml-mode . toml-ts-mode)
+	     ;; (go-mode . go-ts-mode)
+	     (css-mode . css-ts-mode)
+	     (json-mode . json-ts-mode)
+	     (js-json-mode . json-ts-mode)
+	     (yaml-mode . yaml-ts-mode)
+	     ))
+    (add-to-list 'major-mode-remap-alist mapping))
+
+  ;; finish this later
+  ;; (setq c-ts-mode-hook c-mode-hook)
+  ;; (setq c++-ts-mode-hook c++-mode-hook)
+
   :config
   (mp-setup-install-grammars)
   ;; Do not forget to customize Combobulate to your liking:
@@ -1825,7 +1866,7 @@ using this command."
   :custom
   (treesit-auto-install 'prompt)
   :config
-  (setq treesit-auto-langs '(cmake))
+  (treesit-auto-add-to-auto-mode-alist '(c cpp python rust toml yaml json html css markdown typescript tsx dockerfile bash))
   (global-treesit-auto-mode))
 
 (use-package cmake-mode :ensure t)
@@ -1856,15 +1897,17 @@ using this command."
 	      ("C-c C-e" . markdown-do))
   :hook (markdown-mode . visual-line-mode))
 
-;; (use-package jupyter :ensure t
-;;   :if (eq system-type 'gnu/linux)
-;;   :config
-;;   (org-babel-do-load-languages
-;;    'org-babel-load-languages
-;;    '((emacs-lisp . t)
-;;      (julia . t)
-;;      (python . t)
-;;      (jupyter . t))))
+(use-package websocket :ensure t)
+(use-package zmq :ensure t)
+
+(use-package jupyter
+  :ensure t
+  :commands (jupyter-run-server-repl jupyter-run-repl jupyter-server-list-kernels) ; Define commands to load the package
+  :init
+  ;; Optional: Add configuration for org-mode integration
+  (eval-after-load 'jupyter-org-extensions
+    '(unbind-key "C-c h" jupyter-org-interaction-mode-map))
+  )
 
 (use-package drepl
   :if (eq system-type 'gnu/linux)
@@ -1874,17 +1917,33 @@ using this command."
   :if (eq system-type 'gnu/linux)
   :ensure t
   :hook (python-mode . code-cells-mode-maybe )
+  ;; :config
+  ;; (setq code-cells-convert-ipynb-style '(("pandoc" "--to" "ipynb" "--from" "org")
+  ;; 					 ("pandoc" "--to" "org" "--from" "ipynb" "--extract-media" "./ipynb-images/")
+  ;; 					 (lambda () #'org-mode)))
   :bind (:map code-cells-mode-map
 	      ("M-p" . code-cells-backward-cell)
 	      ("M-n" . code-cells-forward-cell)
 	      ("C-c C-c" . code-cells-eval)
 	      ([remap jupyter-eval-line-or-region] . code-cells-eval)
+	      ;; figure out how to make all this work with use-package later
+	      ;; ([remap evil-search-next] . (lambda () (code-cells-speed-key 'code-cells-forward-cell))) ;; n
+	      ;; ([remap evil-paste-after] .  (lambda () (code-cells-speed-key 'code-cells-backward-cell))) ;; p
+	      ;; ([remap evil-backward-word-begin] . (lambda () (code-cells-speed-key 'code-cells-eval-above))) ;; b
+	      ;; ([remap evil-forward-word-end] . (lambda () (code-cells-speed-key 'code-cells-eval))) ;; e
+	      ;; ([remap evil-jump-forward] . (lambda () (code-cells-speed-key 'outline-cycle))) ;; TAB
 
-	      ([remap evil-search-next] . (lambda () (interactive) (code-cells-speed-key 'code-cells-forward-cell))) ;; n
-	      ([remap evil-paste-after] .  (lambda () (interactive)  (code-cells-speed-key 'code-cells-backward-cell))) ;; p
-	      ([remap evil-backward-word-begin] . (lambda () (interactive)  (code-cells-speed-key 'code-cells-eval-above))) ;; b
-	      ([remap evil-forward-word-end] . (lambda () (interactive)  (code-cells-speed-key 'code-cells-eval))) ;; e
-	      ([remap evil-jump-forward] . (lambda () (interactive)  (code-cells-speed-key 'outline-cycle))) ;; TAB
+	      ;; ([remap evil-search-next] . (lambda () (interactive) (code-cells-speed-key 'code-cells-forward-cell))) ;; n
+	      ;; ([remap evil-paste-after] .  (lambda () (interactive)  (code-cells-speed-key 'code-cells-backward-cell))) ;; p
+	      ;; ([remap evil-backward-word-begin] . (lambda () (interactive)  (code-cells-speed-key 'code-cells-eval-above))) ;; b
+	      ;; ([remap evil-forward-word-end] . (lambda () (interactive)  (code-cells-speed-key 'code-cells-eval))) ;; e
+	      ;; ([remap evil-jump-forward] . (lambda () (interactive)  (code-cells-speed-key 'outline-cycle))) ;; TAB
+
+	      ;; ([remap evil-search-next] . (code-cells-speed-key 'code-cells-forward-cell)) ;; n
+	      ;; ([remap evil-paste-after] . (code-cells-speed-key 'code-cells-backward-cell)) ;; p
+	      ;; ([remap evil-backward-word-begin] . (code-cells-speed-key 'code-cells-eval-above)) ;; b
+	      ;; ([remap evil-forward-word-end] . (code-cells-speed-key 'code-cells-eval)) ;; e
+	      ;; ([remap evil-jump-forward] . (code-cells-speed-key 'outline-cycle)) ;; TAB
 	      ))
 
 (use-package docker
@@ -1904,8 +1963,11 @@ using this command."
 ;;; EMACS-SOLO-CLIPBOARD
 ;;
 ;;  Allows proper copy/pasting on terminals
+;;  https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
 ;;
 (use-package emacs-solo-clipboard
+  ;; :if (and (not (display-graphic-p)) ())
+  :if (not (display-graphic-p))
   :ensure nil
   :no-require t
   :defer t

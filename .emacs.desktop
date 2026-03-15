@@ -1,0 +1,199 @@
+;; -*- mode: emacs-lisp; lexical-binding:t; coding: utf-8-emacs; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Fri Mar 13 16:12:08 2026
+;; Desktop file format version 208
+;; Emacs version 30.2
+
+;; Global section:
+(setq desktop-saved-frameset [frameset 1 (27060 28568 550417 254000) (desktop . "208") "hxia@hxia-lenovo-legion" nil nil ((((minibuffer . t) (tty-type . "xterm-256color") (tty . "/dev/tty") (display-type . color) (background-mode . light) (scroll-bar-foreground . "#9f9f9f") (scroll-bar-background . "#f2f2f2") (cursor-color . "#000000") (tool-bar-lines . 0) (vertical-scroll-bars) (background-color . "#ffffff") (foreground-color . "#000000") (undecorated) (override-redirect) (GUI:font . "-UKWN-Iosevka Nerd Font-regular-normal-normal-*-16-*-*-*-d-0-iso10646-1") (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (horizontal-scroll-bars) (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 8) (right-fringe . 8) (no-special-glyphs) (menu-bar-lines . 1) (tab-bar-lines . 0) (title) (wait-for-wm . t) (tool-bar-position . top) (inhibit-double-buffering) (icon-type . t) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 16) (scroll-bar-height . 16) (alpha) (alpha-background) (no-focus-on-map) (no-accept-focus) (GUI:fullscreen . maximized) (skip-taskbar) (z-group) (font-parameter) (environment "GDK_PIXBUF_MODULE_FILE=/nix/store/8gz43a07r76vahgqlx88iz9yi22shdv0-librsvg-2.61.3/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache" "GIO_EXTRA_MODULES=/nix/store/8kpr41q1f9pvj48pf9i2b1yax95k0hj6-glib-networking-2.80.1/lib/gio/modules:/nix/store/in656db0026948ff55q707l4l5bzm11x-dconf-0.49.0-lib/lib/gio/modules:" "_=/home/hxia/.nix-profile/bin/emacsclient" "YSU_VERSION=1.10.1" "SSH_AGENT_PID=974" "SSH_AUTH_SOCK=/tmp/ssh-0Y1WCCCldrch/agent.972" "LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:" "LSCOLORS=Gxfxcxdxbxegedabagacad" "LESS=-R" "PAGER=less" "NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt" "XDG_DATA_DIRS=/nix/store/wzgrx4agm18y440dgdf0c1w776ig6qjs-emacs-pgtk-30.2/share:/nix/store/las4lwsvf3an27b8v16wvp076zicnscp-gsettings-desktop-schemas-49.1/share/gsettings-schemas/gsettings-desktop-schemas-49.1:/nix/store/m0lqcffa9kjbs9zwnh674zq2cxiv5690-gtk+3-3.24.51/share/gsettings-schemas/gtk+3-3.24.51:/nix/store/wzgrx4agm18y440dgdf0c1w776ig6qjs-emacs-pgtk-30.2/share/gsettings-schemas/emacs-pgtk-30.2:/usr/local/share:/usr/share:/home/hxia/.nix-profile/share:/nix/var/nix/profiles/default/share" "NIX_PROFILES=/nix/var/nix/profiles/default /home/hxia/.nix-profile" "__ETC_PROFILE_NIX_SOURCED=1" "XCURSOR_SIZE=12" "__HM_ZSH_SESS_VARS_SOURCED=1" "WINEWAYLAND_ALLOW_HIDPI=1" "TMUX_TMPDIR=/run/user/1000/" "LOCALE_ARCHIVE_2_27=/nix/store/wmwyf3bxrhg5ssd477dp99986wh4mzmm-glibc-locales-2.40-66/lib/locale/locale-archive" "GDK_BACKEND=wayland" "FZF_TMUX=1" "EDITOR=vim" "__HM_SESS_VARS_SOURCED=1" "OLDPWD=/home/hxia/git/data-management-and-analysis" "PWD=/home/hxia/git" "SHLVL=1" "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus" "SHELL=/usr/bin/zsh" "LOGNAME=hxia" "USER=hxia" "HOME=/home/hxia" "WSL_DISTRO_NAME=Ubuntu" "NAME=hxia-lenovo-legion" "WSL_INTEROP=/run/WSL/9501_interop" "WT_PROFILE_ID={8a396e34-4c46-51c1-a5ea-8f2967ccc50d}" "WT_SESSION=4b9b73ab-1cc3-4adf-8719-75f64dfd6255" "WSLENV=WT_SESSION:WT_PROFILE_ID:" "WSL2_GUI_APPS_ENABLED=1" "PULSE_SERVER=unix:/mnt/wslg/PulseServer" "WAYLAND_DISPLAY=wayland-0" "DISPLAY=:0" "XDG_RUNTIME_DIR=/run/user/1000/" "TERM=xterm-256color" "PATH=/home/hxia/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/ImageMagick-7.1.2-Q16-HDRI:/mnt/c/Program Files/Microsoft/jdk-17.0.17.10-hotspot/bin:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Tailscale/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Calibre2/:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA app/NvDLISR:/mnt/c/Program Files/usbipd-win/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/PuTTY/:/mnt/c/Program Files/CMake/bin:/mnt/c/Program Files/KeePassXC/:/mnt/c/msys64/ucrt64/bin:/mnt/c/Users/Haoming Xia/.cargo/bin:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/ArtifexSoftware.mutool_Microsoft.Winget.Source_8wekyb3d8bbwe/mupdf-1.23.0-windows:/mnt/c/Users/Haoming Xia/AppData/Local/Programs/Ollama:/mnt/c/Users/Haoming Xia/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/Haoming Xia/AppData/Local/Programs/ExifTool:/mnt/c/Program Files/Emacs/:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/DenoLand.Deno_Microsoft.Winget.Source_8wekyb3d8bbwe:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/FSFhu.Hunspell_Microsoft.Winget.Source_8wekyb3d8bbwe:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/BurntSushi.ripgrep.GNU_Microsoft.Winget.Source_8wekyb3d8bbwe/ripgrep-15.1.0-x86_64-pc-windows-gnu:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/eask.cli_Microsoft.Winget.Source_8wekyb3d8bbwe:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/errata-ai.Vale_Microsoft.Winget.Source_8wekyb3d8bbwe:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/LLVM.ClangFormat_Microsoft.Winget.Source_8wekyb3d8bbwe:/mnt/c/Digestif/:/mnt/c/texlive/2025/bin/windows:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/LLVM.clangd_Microsoft.Winget.Source_8wekyb3d8bbwe/clangd_21.1.8/bin:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/yt-dlp.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-N-121938-g2456a39581-win64-gpl/bin:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/yt-dlp.yt-dlp_Microsoft.Winget.Source_8wekyb3d8bbwe:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/Rufus.Rufus_Microsoft.Winget.Source_8wekyb3d8bbwe:/mnt/c/Users/Haoming Xia/AppData/Local/Microsoft/WinGet/Packages/Automattic.harper-ls_Microsoft.Winget.Source_8wekyb3d8bbwe:/mnt/c/Users/Haoming Xia/AppData/Local/PowerToys/DSCModules/:/home/hxia/.zsh/plugins/zsh-nix-shell:/home/hxia/.zsh/plugins/zsh-you-should-use:/home/hxia/.zsh/plugins/zsh-vi-mode:/home/hxia/.zsh/plugins/fzf-tab" "LANG=C.UTF-8" "HOSTTYPE=x86_64") (sticky) (last-focus-update . t) (tabs (current-tab (name . "build.sh") (explicit-name)) (tab (name . "courses.html") (explicit-name) (time . 1773363687.4272015) (ws ((min-height . 4) (min-width . 10) (min-height-ignore . 3) (min-width-ignore . 4) (min-height-safe . 1) (min-width-safe . 2) (min-pixel-height . 84) (min-pixel-width . 80) (min-pixel-height-ignore . 63) (min-pixel-width-ignore . 32) (min-pixel-height-safe . 21) (min-pixel-width-safe . 16)) leaf (pixel-width . 1600) (pixel-height . 844) (total-width . 200) (total-height . 40) (normal-height . 1.0) (normal-width . 1.0) (parameters (context "courses.html" (front-context-string . "                ") (rear-context-string . ">Mengye Ren</a>\n"))) (buffer "courses.html" (selected . t) (hscroll . 0) (fringes 8 8 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0.9523809523809523) (dedicated) (point . 144071) (start . 143072)) (prev-buffers ("*scratch*" 1 189) ("*Python*" 13120 13161))))) (frameset--id . "47BC-078B-0FCA-54F4") (frameset--mini t . t) (modeline . t) (unsplittable) (icon-name) (display) (explicit-name) (fullscreen-restore . maximized) (GUI:height . 42) (GUI:width . 198) (GUI:left . 0) (GUI:top . 0) (visibility . t) (fullscreen . maximized) (font . "tty") (height . 44) (width . 196)) ((min-height . 4) (min-width . 10) (min-height-ignore . 2) (min-width-ignore . 4) (min-height-safe . 1) (min-width-safe . 2) (min-pixel-height . 4) (min-pixel-width . 10) (min-pixel-height-ignore . 2) (min-pixel-width-ignore . 4) (min-pixel-height-safe . 1) (min-pixel-width-safe . 2)) leaf (pixel-width . 196) (pixel-height . 43) (total-width . 196) (total-height . 43) (normal-height . 1.0) (normal-width . 1.0) (buffer "MelSpecLayerSimple.py" (selected . t) (hscroll . 0) (fringes 0 0 nil nil) (margins 2) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 1) (start . 1)) (prev-buffers ("pyrightconfig.json" 1 38) ("init.el" 1 33043) ("courses.html" 1 144071) ("courses.ipynb" 1 1657) ("BirdNET-Model-V2.4-RKNN" 1 180) ("home.nix" 1 2089) ("docker" 1 219) ("docker_file" 1 231) ("build.sh" 1 381) ("ubuntu_20_04_cp38" 1 465) ("sources_bionic.list" 1 808) ("en_us.txt" 1 43) ("model_config.yml" 1 124) ("Dockerfile" 1 146) ("*scratch*" 1 1))))])
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring nil)
+(setq regexp-search-ring '(#("load_onxx" 0 9 (isearch-case-fold-search t)) #("inputs" 0 6 (isearch-case-fold-search t)) #("dynamic_input" 0 13 (isearch-case-fold-search t)) #("config" 0 6 (isearch-case-fold-search t)) #("rknn.config" 0 11 (isearch-case-fold-search t)) #("instructor" 0 10 (isearch-case-fold-search t)) #("en_ca" 0 5 (isearch-case-fold-search nil)) #("en_US" 0 5 (isearch-case-fold-search nil)) #("850" 0 3 (isearch-case-fold-search nil)) #("commands" 0 8 (isearch-case-fold-search t)) #("mode-map" 0 8 (isearch-case-fold-search t)) #("mistty" 0 6 (isearch-case-fold-search t)) #("misty" 0 5 (isearch-case-fold-search t)) #("note" 0 4 (isearch-case-fold-search t)) #("spc " 0 4 (isearch-case-fold-search t)) #("general" 0 7 (isearch-case-fold-search t))))
+(setq register-alist '((97) (48 . #("    rknn.config(target_platform=platform)\n" 0 42 (yank-handler (evil-yank-line-handler nil t) fontified t indent-bars-font-lock-pending nil)))))
+(setq file-name-history '("/mnt/c/Users/Haoming Xia/Downloads/BirdNET_v2.4_keras/MelSpecLayerSimple.py" "/docker:bold_blackburn:/usr/local/lib/python3.8/dist-packages/rknn/api/rknn_convert.py" "/docker:bold_blackburn:/usr/src/birdnet/convert.py" "/docker:bold_blackburn:/usr/src/birdnet/" "~/git/BirdNET-Model-V2.4-RKNN/BirdNET_v2.4_tflite/labels/en_us.txt" "~/git/BirdNET-Model-V2.4-RKNN/model_config.yml" "~/git/BirdNET-Model-V2.4-RKNN/Dockerfile" #("/home/hxia/git/BirdNET-Model-V2.4-RKNN/docker/Dockerfile" 0 56 (project "~/git/BirdNET-Model-V2.4-RKNN/")) "~/git/BirdNET-Model-V2.4-RKNN/docker/rknn-toolkit2/rknn-toolkit2/docker/docker_file/ubuntu_20_04_cp38/" "~/git/BirdNET-Model-V2.4-RKNN/docker/build.sh" "~/git/BirdNET-Model-V2.4-RKNN/" "~/git/BirdNET-Model-V2.4-RKNN" "~/git/BirdNET-Model-V2.4-RKNN/docker/build.sh" "~/git/BirdNET-Model-V2.4-RKNN/Dockerfile" "~/git/BirdNET-Model-V2.4-RKNN" "~/git/homework05-hewlett-packard-lovecraft/pyrightconfig.json" #("/home/hxia/git/homework05-hewlett-packard-lovecraft/courses.ipynb" 0 65 (project "~/git/homework05-hewlett-packard-lovecraft/")) "~/git/homework05-hewlett-packard-lovecraft/courses.html" #("/home/hxia/git/homework05-hewlett-packard-lovecraft/courses.ipynb" 0 65 (project "~/git/homework05-hewlett-packard-lovecraft/")) #("/home/hxia/git/data-management-and-analysis/postgres.org" 0 56 (project "~/git/data-management-and-analysis/")) "~/.dots/dotfiles/.config/home-manager/home.nix" "~/.emacs.d/init.el" "~/.emacs.d/" "~/git/data-management-and-analysis/postgres.org" #("/home/hxia/git/data-management-and-analysis/postgres_class.ipynb" 0 64 (project "~/git/data-management-and-analysis/")) "~/git/data-management-and-analysis/postgres.org" "~/git/data-management-and-analysis/postgres.ipynb" #("/home/hxia/git/data-management-and-analysis/postgres_class.ipynb" 0 64 (project "~/git/data-management-and-analysis/")) #("/home/hxia/git/homework05-hewlett-packard-lovecraft/films.ipynb" 0 63 (project "~/git/homework05-hewlett-packard-lovecraft/")) #("/home/hxia/git/fun-rtos/testing/blink.c" 0 39 (project "~/git/fun-rtos/")) "~/.emacs.d/" #("/home/hxia/git/fun-rtos/testing/blink.c" 0 39 (project "~/git/fun-rtos/")) #("/home/hxia/git/fun-rtos/kernel.c" 0 32 (project "~/git/fun-rtos/")) #("/home/hxia/git/homework01-hewlett-packard-lovecraft/bits.py" 0 59 (project "~/git/homework01-hewlett-packard-lovecraft/")) "~/.emacs.d/init.el" "~/.emacs.d/customs.el" "~/.emacs.d/init.el" "~/.emacs.d/wsl-t.el" #("/home/hxia/git/homework01-hewlett-packard-lovecraft/ch32.c" 0 58 (project "~/git/homework01-hewlett-packard-lovecraft/")) #("/home/hxia/git/2-web-app-sapphire_seals/app/templates/register.html" 0 67 (project "~/git/2-web-app-sapphire_seals/")) #("/home/hxia/git/2-web-app-sapphire_seals/docker-compose.yml" 0 58 (project "~/git/2-web-app-sapphire_seals/")) #("/home/hxia/git/homework01-hewlett-packard-lovecraft/ch32.c" 0 58 (project "~/git/homework01-hewlett-packard-lovecraft/")) "~/git/data-management-and-analysis/" "~/git/homework01-hewlett-packard-lovecraft/ch32.c" #("/home/hxia/git/homework01-hewlett-packard-lovecraft/bits.py" 0 59 (project "~/git/homework01-hewlett-packard-lovecraft/")) #("/home/hxia/git/homework01-hewlett-packard-lovecraft/ch32.c" 0 58 (project "~/git/homework01-hewlett-packard-lovecraft/")) #("/home/hxia/git/homework01-hewlett-packard-lovecraft/bits.py" 0 59 (project "~/git/homework01-hewlett-packard-lovecraft/")) #("/home/hxia/git/homework01-hewlett-packard-lovecraft/ch32.c" 0 58 (project "~/git/homework01-hewlett-packard-lovecraft/")) "~/git/homework01-hewlett-packard-lovecraft/ch32.c" #("/home/hxia/git/homework01-hewlett-packard-lovecraft/ch32.c" 0 58 (project "~/git/homework01-hewlett-packard-lovecraft/")) "~/git/homework01-hewlett-packard-lovecraft/ch32.c" "/home/hxia/.config/home-manager/home.nix" #("/home/hxia/git/homework01-hewlett-packard-lovecraft/ch32.c" 0 58 (project "~/git/homework01-hewlett-packard-lovecraft/")) "~/git/homework01-hewlett-packard-lovecraft/test.c" "~/git/homework01-hewlett-packard-lovecraft/checksum.py" "~/git/homework01-hewlett-packard-lovecraft/test_bits.py" #("/home/hxia/git/homework01-hewlett-packard-lovecraft/bits.py" 0 59 (project "~/git/homework01-hewlett-packard-lovecraft/")) #("/home/hxia/git/homework01-hewlett-packard-lovecraft/book.ipynb" 0 62 (project "~/git/homework01-hewlett-packard-lovecraft/")) #("/home/hxia/git/homework01-hewlett-packard-lovecraft/bits.py" 0 59 (project "~/git/homework01-hewlett-packard-lovecraft/")) #("/home/hxia/git/homework01-hewlett-packard-lovecraft/test_bits.py" 0 64 (project "~/git/homework01-hewlett-packard-lovecraft/")) #("/home/hxia/git/homework01-hewlett-packard-lovecraft/bits.py" 0 59 (project "~/git/homework01-hewlett-packard-lovecraft/")) "~/.emacs.d/init.el" #("/home/hxia/git/homework01-hewlett-packard-lovecraft/bits.py" 0 59 (project "~/git/homework01-hewlett-packard-lovecraft/")) "~/git/homework01-hewlett-packard-lovecraft/bits.py" #("/home/hxia/git/homework01-hewlett-packard-lovecraft/bits.py" 0 59 (project "~/git/homework01-hewlett-packard-lovecraft/")) "~/.emacs.d/wsl-t.el" "~/.emacs.d/init.el" #("/home/hxia/git/homework01-hewlett-packard-lovecraft/test_bits.py" 0 64 (project "~/git/homework01-hewlett-packard-lovecraft/")) #("/home/hxia/git/data-management-and-analysis/postgres_class.ipynb" 0 64 (project "~/git/data-management-and-analysis/")) "~/git/data-management-and-analysis/postgres.ipynb" #("/home/hxia/git/data-management-and-analysis/postgres.ipynb" 0 58 (project "~/git/data-management-and-analysis/")) #("/home/hxia/git/data-management-and-analysis/python.ipynb" 0 56 (project "~/git/data-management-and-analysis/")) #("/home/hxia/git/data-management-and-analysis/postgres.ipynb" 0 58 (project "~/git/data-management-and-analysis/")) #("/home/hxia/git/data-management-and-analysis/test.org" 0 52 (project "~/git/data-management-and-analysis/")) #("/home/hxia/git/data-management-and-analysis/postgres.ipynb" 0 58 (project "~/git/data-management-and-analysis/")) "~/git/data-management-and-analysis/postgres.ipynb" #("/home/hxia/git/data-management-and-analysis/test.org" 0 52 (project "~/git/data-management-and-analysis/")) #("/home/hxia/git/data-management-and-analysis/postgres.ipynb" 0 58 (project "~/git/data-management-and-analysis/")) "~/.emacs.d/init.el" "~/git/data-management-and-analysis/postgres.ipynb" #("/home/hxia/git/data-management-and-analysis/test.org" 0 52 (project "~/git/data-management-and-analysis/")) "~/.emacs.d/org.el" #("/home/hxia/git/data-management-and-analysis/test.org" 0 52 (project "~/git/data-management-and-analysis/")) "~/.emacs.d/init.el" "~/.emacs.d/org.el" #("/home/hxia/git/data-management-and-analysis/test.org" 0 52 (project "~/git/data-management-and-analysis/")) "~/.emacs.d/org.el" "~/git/data-management-and-analysis/test.org" "~/.emacs.d/org.el" "~/.emacs.d/init.el" #("/home/hxia/git/data-management-and-analysis/test.org" 0 52 (project "~/git/data-management-and-analysis/")) "~/.emacs.d/init.el" #("/home/hxia/git/data-management-and-analysis/test.org" 0 52 (project "~/git/data-management-and-analysis/")) "~/git/data-management-and-analysis/ini" #("/home/hxia/git/data-management-and-analysis/test.org" 0 52 (project "~/git/data-management-and-analysis/")) "~/.emacs.d/org.el" #("/home/hxia/git/data-management-and-analysis/test.org" 0 52 (project "~/git/data-management-and-analysis/")) #("/home/hxia/git/data-management-and-analysis/postgres.ipynb" 0 58 (project "~/git/data-management-and-analysis/")) #("/home/hxia/git/data-management-and-analysis/test.org" 0 52 (project "~/git/data-management-and-analysis/")) "~/.emacs.d/init.el"))
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 208
+  "/mnt/c/Users/Haoming Xia/Downloads/BirdNET_v2.4_keras/MelSpecLayerSimple.py"
+  "MelSpecLayerSimple.py"
+  'python-ts-mode
+  '(eglot-inlay-hints-mode eldoc-mode flymake-mode eglot--managed-mode font-lock-mode evil-local-mode evil-collection-unimpaired-mode corfu-mode dape-breakpoint-mode envrc-mode clipetty-mode evil-snipe-local-mode evil-snipe-override-local-mode evil-surround-mode indent-bars--ts-mode indent-bars-mode display-line-numbers-mode flyspell-mode highlight-numbers-mode format-all-mode yas-minor-mode)
+  1
+  '(nil nil)
+  nil
+  nil
+  '((tab-width . 8) (indent-tabs-mode) (buffer-display-time 27060 28296 218263 702000) (buffer-file-coding-system . utf-8-mac) (overwrite-mode))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/home/hxia/git/BirdNET-Model-V2.4-RKNN/Dockerfile"
+  "Dockerfile"
+  'dockerfile-ts-mode
+  '(font-lock-mode evil-local-mode evil-collection-unimpaired-mode corfu-mode dape-breakpoint-mode envrc-mode clipetty-mode evil-surround-mode evil-snipe-local-mode evil-snipe-override-local-mode display-line-numbers-mode flyspell-mode highlight-numbers-mode format-all-mode yas-minor-mode)
+  146
+  '(114 nil)
+  nil
+  nil
+  '((buffer-display-time 27060 27835 25790 212000) (buffer-file-coding-system . utf-8-unix) (overwrite-mode))
+  '((mark-ring (114 106 1 1 31 31 31 31 5 1 1 1 1 1 1 1))))
+
+(desktop-create-buffer 208
+  "/home/hxia/git/BirdNET-Model-V2.4-RKNN/model_config.yml"
+  "model_config.yml"
+  'yaml-ts-mode
+  '(flyspell-mode indent-bars--ts-mode indent-bars-mode evil-snipe-override-local-mode evil-snipe-local-mode evil-surround-mode clipetty-mode envrc-mode corfu-mode evil-collection-unimpaired-mode evil-local-mode font-lock-mode flymake-mode)
+  124
+  '(173 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-display-time 27060 24802 450865 407000) (buffer-file-coding-system . utf-8-unix) (overwrite-mode))
+  '((mark-ring (173 173 1))))
+
+(desktop-create-buffer 208
+  "/home/hxia/git/BirdNET-Model-V2.4-RKNN/BirdNET_v2.4_tflite/labels/en_us.txt"
+  "en_us.txt"
+  'text-mode
+  '(flyspell-mode evil-snipe-override-local-mode evil-snipe-local-mode evil-surround-mode clipetty-mode envrc-mode corfu-mode evil-collection-unimpaired-mode evil-local-mode font-lock-mode)
+  43
+  '(259117 nil)
+  nil
+  nil
+  '((buffer-display-time 27060 24804 15342 32000) (buffer-file-coding-system . utf-8-unix) (overwrite-mode))
+  '((mark-ring (259118 259698 259698 259698 259698 1 254677 259698 1 259698 259698 1))))
+
+(desktop-create-buffer 208
+  "/home/hxia/git/BirdNET-Model-V2.4-RKNN/docker/rknn-toolkit2/rknn-toolkit2/docker/docker_file/ubuntu_20_04_cp38/sources_bionic.list"
+  "sources_bionic.list"
+  'fundamental-mode
+  '(evil-snipe-override-local-mode evil-snipe-local-mode evil-surround-mode clipetty-mode envrc-mode corfu-mode evil-collection-unimpaired-mode evil-local-mode font-lock-mode)
+  808
+  '(809 nil)
+  nil
+  nil
+  '((buffer-display-time 27060 18118 182877 204000) (buffer-file-coding-system . utf-8-unix) (overwrite-mode))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "ubuntu_20_04_cp38"
+  'dired-mode
+  '(nerd-icons-dired-mode denote-dired-mode evil-surround-mode clipetty-mode envrc-mode evil-collection-unimpaired-mode evil-local-mode font-lock-mode)
+  465
+  '(465 nil)
+  t
+  '("/home/hxia/git/BirdNET-Model-V2.4-RKNN/docker/rknn-toolkit2/rknn-toolkit2/docker/docker_file/ubuntu_20_04_cp38/")
+  '((tab-width . 1) (buffer-display-time 27060 18114 418661 911000) (overwrite-mode))
+  '((mark-ring (261))))
+
+(desktop-create-buffer 208
+  "/home/hxia/git/BirdNET-Model-V2.4-RKNN/docker/build.sh"
+  "build.sh"
+  'bash-ts-mode
+  '(evil-snipe-override-local-mode evil-snipe-local-mode evil-surround-mode clipetty-mode envrc-mode dape-breakpoint-mode corfu-mode evil-collection-unimpaired-mode font-lock-mode display-line-numbers-mode flyspell-mode highlight-numbers-mode format-all-mode yas-minor-mode evil-local-mode flymake-mode)
+  381
+  '(382 nil)
+  nil
+  nil
+  '((buffer-display-time 27060 17329 335238 144000) (buffer-file-coding-system . utf-8-unix) (overwrite-mode))
+  '((mark-ring (286 330 285 208 366 201 154 201 201 201 153 1 1 1 1 1))))
+
+(desktop-create-buffer 208
+  nil
+  "docker_file"
+  'dired-mode
+  '(nerd-icons-dired-mode denote-dired-mode evil-surround-mode clipetty-mode envrc-mode evil-collection-unimpaired-mode evil-local-mode font-lock-mode)
+  231
+  '(231 nil)
+  t
+  '("/home/hxia/git/BirdNET-Model-V2.4-RKNN/docker/rknn-toolkit2/rknn-toolkit2/docker/docker_file/")
+  '((tab-width . 1) (buffer-display-time 27060 27835 953606 941000) (overwrite-mode))
+  '((mark-ring (231))))
+
+(desktop-create-buffer 208
+  nil
+  "docker"
+  'dired-mode
+  '(nerd-icons-dired-mode denote-dired-mode evil-surround-mode clipetty-mode envrc-mode evil-collection-unimpaired-mode evil-local-mode font-lock-mode)
+  219
+  '(219 nil)
+  t
+  '("/home/hxia/git/BirdNET-Model-V2.4-RKNN/docker/rknn-toolkit2/rknn-toolkit2/docker/")
+  '((tab-width . 1) (buffer-display-time 27060 27836 281097 117000) (overwrite-mode))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/home/hxia/.dots/dotfiles/.config/home-manager/home.nix"
+  "home.nix"
+  'nix-mode
+  '(font-lock-mode evil-local-mode evil-collection-unimpaired-mode corfu-mode dape-breakpoint-mode envrc-mode clipetty-mode evil-surround-mode evil-snipe-local-mode evil-snipe-override-local-mode display-line-numbers-mode flyspell-mode highlight-numbers-mode format-all-mode yas-minor-mode flymake-mode)
+  2089
+  '(649 nil)
+  nil
+  nil
+  '((tab-width . 2) (indent-tabs-mode) (buffer-display-time 27059 36987 142230 594000) (buffer-file-coding-system . utf-8-unix) (overwrite-mode))
+  '((mark-ring (649 649))))
+
+(desktop-create-buffer 208
+  nil
+  "BirdNET-Model-V2.4-RKNN"
+  'dired-mode
+  '(font-lock-mode evil-local-mode evil-collection-unimpaired-mode envrc-mode clipetty-mode evil-surround-mode denote-dired-mode nerd-icons-dired-mode)
+  180
+  '(nil nil)
+  t
+  '("/home/hxia/git/BirdNET-Model-V2.4-RKNN/")
+  '((tab-width . 1) (buffer-display-time 27059 36936 544342 52000) (overwrite-mode))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "/home/hxia/git/homework05-hewlett-packard-lovecraft/courses.ipynb"
+  "courses.ipynb"
+  'python-ts-mode
+  '(yas-minor-mode format-all-mode highlight-numbers-mode flyspell-mode display-line-numbers-mode indent-bars--ts-mode indent-bars-mode evil-snipe-override-local-mode evil-snipe-local-mode evil-surround-mode clipetty-mode envrc-mode dape-breakpoint-mode corfu-mode evil-collection-unimpaired-mode evil-local-mode code-cells-mode font-lock-mode visual-line-mode flymake-mode eldoc-mode)
+  1657
+  '(1 nil)
+  nil
+  nil
+  '((tab-width . 8) (indent-tabs-mode) (buffer-display-time 27059 36931 935003 934000) (buffer-file-coding-system . utf-8-unix) (overwrite-mode) (truncate-lines))
+  '((mark-ring (1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1))))
+
+(desktop-create-buffer 208
+  "/home/hxia/git/homework05-hewlett-packard-lovecraft/courses.html"
+  "courses.html"
+  'html-ts-mode
+  '(flyspell-mode indent-bars--ts-mode indent-bars-mode evil-snipe-override-local-mode evil-snipe-local-mode evil-surround-mode clipetty-mode envrc-mode corfu-mode evil-collection-unimpaired-mode evil-local-mode font-lock-mode flymake-mode visual-line-mode)
+  144071
+  '(147013 nil)
+  nil
+  nil
+  '((buffer-display-time 27059 36954 740110 573000) (buffer-file-coding-system . utf-8-unix) (overwrite-mode) (truncate-lines))
+  '((mark-ring (528435 528435 528435 1))))
+
+(desktop-create-buffer 208
+  "/home/hxia/.emacs.d/init.el"
+  "init.el"
+  'emacs-lisp-mode
+  '(flyspell-mode envrc-mode yas-minor-mode format-all-mode highlight-numbers-mode display-line-numbers-mode flymake-mode evil-snipe-override-local-mode evil-snipe-local-mode evil-surround-mode clipetty-mode dape-breakpoint-mode corfu-mode evil-collection-unimpaired-mode evil-local-mode eldoc-mode font-lock-mode visual-line-mode)
+  33043
+  '(33042 nil)
+  nil
+  nil
+  '((buffer-display-time 27059 36903 72027 646000) (buffer-file-coding-system . utf-8-unix) (overwrite-mode) (truncate-lines))
+  '((mark-ring (57589 57870 57734 57547 57498 352 307 30582 30582))))
+
+(desktop-create-buffer 208
+  "/home/hxia/git/homework05-hewlett-packard-lovecraft/pyrightconfig.json"
+  "pyrightconfig.json"
+  'json-ts-mode
+  '(yas-minor-mode format-all-mode highlight-numbers-mode flyspell-mode display-line-numbers-mode evil-surround-mode evil-snipe-override-local-mode evil-snipe-local-mode clipetty-mode envrc-mode dape-breakpoint-mode corfu-mode evil-collection-unimpaired-mode evil-local-mode font-lock-mode)
+  38
+  '(38 nil)
+  nil
+  nil
+  '((buffer-display-time 27060 27872 882606 91000) (buffer-file-coding-system . utf-8-unix) (overwrite-mode))
+  '((mark-ring nil)))
+

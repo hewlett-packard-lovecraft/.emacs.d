@@ -37,4 +37,5 @@
 ;;  '((emacs-lisp . t)
 ;;    (julia . t)
 ;;    (python . t)
-;;    (jupyter . t)))
+;;    (jupyter . t)
+;;    ))
