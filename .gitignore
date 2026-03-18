@@ -129,3 +129,14 @@ flycheck_*.el
 
 # undo-tree
 *.~undo-tree~
+
+# elpaca
+./elpa/
+./elpaca/
+./eln-cache/
+./history/
+./auto-save-list/
+./projects
+./project-window-list
+./transient/
+./url/
