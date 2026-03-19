@@ -1,0 +1,125 @@
+# old gitignore 
+*~
+all
+auto-save-list
+bookmarks
+backups
+dist
+eshell
+eln-cache
+emacs-backtrace.txt
+elpaca
+elpa
+.org-id-locations
+org-*
+org-roam.db
+org-persist
+recentf
+.project
+projects
+projects.eld
+places
+projectile-bookmarks.eld
+project-window-list
+emacs-backtrace.txt
+..emacs.d-*
+.cache
+site-lsp
+sit-lsp/*
+auto-save-list
+.lsp*
+server
+ido*
+ido.last
+transient
+tramp
+tree-sitter/*
+
+history
+dape-breakpoints
+
+*~
+*.elc
+auto-save-list
+recentf
+savehist
+saveplace
+eshell
+elpa
+semanticdb
+url
+ede-projects.el
+.DS_Store
+custom.el
+places
+.smex-items
+savefile/
+projectile-bookmarks.eld
+session*
+.cask
+tramp
+/var/pcache
+custom.el
+
+# -*- mode: gitignore; -*-
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Org-mode
+.org-id-locations
+*_archive
+
+# flymake-mode
+*_flymake.*
+
+# eshell files
+/eshell/history
+/eshell/lastdir
+
+# elpa packages
+/elpa/
+
+# reftex files
+*.rel
+
+# AUCTeX auto folder
+/auto/
+
+# cask packages
+.cask/
+dist/
+
+# Flycheck
+flycheck_*.el
+
+# server auth directory
+/server/
+
+# projectiles files
+.projectile
+
+# directory configuration
+.dir-locals.el
+
+# network security
+/network-security.data
+
+# undo-tree
+*.~undo-tree~
+
+# elpaca
+./elpa/
+./elpaca/
+./eln-cache/
+./history/
+./auto-save-list/
+./projects
+./project-window-list
+./transient/
+./url/

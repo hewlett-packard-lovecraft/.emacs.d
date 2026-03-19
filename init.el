@@ -103,8 +103,8 @@ using this command."
 (if (eq system-type 'windows-nt)
     (setq elpaca-queue-limit 12)
   (elpaca-no-symlink-mode)
-  ;; (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
-  ;; (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
+  (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
+  (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
   )
 
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
@@ -254,13 +254,24 @@ using this command."
 
 
   ;; server stuff here
-  :hook (server-after-make-frame . (lambda ()
-                                     (when (display-graphic-p)
-				       (when (eq system-type 'windows-nt)
-					 (set-face-attribute 'default nil :font "Iosevka NFM-12"))
-				       (when (eq system-type 'gnu/linux)
-					 (set-face-attribute 'default nil :font "Iosevka Nerd Font-12")
-					 ))))
+  :hook (elpaca-after-init . (lambda ()
+			       (when (eq system-type 'windows-nt)
+				 (set-face-attribute 'default nil :font "Iosevka NFM-10"))
+			       (when (eq system-type 'gnu/linux)
+				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-12")
+				 )))
+  )
+
+(use-package windmove
+  ;; For readers: don't ensure means that we don't need to download it. It is built in
+  :ensure nil
+  ;; :bind*  ;; star in :bind* which overrides any other bindings in other modes
+  ;; (("M-<left>" . windmove-left)
+  ;;  ("M-<right>" . windmove-right)
+  ;;  ("M-<up>" . windmove-up)
+  ;;  ("M-<down>" . windmove-down)) 
+  :init
+  (windmove-default-keybindings)
   )
 
 (use-package savehist
@@ -300,10 +311,6 @@ using this command."
        (when desktop-save-mode
          (desktop-read)
          (setq inhibit-startup-screen t)))))
-
-;; tab bar
-;;; Vim Bindings
-;; (use-package undo-fu :ensure t :demand t)
 
 (use-package evil
   :demand t
