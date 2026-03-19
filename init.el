@@ -269,7 +269,7 @@ using this command."
   ;; (("M-<left>" . windmove-left)
   ;;  ("M-<right>" . windmove-right)
   ;;  ("M-<up>" . windmove-up)
-  ;;  ("M-<down>" . windmove-down)) 
+  ;;  ("M-<down>" . windmove-down))
   :init
   (windmove-default-keybindings)
   )
@@ -311,6 +311,12 @@ using this command."
        (when desktop-save-mode
          (desktop-read)
          (setq inhibit-startup-screen t)))))
+
+(use-package avy :ensure t
+  :bind (("C-:" . avy-goto-char)
+	 ("C-'" . avy-goto-char-2)
+	 )
+  )
 
 (use-package evil
   :demand t
