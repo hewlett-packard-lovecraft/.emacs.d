@@ -181,7 +181,7 @@ using this command."
   (scroll-bar-mode -1)
   ;; (menu-bar-mode -1)
 
-  (cua-mode 1)
+  ;; (cua-mode 1)
 
   ;; remember last opened file
   (recentf-mode 1)
@@ -263,15 +263,14 @@ using this command."
   )
 
 (use-package windmove
-  ;; For readers: don't ensure means that we don't need to download it. It is built in
   :ensure nil
-  ;; :bind*  ;; star in :bind* which overrides any other bindings in other modes
-  ;; (("M-<left>" . windmove-left)
-  ;;  ("M-<right>" . windmove-right)
-  ;;  ("M-<up>" . windmove-up)
-  ;;  ("M-<down>" . windmove-down))
-  :init
-  (windmove-default-keybindings)
+  :bind*  ;; star in :bind* which overrides any other bindings in other modes
+  (("M-<left>" . windmove-left)
+   ("M-<right>" . windmove-right)
+   ("M-<up>" . windmove-up)
+   ("M-<down>" . windmove-down))
+  ;; :init
+  ;; (windmove-default-keybindings)
   )
 
 (use-package savehist
@@ -318,190 +317,187 @@ using this command."
 	 )
   )
 
-(use-package evil
-  :demand t
-  :ensure t
-  :bind (("<escape>" . keyboard-escape-quit))
-  :init
-  (setq evil-respect-visual-line-mode t) ;; respect visual lines
+;; (use-package evil
+;;   :demand t
+;;   :ensure t
+;;   :bind (("<escape>" . keyboard-escape-quit))
+;;   :init
+;;   (setq evil-respect-visual-line-mode t) ;; respect visual lines
 
-  (setq evil-search-module 'isearch) ;; use emacs' built-in search functionality.
-  ;; (setq evil-search-module 'evil-search) ;; allows for using cgn
+;;   (setq evil-search-module 'isearch) ;; use emacs' built-in search functionality.
+;;   ;; (setq evil-search-module 'evil-search) ;; allows for using cgn
 
-  (setq evil-want-keybinding nil)
-  ;; no vim insert bindings
-  (setq evil-disable-insert-state-bindings t)
+;;   (setq evil-want-keybinding nil)
+;;   ;; no vim insert bindings
+;;   (setq evil-disable-insert-state-bindings t)
 
-  (setq evil-undo-system 'undo-redo) ;; built-in, C-r for redo and u for undo
-  :config
-  ;; set the initial state for some kinds of buffers.
-  (evil-set-initial-state 'messages-buffer-mode 'normal)
-  ;; (evil-set-initial-state 'dashboard-mode 'normal)
-  ;; buffers in which I want to immediately start typing should be in 'insert' state by default.
-  ;; (evil-set-initial-state 'eshell-mode 'insert)
-  (evil-set-initial-state 'eat-mode 'emacs)
-  (evil-set-initial-state 'magit-diff-mode 'insert)
+;;   (setq evil-undo-system 'undo-redo) ;; built-in, C-r for redo and u for undo
+;;   :config
+;;   ;; set the initial state for some kinds of buffers.
+;;   (evil-set-initial-state 'messages-buffer-mode 'normal)
+;;   ;; (evil-set-initial-state 'dashboard-mode 'normal)
+;;   ;; buffers in which I want to immediately start typing should be in 'insert' state by default.
+;;   ;; (evil-set-initial-state 'eshell-mode 'insert)
+;;   (evil-set-initial-state 'eat-mode 'emacs)
+;;   (evil-set-initial-state 'magit-diff-mode 'insert)
 
-  (with-eval-after-load 'evil-maps ; avoid conflict with corfu tooltip selection
-    (define-key evil-insert-state-map (kbd "C-n") nil)
-    (define-key evil-insert-state-map (kbd "C-p") nil))
+;;   (with-eval-after-load 'evil-maps ; avoid conflict with corfu tooltip selection
+;;     (define-key evil-insert-state-map (kbd "C-n") nil)
+;;     (define-key evil-insert-state-map (kbd "C-p") nil))
 
-  (evil-mode t))
+;;   (evil-mode t))
 
-;;; Vim Bindings Everywhere else
-(use-package evil-collection
-  :ensure t
-  :after evil
-  :custom
-  (evil-collection-setup-minibuffer t)
-  (evil-want-integration t)
-  (with-eval-after-load 'flymake (evil-collection-flymake-setup))
-  :config(evil-collection-init))
+;; ;;; Vim Bindings Everywhere else
+;; (use-package evil-collection
+;;   :ensure t
+;;   :after evil
+;;   :custom
+;;   (evil-collection-setup-minibuffer t)
+;;   (evil-want-integration t)
+;;   (with-eval-after-load 'flymake (evil-collection-flymake-setup))
+;;   :config(evil-collection-init))
 
 
-(use-package general
-  :ensure (:wait t)
-  :demand t
-  :config
-  (general-evil-setup)
-  ;; integrate general with evil
+;; (use-package general
+;;   :ensure (:wait t)
+;;   :demand t
+;;   :config
+;;   (general-evil-setup)
+;;   ;; integrate general with evil
 
-  ;; 'SPC' as the global leader key
-  (general-create-definer my/leader-keys
-    :states '(normal insert visual emacs)
-    :keymaps 'override
-    :prefix "SPC" ;; set leader
-    :global-prefix "M-SPC") ;; access leader in insert mode)
+;;   ;; 'SPC' as the global leader key
+;;   (general-create-definer my/leader-keys
+;;     :states '(normal insert visual emacs)
+;;     :keymaps 'override
+;;     :prefix "SPC" ;; set leader
+;;     :global-prefix "M-SPC") ;; access leader in insert mode)
 
-  ;; set up 'SPC m' as the local leader key
-  (general-create-definer my/local-leader-keys
-    :states '(normal insert visual emacs)
-    :keymaps 'override
-    :prefix "SPC m" ;; set local leader
-    ;; :global-prefix "M-," ;; access local leader in insert mode
-    )
+;;   ;; set up 'SPC m' as the local leader key
+;;   (general-create-definer my/local-leader-keys
+;;     :states '(normal insert visual emacs)
+;;     :keymaps 'override
+;;     :prefix "SPC m" ;; set local leader
+;;     ;; :global-prefix "M-," ;; access local leader in insert mode
+;;     )
 
-  ;; (general-define-key
-  ;;  :states 'insert
-  ;; "C-g" 'evil-normal-state) ;; don't stretch for ESC
+;;   ;; (general-define-key
+;;   ;;  :states 'insert
+;;   ;; "C-g" 'evil-normal-state) ;; don't stretch for ESC
 
-  (general-unbind '(normal motion)
-    :with 'ignore
-    [remap evil-substitute] ;; prevent S and s conflict
-    [remap evil-change-whole-line]
-    )
+;;   (general-unbind '(normal motion)
+;;     :with 'ignore
+;;     [remap evil-substitute] ;; prevent S and s conflict
+;;     [remap evil-change-whole-line]
+;;     )
 
-  (general-unbind
-    :states '(insert)
-    "C-k" ;; this was interfering with corfu completion
-    :states '(normal)
-    "C-;")
+;;   (general-unbind
+;;     :states '(insert)
+;;     "C-k" ;; this was interfering with corfu completion
+;;     :states '(normal)
+;;     "C-;")
 
-  (my/leader-keys
-    "SPC" '(execute-extended-command :wk "execute command") ;; an alternative to 'M-x'
-    "TAB" '(:keymap tab-prefix-map :wk "tab")) ;; remap tab bindings
+;;   (my/leader-keys
+;;     "SPC" '(execute-extended-command :wk "execute command") ;; an alternative to 'M-x'
+;;     "TAB" '(:keymap tab-prefix-map :wk "tab")) ;; remap tab bindings
 
-  (my/leader-keys
-    "w" '(:keymap evil-window-map :wk "window")) ;; window bindings
+;;   (my/leader-keys
+;;     "w" '(:keymap evil-window-map :wk "window")) ;; window bindings
 
-  (my/leader-keys
-    "c" '(:ignore t :wk "code"))
-  (my/leader-keys
-    "SPC" '(execute-extended-command :wk "execute command") ;; an alternative to 'M-x'
-    "TAB" '(:keymap tab-prefix-map :wk "tab")) ;; remap tab bindings
+;;   (my/leader-keys
+;;     "c" '(:ignore t :wk "code"))
+;;   (my/leader-keys
+;;     "SPC" '(execute-extended-command :wk "execute command") ;; an alternative to 'M-x'
+;;     "TAB" '(:keymap tab-prefix-map :wk "tab")) ;; remap tab bindings
 
-  (my/leader-keys
-    "w" '(:keymap evil-window-map :wk "window")) ;; window bindings
+;;   (my/leader-keys
+;;     "w" '(:keymap evil-window-map :wk "window")) ;; window bindings
 
-  ;; bookmark
-  (my/leader-keys
-    "B" '(:ignore t :wk "bookmark")
-    "Bs" '(bookmark-set :wk "set bookmark")
-    "Bj" '(bookmark-jump :wk "jump to bookmark"))
+;;   ;; bookmark
+;;   (my/leader-keys
+;;     "B" '(:ignore t :wk "bookmark")
+;;     "Bs" '(bookmark-set :wk "set bookmark")
+;;     "Bj" '(bookmark-jump :wk "jump to bookmark"))
 
-  ;; universal argument
-  (my/leader-keys
-    "u" '(universal-argument :wk "universal prefix"))
+;;   ;; universal argument
+;;   (my/leader-keys
+;;     "u" '(universal-argument :wk "universal prefix"))
 
-  ;; see 'flymake' (other stuff eventually)
-  (my/leader-keys
-    "c" '(:ignore t :wk "code"))
+;;   ;; see 'flymake' (other stuff eventually)
+;;   (my/leader-keys
+;;     "c" '(:ignore t :wk "code"))
 
-  ;; open
-  (my/leader-keys
-    "o" '(:ignore t :wk "open")
-    "os" '(speedbar t :wk "speedbar")
-    "op" '(elpaca-log t :wk "elpaca"))
+;;   ;; open
+;;   (my/leader-keys
+;;     "o" '(:ignore t :wk "open")
+;;     "os" '(speedbar t :wk "speedbar")
+;;     "op" '(elpaca-log t :wk "elpaca"))
 
-  ;; search
-  ;; see 'consult'
-  (my/leader-keys
-    "s" '(:ignore t :wk "search"))
+;;   ;; search
+;;   ;; see 'consult'
+;;   (my/leader-keys
+;;     "s" '(:ignore t :wk "search"))
 
-  ;; debug
-  (my/leader-keys "a" '(:ignore t :wk "dape"))
-  )
+;;   ;; debug
+;;   (my/leader-keys "a" '(:ignore t :wk "dape"))
+;;   )
 
-;; vim-commentary for Emacs
-;; (Use gcc to comment out a line, gc to comment out the target of a motion
-;; (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection etc.)
+;; ;; vim-commentary for Emacs
+;; ;; (Use gcc to comment out a line, gc to comment out the target of a motion
+;; ;; (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection etc.)
 
-(use-package evil-commentary
-  :ensure t
-  :after evil
-  :diminish
-  :config (evil-commentary-mode +1))
+;; (use-package evil-commentary
+;;   :ensure t
+;;   :diminish
+;;   :config (evil-commentary-mode +1))
 
-(use-package evil-goggles
-  :ensure t
-  :after evil
-  :config
-  (evil-goggles-mode)
+;; (use-package evil-goggles
+;;   :ensure t
+;;   :config
+;;   (evil-goggles-mode)
 
-  ;; optionally use diff-mode's faces; as a result, deleted text
-  ;; will be highlighed with `diff-removed` face which is typically
-  ;; some red color (as defined by the color theme)
-  ;; other faces such as `diff-added` will be used for other actions
-  (evil-goggles-use-diff-faces))
+;;   ;; optionally use diff-mode's faces; as a result, deleted text
+;;   ;; will be highlighed with `diff-removed` face which is typically
+;;   ;; some red color (as defined by the color theme)
+;;   ;; other faces such as `diff-added` will be used for other actions
+;;   (evil-goggles-use-diff-faces))
 
-;; https://howardabrams.com/hamacs/ha-evil.html#orgf9898ca
-(use-package evil-surround
-  :ensure t
-  :config
-  (defun evil-surround-elisp ()
-    (push '(?\` . ("`" . "'")) evil-surround-pairs-alist))
-  (defun evil-surround-org ()
-    (push '(?\" . ("“" . "”")) evil-surround-pairs-alist)
-    (push '(?\' . ("‘" . "’")) evil-surround-pairs-alist)
-    (push '(?b . ("*" . "*")) evil-surround-pairs-alist)
-    (push '(?* . ("*" . "*")) evil-surround-pairs-alist)
-    (push '(?i . ("/" . "/")) evil-surround-pairs-alist)
-    (push '(?/ . ("/" . "/")) evil-surround-pairs-alist)
-    (push '(?= . ("=" . "=")) evil-surround-pairs-alist)
-    (push '(?~ . ("~" . "~")) evil-surround-pairs-alist))
+;; ;; https://howardabrams.com/hamacs/ha-evil.html#orgf9898ca
+;; (use-package evil-surround
+;;   :ensure t
+;;   :config
+;;   (defun evil-surround-elisp ()
+;;     (push '(?\` . ("`" . "'")) evil-surround-pairs-alist))
+;;   (defun evil-surround-org ()
+;;     (push '(?\" . ("“" . "”")) evil-surround-pairs-alist)
+;;     (push '(?\' . ("‘" . "’")) evil-surround-pairs-alist)
+;;     (push '(?b . ("*" . "*")) evil-surround-pairs-alist)
+;;     (push '(?* . ("*" . "*")) evil-surround-pairs-alist)
+;;     (push '(?i . ("/" . "/")) evil-surround-pairs-alist)
+;;     (push '(?/ . ("/" . "/")) evil-surround-pairs-alist)
+;;     (push '(?= . ("=" . "=")) evil-surround-pairs-alist)
+;;     (push '(?~ . ("~" . "~")) evil-surround-pairs-alist))
 
-  (global-evil-surround-mode 1)
+;;   (global-evil-surround-mode 1)
 
-  :hook
-  (org-mode . evil-surround-org)
-  (emacs-lisp-mode . evil-surround-elisp))
+;;   :hook
+;;   (org-mode . evil-surround-org)
+;;   (emacs-lisp-mode . evil-surround-elisp))
 
-(use-package evil-snipe :ensure t
-  :after evil
-  :hook (magit-mode-hook . turn-off-evil-snipe-override-mode)
-  :general
-  (general-def '(normal motion) ;; needs a special override for some reason
-    "s" 'evil-snipe-s
-    "S" 'evil-snipe-S)
-  ;; (general-def '(normal motion) ;; needs a special override for some reason
-  ;;   "s" 'evil-snipe-s
-  ;;   "S" 'evil-snipe-S)
+;; (use-package evil-snipe :ensure t
+;;   :hook (magit-mode-hook . turn-off-evil-snipe-override-mode)
+;;   :general
+;;   (general-def '(normal motion) ;; needs a special override for some reason
+;;     "s" 'evil-snipe-s
+;;     "S" 'evil-snipe-S)
+;;   ;; (general-def '(normal motion) ;; needs a special override for some reason
+;;   ;;   "s" 'evil-snipe-s
+;;   ;;   "S" 'evil-snipe-S)
 
-  :config
-  (setq evil-snipe-scope 'whole-visible)
-  (setq evil-snipe-smart-case t)
-  (evil-snipe-mode +1)
-  (evil-snipe-override-mode 1))
+;;   :config
+;;   (setq evil-snipe-scope 'whole-visible)
+;;   (setq evil-snipe-smart-case t)
+;;   (evil-snipe-mode +1)
+;;   (evil-snipe-override-mode 1))
 
 (use-package highlight-numbers
   :ensure t
@@ -518,9 +514,9 @@ using this command."
   ;; and on windows switch
   ;; add integration with ace-window
   (add-to-list 'super-save-triggers 'ace-window)
-  (super-save-mode +1)
-  (diminish 'super-save-mode)
-  )
+  ;; (super-save-mode +1)
+  :hook (elpaca-after-init . super-save-mode)
+  :diminish super-save-mode)
 
 (use-package project :ensure nil
   :config
@@ -530,47 +526,18 @@ using this command."
     (if (file-remote-p (buffer-file-name))
 	(setq-local vc-handled-backends nil)))
   (add-hook 'find-file-hook 'my-vc-off-if-remote)
-  :general
-  ;; assign built-in project.el bindings a new prefix
-  (my/leader-keys "p" '(:keymap project-prefix-map :wk "project")))
+  ;; :general
+  ;; ;; assign built-in project.el bindings a new prefix
+  ;; (my/leader-keys "p" '(:keymap project-prefix-map :wk "project"))
+  )
 
 
 (use-package project-x
   :ensure (:host github :repo "karthink/project-x")
-  :after project
   :config
   (setq project-x-local-identifier '(".project"))
   (setq project-x-save-interval 600)    ;Save project state every 10 min
   (project-x-mode 1))
-
-;; (use-package ido
-;;   :config
-;;   (ido-mode +1)
-;;   (setq ido-everywhere t
-;; 	ido-enable-prefix         nil
-;;         ido-enable-flex-matching t
-;; 	ido-virtual-buffers t
-;; 	ido-use-faces t
-;; 	ido-cannot-complete-command 'ido-next-match
-;; 	)
-;;   )
-
-;; (use-package ido-vertical-mode
-;;   :ensure t
-;;   :after ido
-;;   :config
-;;   (ido-vertical-mode +1)
-;;   (setq ido-vertical-define-keys 'C-n-C-p-up-and-down))
-
-;; (use-package ido-completing-read+
-;;   :ensure t
-;;   :after ido
-;;   :config (ido-ubiquitous-mode +1))
-
-;; (use-package flx-ido
-;;   :after ido
-;;   :ensure t
-;;   :config (flx-ido-mode +1))
 
 ;; Corfu for auto-completion
 (use-package corfu
@@ -671,64 +638,6 @@ using this command."
       (message "Aborting")))
   )
 
-;; icomplete: setup icomplete-vertical-mode / fido-mode / fido-vertical-mode
-;; replaces ido
-;; (use-package icomplete
-;;   :config
-;;   (defun basic-completion-style ()
-;;     (setq completion-auto-wrap t
-;;           completion-auto-select 'second-tab
-;;           ;; completion-auto-help 'always
-;;           completion-auto-help nil ;; show on ? and not TAB
-;;           completion-show-help nil
-;;           completions-format 'one-column
-;;           completions-max-height 10))
-
-;;   (defun icomplete-vertical-style ()
-;;     (setq completion-auto-wrap t
-;;           completion-auto-help nil
-;;           completions-max-height 15
-;;           completion-styles '(initials flex)
-;;           ;; icomplete-in-buffer t
-;;           max-mini-window-height 10)
-
-;;     (icomplete-mode 1)
-;;     (icomplete-vertical-mode 1))
-
-
-;;   (defun fido-style ()
-;;     (setq completion-auto-wrap t
-;;           completion-auto-help 'lazy
-;;           completions-max-height 15
-;;           completion-styles '(flex)
-;;           ;; icomplete-in-buffer t
-;;           max-mini-window-height 10)
-
-;;     (fido-mode 1)
-;;     (fido-vertical-mode 1))
-
-;;   (defun icomplete-post-command-hook ()
-;;     (when (not (and (eq (icomplete--completion-table) 'read-file-name-internal)
-;; 		    (file-remote-p (minibuffer-contents-no-properties))))
-;;       ;; Original function
-;;       (let ((non-essential t))
-;; 	(icomplete-exhibit))))
-
-;;   (add-hook 'icomplete-minibuffer-setup-hook 'basic-completion-style)
-
-;;   :hook (after-init . fido-style)
-;;   :bind (:map minibuffer-mode-map ("C-r" . minibuffer-complete-history))
-
-;;   ;; Bind C-r to show minibuffer history entries
-;;   ;; (keymap-set minibuffer-mode-map "C-r" #'minibuffer-complete-history)
-
-;;   ;; :hook (icomplete-minibuffer-setup . fido-style)
-;;   ;; enable
-;;   ;; (basic-completion-style)
-;;   ;; (icomplete-vertical-style)
-;;   ;; (fido-style)
-;;   )
-
 (use-package vertico :ensure t
   :custom
   (vertico-scroll-margin 0) ;; Different scroll margin
@@ -739,18 +648,19 @@ using this command."
   (vertico-mode)
   (vertico-multiform-mode)
   (setq vertico-cycle t)
-  :general
-  (:keymaps 'vertico-map
-            ;; keybindings to cycle through vertico results.
-            "C-j" 'vertico-next
-            "C-k" 'vertico-previous
-            "C-f" 'vertico-exit
-            "<backspace>" 'vertico-directory-delete-char
-            "C-<backspace>" 'vertico-directory-delete-word
-            "C-w" 'vertico-directory-delete-word
-            "RET" 'vertico-directory-enter)
-  (:keymaps 'minibuffer-local-map
-            "M-h" 'backward-kill-word))
+  ;; :general
+  ;; (:keymaps 'vertico-map
+  ;;           ;; keybindings to cycle through vertico results.
+  ;;           "C-j" 'vertico-next
+  ;;           "C-k" 'vertico-previous
+  ;;           "C-f" 'vertico-exit
+  ;;           "<backspace>" 'vertico-directory-delete-char
+  ;;           "C-<backspace>" 'vertico-directory-delete-word
+  ;;           "C-w" 'vertico-directory-delete-word
+  ;;           "RET" 'vertico-directory-enter)
+  ;; (:keymaps 'minibuffer-local-map
+  ;;           "M-h" 'backward-kill-word)
+  )
 
 ;; Consult
 (use-package consult
@@ -947,14 +857,14 @@ using this command."
 	      ("C-c C-f C-b" . flymake-show-buffer-diagnostics)
 	      ;; ("C-c C-f C-p" . flymake-show-project-diagnostics)
 	      )
-  :general
-  (my/leader-keys
-    :keymaps 'flymake-mode-map
-    "cc" '(consult-flymake :wk "consult flymake") ;; depends on consult
-    "cb" '(consult-show-buffer-diagnostics :wk "flymake-show-buffer-diagnostics") ;;
-    "cp" '(consuult-show-project-diagnostics :wk "flymake-show-project-diagnostics") ;;
-    "cf" '(flymake-mode :wk "flymake") ;;
-    )
+  ;; :general
+  ;; (my/leader-keys
+  ;;   :keymaps 'flymake-mode-map
+  ;;   "cc" '(consult-flymake :wk "consult flymake") ;; depends on consult
+  ;;   "cb" '(consult-show-buffer-diagnostics :wk "flymake-show-buffer-diagnostics") ;;
+  ;;   "cp" '(consuult-show-project-diagnostics :wk "flymake-show-project-diagnostics") ;;
+  ;;   "cf" '(flymake-mode :wk "flymake") ;;
+  ;;   )
   :hook
   (TeX-mode . flymake-mode) ;; this is now working
   (emacs-lisp-mode . flymake-mode)
@@ -962,9 +872,10 @@ using this command."
   (flymake-no-changes-timeout nil)
   (flymake-show-diagnostics-at-end-of-line)
   (flymake-no-changes-timeout 0.1)
-  :general
-  (general-nmap "] !" 'flymake-goto-next-error)
-  (general-nmap "[ !" 'flymake-goto-prev-error))
+  ;; :general
+  ;; (general-nmap "] !" 'flymake-goto-next-error)
+  ;; (general-nmap "[ !" 'flymake-goto-prev-error)
+  )
 
 ;; (use-package flymake-collection
 ;;   :ensure t
@@ -972,15 +883,14 @@ using this command."
 
 (use-package which-key
   :defer nil
-  :config
-  (which-key-mode +1)
-  (diminish 'which-key-mode))
-
-(use-package iedit
-  :ensure t)
+  :diminish which-key-mode
+  :hook (elpaca-after-init . which-key-mode)
+  ;; :config
+  ;; (which-key-mode +1)
+  )
 
 ;; LaTeX
-;; Set up AuCTeX to load with the builtin TeX package
+;; Set up AuCTeX to load with the builtin TeX packages
 (use-package tex
   :ensure (auctex :repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
 		  :pre-build (("make" "elpa"))
@@ -1008,19 +918,19 @@ using this command."
 	    #'TeX-revert-document-buffer)
   (add-hook 'TeX-mode-hook #'outline-minor-mode)
 
-  :general
-  (my/local-leader-keys
-    :keymaps 'LaTeX-mode-map
-    ;; "TAB" 'TeX-complete-symbol ;; FIXME let's 'TAB' do autocompletion (but it's kind of useless to be honest)
-    "=" '(reftex-toc :wk "reftex toc")
-    "(" '(reftex-latex :wk "reftex label")
-    ")" '(reftex-reference :wk "reftex ref")
-    "m" '(LaTeX-macro :wk "insert macro")
-    "s" '(LaTeX-section :wk "insert section header")
-    "e" '(LaTeX-environment :wk "insert environment")
-    "p" '(preview-at-point :wk "preview at point")
-    "f" '(TeX-font :wk "font")
-    "c" '(TeX-command-run-all :wk "compile"))
+  ;; :general
+  ;; (my/local-leader-keys
+  ;;   :keymaps 'LaTeX-mode-map
+  ;;   ;; "TAB" 'TeX-complete-symbol ;; FIXME let's 'TAB' do autocompletion (but it's kind of useless to be honest)
+  ;;   "=" '(reftex-toc :wk "reftex toc")
+  ;;   "(" '(reftex-latex :wk "reftex label")
+  ;;   ")" '(reftex-reference :wk "reftex ref")
+  ;;   "m" '(LaTeX-macro :wk "insert macro")
+  ;;   "s" '(LaTeX-section :wk "insert section header")
+  ;;   "e" '(LaTeX-environment :wk "insert environment")
+  ;;   "p" '(preview-at-point :wk "preview at point")
+  ;;   "f" '(TeX-font :wk "font")
+  ;;   "c" '(TeX-command-run-all :wk "compile"))
 
   ;; :bind (:map LaTeX-mode-map
   ;; 	      ("M-, S-e" . latex-math-from-calc))
@@ -1044,16 +954,16 @@ using this command."
   ;; 				    calc-prefer-frac t
   ;; 				    calc-angle-mode rad)))))))
 
-  :config
-  (use-package evil-tex
-    :ensure t
-    :defer t
-    :after (evil)
-    :hook (LaTeX-mode . evil-tex-mode)
-    :general
-    (:keymaps 'evil-tex-mode-map
-	      "M-]" 'evil-tex-brace-movement)
-    :hook (LaTeX-mode . evil-tex-mode))
+  ;; :config
+  ;; (use-package evil-tex
+  ;;   :ensure t
+  ;;   :defer t
+  ;;   :after (evil)
+  ;;   :hook (LaTeX-mode . evil-tex-mode)
+  ;;   :general
+  ;;   (:keymaps 'evil-tex-mode-map
+  ;; 	      "M-]" 'evil-tex-brace-movement)
+  ;;   :hook (LaTeX-mode . evil-tex-mode))
   )
 
 (use-package olivetti
@@ -1170,15 +1080,16 @@ using this command."
   :after tex
   :hook (org-mode . org-auctex-mode))
 
-(use-package org-transclusion
+(use-package org-transclusion :ensure t
   :after org
-  :general
-  (my/leader-keys
-    "nt" '(org-transclusion-mode :wk "transclusion mode")))
+  ;; :general
+  ;; (my/leader-keys
+  ;;   "nt" '(org-transclusion-mode :wk "transclusion mode"))
+  )
 
 
-;; (use-package citeproc :ensure t
-;;   :after org)
+(use-package citeproc :ensure t
+  :after org)
 
 ;; Remember that the website version of this manual shows the latest
 ;; developments, which may not be available in the package you are
@@ -1306,37 +1217,6 @@ using this command."
   ;; By default dape shares the same keybinding prefix as `gud'
   ;; If you do not want to use any prefix, set it to nil.
   (setq dape-key-prefix "\C-x\C-a")
-
-  :general (my/leader-keys
-	     "a" '(:ignore t :wk "dape")
-	     "a<" '(dape-stack-select-up :wk "dape-stack-select-up")
-	     "a>" '(dape-stack-select-down :wk "dape-stack-select-down")
-	     "aB" '(dape-breakpoint-remove-all :wk "dape-breakpoint-remove-all")
-	     "aD" '(dape-disconnect-quit :wk "dape-disconnect-quit")
-	     "aK" '(dape-kill :wk "dape-kill")
-	     "aM" '(dape-disassemble :wk "dape-disassemble")
-	     "aR" '(dape-repl :wk "dape-repl")
-	     "aS" '(dape-select-stack :wk "dape-select-stack")
-	     "ab" '(dape-breakpoint-toggle :wk "dape-breakpoint-toggle")
-	     "ac" '(dape-continue :wk "dape-continue")
-	     "ad" '(dape :wk "dape")
-	     "ae" '(dape-breakpoint-expression :wk "dape-breakpoint-expression")
-	     "af" '(dape-restart-frame :wk "dape-restart-frame")
-	     "ah" '(dape-breakpoint-hints :wk "dape-breakpoint-hints")
-	     "ai" '(dape-info :wk "dape-info")
-	     "al" '(dape-breakpoint-log :wk "dape-breakpoint-log")
-	     "am" '(dape-memory :wk "dape-memory")
-	     "an" '(dape-next :wk "dape-next")
-	     "ao" '(dape-step-out :wk "dape-step-out")
-	     "ap" '(dape-pause :wk "dape-pause")
-	     "aq" '(dape-quit :wk "dape-quit")
-	     "ar" '(dape-restart :wk "dape-restart")
-	     "as" '(dape-step-in :wk "dape-step-in")
-	     "at" '(dape-select-thread :wk "dape-select-thread")
-	     "au" '(dape-until :wk "dape-until")
-	     "aw" '(dape-watch-dwim :wk "dape-watch-dwim")
-	     "ax" '(dape-evaluate-expression :wk "dape-evaluate-expression")
-	     )
 
   ;; Save breakpoints on quit
   :hook (kill-emacs . dape-breakpoint-save)
@@ -1528,12 +1408,12 @@ using this command."
 (use-package tempel :ensure t
   :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
 	 ("M-*" . tempel-insert))
-  :general
-  ("M-p +" 'tempel-complete) ;; M-p completion prefix; see `cape'
-  (my/leader-keys
-    "ti" '(tempel-insert :wk "tempel insert"))
-  (:keymaps 'tempel-map
-	    "TAB" 'tempel-next) ;; progress through fields via `TAB'
+  ;; :general
+  ;; ("M-p +" 'tempel-complete) ;; M-p completion prefix; see `cape'
+  ;; (my/leader-keys
+  ;;   "ti" '(tempel-insert :wk "tempel insert"))
+  ;; (:keymaps 'tempel-map
+  ;; 	    "TAB" 'tempel-next) ;; progress through fields via `TAB'
   :init
   (defun tempel-setup-capf ()
     (add-hook 'completion-at-point-functions #'tempel-expand))
@@ -1755,13 +1635,14 @@ using this command."
 		      'ok-if-already-exists))))
   :commands (vterm vterm-other-window)
   :hook (vterm-mode .  (lambda () (display-line-numbers-mode -1)))
-  :general
-  (+general-global-application
-   "t" '(:ignore t :which-key "terminal")
-   "tt" 'vterm-other-window
-   "t." 'vterm)
-  :config
-  (evil-set-initial-state 'vterm-mode 'emacs))
+  ;; :general
+  ;; (+general-global-application
+  ;;  "t" '(:ignore t :which-key "terminal")
+  ;;  "tt" 'vterm-other-window
+  ;;  "t." 'vterm)
+  ;; :config
+  ;; (evil-set-initial-state 'vterm-mode 'emacs)
+  )
 
 
 ;; indent-bars, since it has (optional) treesitter support
@@ -1784,7 +1665,7 @@ using this command."
 				       if_statement with_statement while_statement)))
   (indent-bars-treesit-ignore-blank-lines-types '("module")))
 
-(use-package editorconfig
+(use-package editorconfig ;; enable integration with indent-bars
   :demand t
   :config
   (defun oxcl/update-indent-bars-with-editorconfig (size)
