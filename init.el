@@ -314,7 +314,12 @@ using this command."
 (use-package avy :ensure t
   :bind (("C-:" . avy-goto-char)
 	 ("C-'" . avy-goto-char-2)
-	 )
+	 ("M-g l" . avy-goto-line)
+	 ("M-g w" . avy-goto-word)
+	 ;; ("M-g e" . avy-goto-word 0) ;; conflicts with consult-compile-error
+	 ( "C-c C-j" . avy-resume ))
+  :config
+  (avy-setup-default)
   )
 
 ;; (use-package evil
