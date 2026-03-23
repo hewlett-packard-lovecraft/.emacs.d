@@ -1866,6 +1866,7 @@ using this command."
 ;;
 (use-package emacs-solo-clipboard
   ;; :if (and (not (display-graphic-p)) ())
+  :disabled
   :if (not (display-graphic-p))
   :ensure nil
   :no-require t
