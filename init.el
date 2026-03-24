@@ -280,7 +280,8 @@ using this command."
 ;; terminal copy
 (use-package clipetty :ensure t
   :config
-  :hook (elpaca-after-init . global-clipetty-mode))
+  ;; :hook (tty-setup global-clipetty-mode);
+  :hook (elpaca-after-init . 'global-clipetty-mode))
 
 ;; gui get path from shell
 ;; (use-package exec-path-from-shell
@@ -299,6 +300,7 @@ using this command."
 
 (use-package desktop
   :ensure nil
+  :disabled
   :hook
   (elpaca-after-init-hook
    . (lambda ()
@@ -1859,11 +1861,6 @@ using this command."
   :if (eq system-type 'gnu/linux)
   :ensure t)
 
-;;; EMACS-SOLO-CLIPBOARD
-;;
-;;  Allows proper copy/pasting on terminals
-;;  https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
-;;
 (use-package kkp :ensure t
   :if (eq 'system-type 'gnu/linux)
   :hook (tty-setup . global-kkp-mode)
@@ -1872,11 +1869,13 @@ using this command."
   (define-key key-translation-map (kbd "M-S-.") (kbd "M-:"))
   )
 
-
-
+;;; EMACS-SOLO-CLIPBOARD
+;;
+;;  Allows proper copy/pasting on terminals
+;;  https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
 (use-package emacs-solo-clipboard
   ;; :if (and (not (display-graphic-p)) ())
-  :disabled
+;  :disabled
   :if (not (display-graphic-p))
   :ensure nil
   :no-require t
