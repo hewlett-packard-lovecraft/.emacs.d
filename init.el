@@ -315,10 +315,10 @@ using this command."
   :bind (("C-:" . avy-goto-char)
 	 ("C-'" . avy-goto-char-2)
 	 ("M-g l" . avy-goto-line)
-	 ("M-g w" . avy-goto-word)
+	 ("M-g w" . avy-goto-word-1)
 	 ;; ("M-g e" . avy-goto-word 0) ;; conflicts with consult-compile-error
 	 ( "C-c C-j" . avy-resume ))
-  :config
+  :init
   (avy-setup-default)
   )
 
@@ -1864,6 +1864,16 @@ using this command."
 ;;  Allows proper copy/pasting on terminals
 ;;  https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
 ;;
+(use-package kkp :ensure t
+  :if (eq 'system-type 'gnu/linux)
+  :hook (tty-setup . global-kkp-mode)
+  :config
+  (setq kkp-alt-modifier 'alt) ;; use this if you want to map the Alt keyboard modifier to Alt in Emacs (and not to Meta)
+  (define-key key-translation-map (kbd "M-S-.") (kbd "M-:"))
+  )
+
+
+
 (use-package emacs-solo-clipboard
   ;; :if (and (not (display-graphic-p)) ())
   :disabled
