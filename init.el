@@ -235,6 +235,8 @@ using this command."
   (setq enable-local-variables :all)     ; fix =defvar= warnings
 
   (setq delete-by-moving-to-trash t) ;; use trash-cli rather than rm when deleting files.
+  (setq dired-mouse-drag-files t)                   ;; mouse support
+  (setq mouse-drag-and-drop-region-cross-program t) ;; mouse suport
 
   ;; less noise when compiling elisp
   (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
@@ -254,12 +256,19 @@ using this command."
 
 
   ;; server stuff here
+  (when (daemonp) (menu-bar-mode -1))
+  (when (eq system-type 'windows-nt)
+    (add-to-list 'default-frame-alist '(font . "Iosevka NFM-10")))
+  (when (eq system-type 'gnu/linux)
+    (add-to-list 'default-frame-alist
+		 '(font . "Iosevka Nerd Font Mono-14")))
+
   :hook (elpaca-after-init . (lambda ()
 			       (when (eq system-type 'windows-nt)
-				 (set-face-attribute 'default nil :font "Iosevka NFM-10"))
+				 (set-face-attribute 'default nil :font "Iosevka NFM-10" :height 120))
 			       (when (eq system-type 'gnu/linux)
-				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-12")
-				 )))
+				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-14" :height 140))))
+
   )
 
 (use-package windmove
@@ -272,6 +281,20 @@ using this command."
   ;; :init
   ;; (windmove-default-keybindings)
   )
+
+(use-package kaolin-themes
+  :ensure t
+  :disabled
+  :config
+  (when (daemonp) (load-theme 'kaolin-dark)))
+
+(use-package eink-theme :ensure t
+  :disabled
+  :config
+  (load-theme 'kaolin-dark)
+  )
+
+(use-package paren-face :ensure t)
 
 (use-package savehist
   :init
@@ -363,90 +386,6 @@ using this command."
 ;;   (evil-want-integration t)
 ;;   (with-eval-after-load 'flymake (evil-collection-flymake-setup))
 ;;   :config(evil-collection-init))
-
-
-;; (use-package general
-;;   :ensure (:wait t)
-;;   :demand t
-;;   :config
-;;   (general-evil-setup)
-;;   ;; integrate general with evil
-
-;;   ;; 'SPC' as the global leader key
-;;   (general-create-definer my/leader-keys
-;;     :states '(normal insert visual emacs)
-;;     :keymaps 'override
-;;     :prefix "SPC" ;; set leader
-;;     :global-prefix "M-SPC") ;; access leader in insert mode)
-
-;;   ;; set up 'SPC m' as the local leader key
-;;   (general-create-definer my/local-leader-keys
-;;     :states '(normal insert visual emacs)
-;;     :keymaps 'override
-;;     :prefix "SPC m" ;; set local leader
-;;     ;; :global-prefix "M-," ;; access local leader in insert mode
-;;     )
-
-;;   ;; (general-define-key
-;;   ;;  :states 'insert
-;;   ;; "C-g" 'evil-normal-state) ;; don't stretch for ESC
-
-;;   (general-unbind '(normal motion)
-;;     :with 'ignore
-;;     [remap evil-substitute] ;; prevent S and s conflict
-;;     [remap evil-change-whole-line]
-;;     )
-
-;;   (general-unbind
-;;     :states '(insert)
-;;     "C-k" ;; this was interfering with corfu completion
-;;     :states '(normal)
-;;     "C-;")
-
-;;   (my/leader-keys
-;;     "SPC" '(execute-extended-command :wk "execute command") ;; an alternative to 'M-x'
-;;     "TAB" '(:keymap tab-prefix-map :wk "tab")) ;; remap tab bindings
-
-;;   (my/leader-keys
-;;     "w" '(:keymap evil-window-map :wk "window")) ;; window bindings
-
-;;   (my/leader-keys
-;;     "c" '(:ignore t :wk "code"))
-;;   (my/leader-keys
-;;     "SPC" '(execute-extended-command :wk "execute command") ;; an alternative to 'M-x'
-;;     "TAB" '(:keymap tab-prefix-map :wk "tab")) ;; remap tab bindings
-
-;;   (my/leader-keys
-;;     "w" '(:keymap evil-window-map :wk "window")) ;; window bindings
-
-;;   ;; bookmark
-;;   (my/leader-keys
-;;     "B" '(:ignore t :wk "bookmark")
-;;     "Bs" '(bookmark-set :wk "set bookmark")
-;;     "Bj" '(bookmark-jump :wk "jump to bookmark"))
-
-;;   ;; universal argument
-;;   (my/leader-keys
-;;     "u" '(universal-argument :wk "universal prefix"))
-
-;;   ;; see 'flymake' (other stuff eventually)
-;;   (my/leader-keys
-;;     "c" '(:ignore t :wk "code"))
-
-;;   ;; open
-;;   (my/leader-keys
-;;     "o" '(:ignore t :wk "open")
-;;     "os" '(speedbar t :wk "speedbar")
-;;     "op" '(elpaca-log t :wk "elpaca"))
-
-;;   ;; search
-;;   ;; see 'consult'
-;;   (my/leader-keys
-;;     "s" '(:ignore t :wk "search"))
-
-;;   ;; debug
-;;   (my/leader-keys "a" '(:ignore t :wk "dape"))
-;;   )
 
 ;; ;; vim-commentary for Emacs
 ;; ;; (Use gcc to comment out a line, gc to comment out the target of a motion
@@ -731,11 +670,11 @@ using this command."
 
   ;; Enable automatic preview at point in the *Completions* buffer. This is
   ;; relevant when you use the default completion UI.
-  :hook (completion-list-mode . consult-preview-at-point-mode)
+  ;; :hook (completion-list-mode . consult-preview-at-point-mode)
+  ;; TODO: fix later
 
   ;; The :init configuration is always executed (Not lazy)
   :init
-
   ;; Tweak the register preview for `consult-register-load',
   ;; `consult-register-store' and the built-in commands.  This improves the
   ;; register formatting, adds thin separator lines, register sorting and hides
@@ -765,6 +704,7 @@ using this command."
    consult-source-bookmark consult-source-file-register
    consult-source-recent-file consult-source-project-recent-file
    ;; :preview-key "M-."
+
    :preview-key '(:debounce 0.4 any))
 
   ;; Optionally configure the narrowing key.
@@ -1215,7 +1155,7 @@ using this command."
 
 ;;; dape
 (use-package dape
-  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   ;; :defer t
   :ensure t
   ;; refer to evil-collection binds
@@ -1317,12 +1257,12 @@ using this command."
   )
 
 (use-package eglot-booster
-  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   :ensure (:host github
 		 :repo "jdtsmith/eglot-booster")
   :after eglot
   :config
-  (eglot-booster-mode t)
+  (eglot-booster-modze t)
   (setq eglot-booster-io-only t))
 
 ;; shamelessly stolen from patrick d elliot
@@ -1489,13 +1429,16 @@ using this command."
   (nerd-icons-mode-line-size 1.0) ; default value
   :config (nerd-icons-mode-line-global-mode t))
 
+(use-package nerd-icons-ibuffer
+  :ensure t
+  :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
 
 (use-package transient :ensure t)
 
 (use-package magit
   :ensure t
   :config
-  (setq magit-tramp-pipe-stty-settings 'pty)
+  (setq magit- tramp-pipe-stty-settings 'pty)
   ;; don't show the diff by default in the commit buffer. Use `C-c C-d' to display it
   (setq magit-commit-show-diff nil)
   ;; don't show git variables in magit branch
@@ -1563,6 +1506,75 @@ using this command."
 ;;  /plink:haoming@localhost#2222:/home/haoming/git/labs-25fa-hewlett-packard-lovecraft
 ;;  /plink:hxia@orangepi5:/home/haoming/git/labs-25fa-hewlett-packard-lovecraft
 
+;;; Dired / Dirvish
+
+(use-package dired
+  :config
+  (setq dired-listing-switches
+        "-l --almost-all --human-readable --group-directories-first --no-group")
+  ;; this command is useful when you want to close the window of `dirvish-side'
+  ;; automatically when opening a file
+  (put 'dired-find-alternate-file 'disabled nil))
+
+(use-package dirvish
+  :ensure t
+  :init
+  (dirvish-override-dired-mode)
+  :custom
+  (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
+   '(("h" "~/"                          "Home")
+     ("d" "~/Downloads/"                "Downloads")
+     ("m" "/mnt/"                       "Drives")
+     ;; ("s" "/ssh:my-remote-server")      "SSH server"
+     ("e" "/sudo:root@localhost:/etc")  "Modify program settings"
+     ("t" "~/.local/share/Trash/files/" "TrashCan")))
+  :config
+  ;; (dirvish-peek-mode)             ; Preview files in minibuffer
+  ;; (dirvish-side-follow-mode)      ; similar to `treemacs-follow-mode'
+  (setq dirvish-mode-line-format
+        '(:left (sort symlink) :right (omit yank index)))
+  (setq dirvish-attributes           ; The order *MATTERS* for some attributes
+        '(vc-state subtree-state nerd-icons collapse git-msg file-time file-size)
+        dirvish-side-attributes
+        '(vc-state nerd-icons collapse file-size))
+  ;; open large directory (over 20000 files) asynchronously with `fd' command
+  (setq dirvish-large-directory-threshold 20000)
+
+  ;; keybinds for mouse
+  (setq mouse-1-click-follows-link nil)
+  :bind ; Bind `dirvish-fd|dirvish-side|dirvish-dwim' as you see fit
+  (("C-c f" . dirvish)
+   :map dirvish-mode-map               ; Dirvish inherits `dired-mode-map'
+   (";"   . dired-up-directory)        ; So you can adjust `dired' bindings here
+   ("?"   . dirvish-dispatch)          ; [?] a helpful cheatsheet
+   ("a"   . dirvish-setup-menu)        ; [a]ttributes settings:`t' toggles mtime, `f' toggles fullframe, etc.
+   ("f"   . dirvish-file-info-menu)    ; [f]ile info
+   ("o"   . dirvish-quick-access)      ; [o]pen `dirvish-quick-access-entries'
+   ("s"   . dirvish-quicksort)         ; [s]ort flie list
+   ("r"   . dirvish-history-jump)      ; [r]ecent visited
+   ("l"   . dirvish-ls-switches-menu)  ; [l]s command flags
+   ("v"   . dirvish-vc-menu)           ; [v]ersion control commands
+   ("*"   . dirvish-mark-menu)
+   ("y"   . dirvish-yank-menu)
+   ("N"   . dirvish-narrow)
+   ("^"   . dirvish-history-last)
+   ("TAB" . dirvish-subtree-toggle)
+   ("M-f" . dirvish-history-go-forward)
+   ("M-b" . dirvish-history-go-backward)
+   ("M-e" . dirvish-emerge-menu)
+   ("<mouse-1>" .  dirvish-subtree-toggle-or-open)
+   ("<mouse-2>" . dired-mouse-find-file-other-window)
+   ("<mouse-3>" . dired-mouse-find-file)
+   ))
+
+;; Additional syntax highlighting for dired
+(use-package diredfl :ensure t
+  :hook
+  ((dired-mode . diredfl-mode)
+   ;; highlight parent and directory preview as well
+   (dirvish-directory-view-mode . diredfl-mode))
+  :config
+  (set-face-attribute 'diredfl-dir-name nil :bold t))
 
 ;;; TRAMP
 (use-package tramp
@@ -1594,17 +1606,30 @@ using this command."
    '((tramp-direct-async-process . t)))
 
   (connection-local-set-profiles
-   '(:application tramp :protocol "rsync") ;; scp if it breaks things
+   '(:application tramp :protocol "rsync") ;; scp if it breaks things ;; makes things faster but conflict w/ dirvish
    'remote-direct-async-process)
 
   (with-eval-after-load 'tramp
     (with-eval-after-load 'compile
       (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
+
+  ;; Enable full-featured Dirvish over TRAMP on ssh connections
+  ;; https://www.gnu.org/software/tramp/#Improving-performance-of-asynchronous-remote-processes
+  (connection-local-set-profile-variables
+   'remote-direct-async-process
+   '((tramp-direct-async-process . t)))
+  (connection-local-set-profiles
+   '(:application tramp :protocol "ssh")
+   'remote-direct-async-process)
+  ;; Tips to speed up connections
+  (setq tramp-verbose 0)
+  (setq tramp-chunksize 2000)
+  (setq tramp-ssh-controlmaster-options nil)
   )
 
 ;; wrapper around terminal
 ;; (use-package mistty
-;;   :if (eq system-type 'gnu/linux)
+;;   :unless (eq system-type 'windows-nt)
 ;;   :ensure t
 ;; :bind (("C-c s" . mistty) # snippet
 
@@ -1620,8 +1645,9 @@ using this command."
 ;;   )
 
 ;; declare linux specific packages here
+
 (use-package vterm
-  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   :ensure (vterm :post-build
 		 (progn
 		   (setq vterm-always-compile-module t)
@@ -1650,6 +1676,12 @@ using this command."
   ;; :config
   ;; (evil-set-initial-state 'vterm-mode 'emacs)
   )
+
+(use-package vterm-toggle :ensure t
+  :after vterm
+  :unless (eq system-type 'windows-nt)
+  :bind (("C-`" . vterm-toggle) ("C-M-`" . vterm-toggle-cd))
+  :bind (:map vterm-mode-map ("s-n" . vterm-toggle-forward) ("s-p" . vterm-toggle-backward) ))
 
 
 ;; indent-bars, since it has (optional) treesitter support
@@ -1688,7 +1720,8 @@ using this command."
 
 ;; Tree-sitter, at least until it works on Windows
 (use-package treesit
-  :if (eq system-type 'gnu/linux)
+  :ensure nil
+  :unless (eq system-type 'windows-nt)
   :mode (("\\.tsx\\'" . tsx-ts-mode))
   :preface
   (defun mp-setup-install-grammars ()
@@ -1762,7 +1795,7 @@ using this command."
   )
 
 (use-package treesit-auto
-  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   :ensure t
   :custom
   (treesit-auto-install 'prompt)
@@ -1773,14 +1806,8 @@ using this command."
 (use-package cmake-mode :ensure t)
 
 (use-package nix-mode :ensure t
-  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   :mode "\\.nix\\'")
-
-;; (use-package direnv :ensure t
-;;   :when (eq system-type 'gnu/linux)
-;;   :config
-;;   (direnv-mode)
-;;   (add-to-list 'warning-suppress-types '(direnv)))
 
 (use-package envrc :ensure t
   :when (eq system-type 'gnu/linux)
@@ -1811,11 +1838,11 @@ using this command."
   )
 
 (use-package drepl
-  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   :ensure t)
 
 (use-package code-cells
-  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   :ensure t
   :hook (python-mode . code-cells-mode-maybe )
   ;; :config
@@ -1848,25 +1875,28 @@ using this command."
 	      ))
 
 (use-package docker
-  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   :unless (eq system-type 'windows-nt)
   :ensure t
   :bind ("C-c d" . docker))
 
 (use-package yaml-mode
-  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   :ensure t)
 
 (use-package dockerfile-mode
-  :if (eq system-type 'gnu/linux)
+  :unless (eq system-type 'windows-nt)
   :ensure t)
 
+
 (use-package kkp :ensure t
-  :if (eq 'system-type 'gnu/linux)
   :hook (tty-setup . global-kkp-mode)
-  :config
-  (setq kkp-alt-modifier 'alt) ;; use this if you want to map the Alt keyboard modifier to Alt in Emacs (and not to Meta)
-  (define-key key-translation-map (kbd "M-S-.") (kbd "M-:"))
+  ;; :config
+  ;; (setq kkp-alt-modifier 'alt) ;; use this if you want to map the Alt keyboard modifier to Alt in Emacs (and not to Meta;;)
+
+  ;; ;; (define-key key-translation-map (kbd "M-S-.") (kbd "M-:"))
+  ;; (define-key key-translation-map (kbd "C-S-<backspace>") (kbd "C-S-<backspace>"))
+
   )
 
 ;;; EMACS-SOLO-CLIPBOARD
@@ -1874,9 +1904,7 @@ using this command."
 ;;  Allows proper copy/pasting on terminals
 ;;  https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
 (use-package emacs-solo-clipboard
-  ;; :if (and (not (display-graphic-p)) ())
-;  :disabled
-  :if (not (display-graphic-p))
+  :unless (display-graphic-p)
   :ensure nil
   :no-require t
   :defer t
