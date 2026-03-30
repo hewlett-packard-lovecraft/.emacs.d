@@ -256,12 +256,19 @@ using this command."
 
 
   ;; server stuff here
-  (when (daemonp) (menu-bar-mode -1))
-  (when (eq system-type 'windows-nt)
-    (add-to-list 'default-frame-alist '(font . "Iosevka NFM-10")))
-  (when (eq system-type 'gnu/linux)
-    (add-to-list 'default-frame-alist
-		 '(font . "Iosevka Nerd Font Mono-14")))
+  (setq select-enable-clipboard t)
+  (setq select-enable-primary t)
+  
+  (when (daemonp) (menu-bar-mode -1)) ;; looks gross on lucid
+
+  (cond  ((eq system-type 'windows-nt)
+	  (add-to-list 'default-frame-alist '(font . "Iosevka NFM-10")))
+	 ((and (eq system-type 'gnu/linux) (getenv "WSLENV"))
+	  (add-to-list 'default-frame-alist
+		       '(font . "Iosevka Nerd Font Mono-12")))
+	 ((eq system-type 'gnu/linux)
+	  (add-to-list 'default-frame-alist
+		       '(font . "Iosevka Nerd Font Mono-14"))))
 
   :hook (elpaca-after-init . (lambda ()
 			       (when (eq system-type 'windows-nt)
@@ -358,6 +365,7 @@ using this command."
 ;;   ;; (setq evil-search-module 'evil-search) ;; allows for using cgn
 
 ;;   (setq evil-want-keybinding nil)
+;;   (setq evil-want-minibuffer t)
 ;;   ;; no vim insert bindings
 ;;   (setq evil-disable-insert-state-bindings t)
 
@@ -1153,6 +1161,11 @@ using this command."
   :config
   (consult-denote-mode 1))
 
+;;; ECS
+(use-package eca :ensure t
+  :unless (eq system-type 'windows-nt)
+  )
+
 ;;; dape
 (use-package dape
   :unless (eq system-type 'windows-nt)
@@ -1262,7 +1275,7 @@ using this command."
 		 :repo "jdtsmith/eglot-booster")
   :after eglot
   :config
-  (eglot-booster-modze t)
+  (eglot-booster-mode t)
   (setq eglot-booster-io-only t))
 
 ;; shamelessly stolen from patrick d elliot
@@ -1419,6 +1432,7 @@ using this command."
   (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
 (use-package nerd-icons-dired :ensure t
+  :disabled
   :hook
   (dired-mode . nerd-icons-dired-mode))
 
@@ -1438,7 +1452,7 @@ using this command."
 (use-package magit
   :ensure t
   :config
-  (setq magit- tramp-pipe-stty-settings 'pty)
+  (setq magit-tramp-pipe-stty-settings 'pty)
   ;; don't show the diff by default in the commit buffer. Use `C-c C-d' to display it
   (setq magit-commit-show-diff nil)
   ;; don't show git variables in magit branch
@@ -1680,7 +1694,7 @@ using this command."
 (use-package vterm-toggle :ensure t
   :after vterm
   :unless (eq system-type 'windows-nt)
-  :bind (("C-`" . vterm-toggle) ("C-M-`" . vterm-toggle-cd))
+  :bind (("<f2>" . vterm-toggle) ("C-<f2>" . vterm-toggle-cd))
   :bind (:map vterm-mode-map ("s-n" . vterm-toggle-forward) ("s-p" . vterm-toggle-backward) ))
 
 
@@ -1904,7 +1918,7 @@ using this command."
 ;;  Allows proper copy/pasting on terminals
 ;;  https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
 (use-package emacs-solo-clipboard
-  :unless (display-graphic-p)
+  ;; :unless (display-graphic-p)		
   :ensure nil
   :no-require t
   :defer t
