@@ -262,7 +262,7 @@ using this command."
   (when (daemonp) (menu-bar-mode -1)) ;; looks gross on lucid
 
   (cond  ((eq system-type 'windows-nt)
-	  (add-to-list 'default-frame-alist '(font . "Iosevka NFM-10")))
+	  (add-to-list 'default-frame-alist '(font . "Iosevka NFM-12")))
 	 ((and (eq system-type 'gnu/linux) (getenv "WSLENV"))
 	  (add-to-list 'default-frame-alist
 		       '(font . "Iosevka Nerd Font Mono-12")))
@@ -1487,6 +1487,13 @@ using this command."
   ;;(setq dicpath '(file-name-concat (file-truename user-emacs-directory) "hunspell")
   ;;enUS '(file-name-concat dicpath "en_US.aff")
   ;;enCA '(file-name-concat dicpath "en_CA.aff"))
+  
+  (setq ispell-local-dictionary "en_CA")
+  
+  (when (eq system-type 'windows-nt)
+    (setq ispell-hunspell-dict-paths-alist
+	  '(("en_US" "~/.emacs.d/hunspell/en_US.aff")
+  ("en_CA" "~/.emacs.d/hunspell/en_CA.aff"))))
 
   :custom
   (ispell-local-dictionary "en_CA")
@@ -1500,12 +1507,6 @@ using this command."
   :config
   (add-hook 'text-mode-hook 'flyspell-mode)
   (add-hook 'prog-mode-hook 'flyspell-prog-mode)
-
-  (setq ispell-local-dictionary "en_CA")
-  ;; (when (eq system-type 'windows-nt)
-  ;;   (setq ispell-hunspell-dict-paths-alist
-  ;; 	  '(("en_US" "~/.emacs.d/hunspell/en_US.aff")
-  ;; ("en_CA" "~/.emacs.d/hunspell/en_CA.aff"))))
   )
 
 (use-package flyspell-correct
@@ -1847,7 +1848,8 @@ using this command."
 (use-package zmq :ensure t)
 
 (use-package jupyter
-  :ensure t
+  ;; :ensure t
+  :disabled
   :commands (jupyter-run-server-repl jupyter-run-repl jupyter-server-list-kernels) ; Define commands to load the package
   :init
   ;; Optional: Add configuration for org-mode integration
