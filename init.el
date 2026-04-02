@@ -258,7 +258,7 @@ using this command."
   ;; server stuff here
   (setq select-enable-clipboard t)
   (setq select-enable-primary t)
-  
+
   (when (daemonp) (menu-bar-mode -1)) ;; looks gross on lucid
 
   (cond  ((eq system-type 'windows-nt)
@@ -1163,7 +1163,10 @@ using this command."
 
 ;;; ECS
 (use-package eca :ensure t
-  :unless (eq system-type 'windows-nt)
+  :commands (eca eca-workspaces eca-settings eca-open-global-config)
+  :config
+  (setq eca-chat-use-side-window nil)
+  (setq eca-chat-custom-model "moonshot/kimi-k2.5")
   )
 
 ;;; dape
@@ -1576,6 +1579,7 @@ using this command."
    ("M-f" . dirvish-history-go-forward)
    ("M-b" . dirvish-history-go-backward)
    ("M-e" . dirvish-emerge-menu)
+   ;; mouse support
    ("<mouse-1>" .  dirvish-subtree-toggle-or-open)
    ("<mouse-2>" . dired-mouse-find-file-other-window)
    ("<mouse-3>" . dired-mouse-find-file)
@@ -1918,7 +1922,7 @@ using this command."
 ;;  Allows proper copy/pasting on terminals
 ;;  https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
 (use-package emacs-solo-clipboard
-  ;; :unless (display-graphic-p)		
+  ;; :unless (display-graphic-p)
   :ensure nil
   :no-require t
   :defer t
