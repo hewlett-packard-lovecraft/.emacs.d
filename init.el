@@ -1166,6 +1166,7 @@ using this command."
   :commands (eca eca-workspaces eca-settings eca-open-global-config)
   :config
   (setq eca-chat-use-side-window nil)
+  (setq eca-chat-custom-agent "plan")
   (setq eca-chat-custom-model "moonshot/kimi-k2.5")
   )
 
@@ -1278,7 +1279,7 @@ using this command."
 		 :repo "jdtsmith/eglot-booster")
   :after eglot
   :config
-  (eglot-booster-mode t)
+  (setq eglot-booster-mode t)
   (setq eglot-booster-io-only t))
 
 ;; shamelessly stolen from patrick d elliot
@@ -1487,13 +1488,13 @@ using this command."
   ;;(setq dicpath '(file-name-concat (file-truename user-emacs-directory) "hunspell")
   ;;enUS '(file-name-concat dicpath "en_US.aff")
   ;;enCA '(file-name-concat dicpath "en_CA.aff"))
-  
+
   (setq ispell-local-dictionary "en_CA")
-  
+
   (when (eq system-type 'windows-nt)
     (setq ispell-hunspell-dict-paths-alist
 	  '(("en_US" "~/.emacs.d/hunspell/en_US.aff")
-  ("en_CA" "~/.emacs.d/hunspell/en_CA.aff"))))
+	    ("en_CA" "~/.emacs.d/hunspell/en_CA.aff"))))
 
   :custom
   (ispell-local-dictionary "en_CA")
@@ -1598,16 +1599,16 @@ using this command."
 ;;; TRAMP
 (use-package tramp
   :ensure nil
-  :custom
-  (tramp-default-remote-shell "/bin/bash")
+  ;; :custom
+  ;; (tramp-default-remote-shell "/bin/bash")
 
   :config
   ;; ;; per-host config
-  ;; (connection-local-set-profile-variables 'remote-path-with-bin
+  ;;(connection-local-set-profile-variables 'remote-path-with-bin
   ;;                                         '(tramp-remote-path . ("~/.cargo/bin/" tramp-default-remote-path))
   ;; 					  )
   ;; (connection-local-set-profiles '(:application tramp :user "hxia" :machine "orangepi5")
-  ;; 				 'remote-path-with-bin)
+  ;;  				 'remote-path-with-bin)
   ;; (connection-local-set-profiles '(:application tramp :user "haoming" :machine "localhost")
   ;; 'remote-path-with-bin)
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
@@ -1647,21 +1648,21 @@ using this command."
   )
 
 ;; wrapper around terminal
-;; (use-package mistty
-;;   :unless (eq system-type 'windows-nt)
-;;   :ensure t
-;; :bind (("C-c s" . mistty) # snippet
+(use-package mistty
+  :unless (eq system-type 'windows-nt)
+  :ensure t
+  :bind (("C-c s" . mistty) ;; snippet
 
-;;          ;; bind here the shortcuts you'd like the
-;;          ;; shell to handle instead of Emacs.
-;;          :map mistty-prompt-map
+         ;; bind here the shortcuts you'd like the
+         ;; shell to handle instead of Emacs.
+         :map mistty-prompt-map
 
-;;          ;; fish: directory history
-;;          ("M-<up>" . mistty-send-key)
-;;          ("M-<down>" . mistty-send-key)
-;;          ("M-<left>" . mistty-send-key)
-;;          ("M-<right>" . mistty-send-key))
-;;   )
+         ;; fish: directory history
+         ("M-<up>" . mistty-send-key)
+         ("M-<down>" . mistty-send-key)
+         ("M-<left>" . mistty-send-key)
+         ("M-<right>" . mistty-send-key))
+  )
 
 ;; declare linux specific packages here
 
@@ -1705,6 +1706,8 @@ using this command."
 
 ;; indent-bars, since it has (optional) treesitter support
 (use-package indent-bars :ensure t
+  :unless (eq system-type 'windows-nt)
+
   :hook ((python-base-mode yaml-mode html-mode c-mode c++-mode) . indent-bars-mode)
   :hook ((python-ts-mode yaml-ts-mode html-ts-mode c-ts-mode c++-ts-mode) . indent-bars-mode)
   :custom ;; https://github.com/jdtsmith/indent-bars/wiki/indent%E2%80%90bars-config-Wiki#tree-sitter-config
@@ -1738,6 +1741,7 @@ using this command."
 
 
 ;; Tree-sitter, at least until it works on Windows
+
 (use-package treesit
   :ensure nil
   :unless (eq system-type 'windows-nt)
@@ -1776,27 +1780,30 @@ using this command."
   ;; also
 
   ;;;;treesit-auto  is supposed to handle this
-
-  (dolist (mapping
-	   '((python-mode . python-ts-mode)
-	     (css-mode . css-ts-mode)
-	     (typescript-mode . typescript-ts-mode)
-	     (js2-mode . js-ts-mode)
-	     (bash-mode . bash-ts-mode)
-	     (conf-toml-mode . toml-ts-mode)
-	     ;; (go-mode . go-ts-mode)
-	     (css-mode . css-ts-mode)
-	     (json-mode . json-ts-mode)
-	     (js-json-mode . json-ts-mode)
-	     (yaml-mode . yaml-ts-mode)
-	     ))
-    (add-to-list 'major-mode-remap-alist mapping))
+  (if (treesit-available-p)
+      (dolist (mapping
+	       '((python-mode . python-ts-mode)
+		 (css-mode . css-ts-mode)
+		 (typescript-mode . typescript-ts-mode)
+		 (js2-mode . js-ts-mode)
+		 (bash-mode . bash-ts-mode)
+		 (conf-toml-mode . toml-ts-mode)
+		 ;; (go-mode . go-ts-mode)
+		 (css-mode . css-ts-mode)
+		 (json-mode . json-ts-mode)
+		 (js-json-mode . json-ts-mode)
+		 (yaml-mode . yaml-ts-mode)
+		 ))
+	(add-to-list 'major-mode-remap-alist mapping))
+    ;; (setq major-mode-remap-alist nil) ;; TODO: verify if this breaks anything
+    )
 
   ;; finish this later
   ;; (setq c-ts-mode-hook c-mode-hook)
   ;; (setq c++-ts-mode-hook c++-mode-hook)
 
   :config
+  ;; if eq windows-nt doesn't fucking work
   (mp-setup-install-grammars)
   ;; Do not forget to customize Combobulate to your liking:
   ;;
@@ -1813,15 +1820,6 @@ using this command."
   ;;   :load-path ("path-to-git-checkout-of-combobulate"))
   )
 
-(use-package treesit-auto
-  :unless (eq system-type 'windows-nt)
-  :ensure t
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (treesit-auto-add-to-auto-mode-alist '(c cpp python rust toml yaml json html css markdown typescript tsx dockerfile bash))
-  (global-treesit-auto-mode))
-
 (use-package cmake-mode :ensure t)
 
 (use-package nix-mode :ensure t
@@ -1829,12 +1827,15 @@ using this command."
   :mode "\\.nix\\'")
 
 (use-package envrc :ensure t
-  :when (eq system-type 'gnu/linux)
+  :config
+  (setq envrc-remote t)
   :hook (elpaca-after-init . envrc-global-mode))
 
 (use-package pet :ensure t
-  :when (eq system-type 'gnu/linux)
-  :hook (python-base-mode . (lambda () pet-mode -10)))
+  ;; :hook ((python-mode python-ts-mode) . (lambda () pet-mode -10))
+  :hook ((python-mode python-ts-mode) . pet-flycheck-setup)
+  :config
+  (add-hook 'python-base-mode-hook 'pet-mode -10))
 
 (use-package markdown-mode
   :ensure t
@@ -1862,9 +1863,8 @@ using this command."
   :ensure t)
 
 (use-package code-cells
-  :unless (eq system-type 'windows-nt)
   :ensure t
-  :hook (python-mode . code-cells-mode-maybe )
+  :hook (python-base-mode . code-cells-mode-maybe )
   ;; :config
   ;; (setq code-cells-convert-ipynb-style '(("pandoc" "--to" "ipynb" "--from" "org")
   ;; 					 ("pandoc" "--to" "org" "--from" "ipynb" "--extract-media" "./ipynb-images/")
@@ -1894,9 +1894,18 @@ using this command."
 	      ;; ([remap evil-jump-forward] . (code-cells-speed-key 'outline-cycle)) ;; TAB
 	      ))
 
+
+(use-package treesit-auto
+  :unless (eq system-type 'windows-nt)
+  :ensure t
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist '(c cpp python rust toml yaml json html css markdown typescript tsx dockerfile bash))
+  (global-treesit-auto-mode))
+
+
 (use-package docker
-  :unless (eq system-type 'windows-nt)
-  :unless (eq system-type 'windows-nt)
   :ensure t
   :bind ("C-c d" . docker))
 
