@@ -137,6 +137,10 @@ using this command."
 
 ;; ;; ;; emacs-builtins
 (use-package emacs
+  ;; global Emacs keybinds
+  :bind (("C->" . indent-rigidly-right-to-tab-stop)
+	 ("C-<" . indent-rigidly-left-to-tab-stop))
+
   :custom
   ;; ;; dape
   (window-sides-vertical t)
@@ -148,6 +152,7 @@ using this command."
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
   (tab-always-indent 'complete)
+  (setq custom-tab-width 2) ;; 2 lines
 
   ;; Emacs 30 and newer: Disable Ispell completion function.
   ;; Try `cape-dict' as an alternative.
@@ -167,6 +172,7 @@ using this command."
   (setq display-line-numbers-type 'relative)
   (setq column-number-mode t) ;; display column number in mode line
 
+
   ;; autoreload buffers
   (global-auto-revert-mode t)
 
@@ -174,7 +180,7 @@ using this command."
   (setq visible-bell t)
 
   ;; to disable all sounds including flash
-  ;; (setq ring-bell-function 'ignore)
+  (setq ring-bell-function 'ignore)
 
   ;; ;; etc
   (tool-bar-mode -1)
@@ -201,7 +207,7 @@ using this command."
 
   (setq sentence-end-double-space nil)
 
-  (setq frame-inhibit-implied-resize t) ;; useless for a tiling window manager
+  ;; (setq frame-inhibit-implied-resize t) ;; useless for a tiling window manager
 
   (setq show-trailing-whitespace t) ;; self-explanatory
 
@@ -270,12 +276,38 @@ using this command."
 	  (add-to-list 'default-frame-alist
 		       '(font . "Iosevka Nerd Font Mono-14"))))
 
+  ;; performance https://emacsredux.com/
+  (setq-default bidi-display-reordering 'left-to-right
+		bidi-paragraph-direction 'left-to-right)
+  (setq bidi-inhibit-bpa t)
+
+  (setq redisplay-skip-fontification-on-input t) ;; no syntax highlight when typing
+  (setq read-process-output-max (* 4 1024 1024)) ; increase lsp output buffer to 4MB
+
+  ;; disable cursor in non highlighted window
+  (setq-default cursor-in-non-selected-windows nil)
+  (setq highlight-nonselected-windows nil)
+
+  ;; save (system) clipboard into kill ring before kill
+  (setq save-interprogram-paste-before-kill t)
+
+  (setq kill-do-not-save-duplicates t)
+
+  (setq reb-re-syntax 'string)
+  (setq ffap-machine-p-known 'reject)
+
+  (setq window-combination-resize t)
+
+  (setq help-window-select t)
+  (setq set-mark-command-repeat-pop t)
+
+
   :hook (elpaca-after-init . (lambda ()
 			       (when (eq system-type 'windows-nt)
 				 (set-face-attribute 'default nil :font "Iosevka NFM-10" :height 120))
 			       (when (eq system-type 'gnu/linux)
 				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-14" :height 140))))
-
+  :hook (after-save . executable-make-buffer-file-executable-if-script-p)
   )
 
 (use-package windmove
@@ -304,7 +336,14 @@ using this command."
 (use-package paren-face :ensure t)
 
 (use-package savehist
+  :hook (savehist-save . (lambda ()
+			   (setq kill-ring
+				 (mapcar #'substring-no-properties
+					 (cl-remove-if-not #'stringp kill-ring)))))
   :init
+  ;; https://emacsredux.com/blog/2026/04/07/stealing-from-the-best-emacs-configs/
+  (setq savehist-additional-variables ;; save kill ring
+	'(search-ring regexp-search-ring kill-ring))
   (savehist-mode))
 
 ;; terminal copy
@@ -326,6 +365,12 @@ using this command."
   (electric-pair-mode +1) ;; automatically insert closing parens
   (setq electric-pair-preserve-balance nil)) ;; more annoying than useful
 
+
+
+(use-package timeclock :ensure nil
+  :init
+  (setq timeclock-mode-line-display t))
+
 (use-package diminish :ensure t)
 
 (use-package desktop
@@ -344,8 +389,8 @@ using this command."
          (setq inhibit-startup-screen t)))))
 
 (use-package avy :ensure t
-  :bind (("C-:" . avy-goto-char)
-	 ("C-'" . avy-goto-char-2)
+  :bind (("C-|" . avy-goto-char-2)
+	 ("C-:" . avy-goto-char)
 	 ("M-g l" . avy-goto-line)
 	 ("M-g w" . avy-goto-word-1)
 	 ;; ("M-g e" . avy-goto-word 0) ;; conflicts with consult-compile-error
@@ -378,6 +423,8 @@ using this command."
 ;;   ;; (evil-set-initial-state 'eshell-mode 'insert)
 ;;   (evil-set-initial-state 'eat-mode 'emacs)
 ;;   (evil-set-initial-state 'magit-diff-mode 'insert)
+
+
 
 ;;   (with-eval-after-load 'evil-maps ; avoid conflict with corfu tooltip selection
 ;;     (define-key evil-insert-state-map (kbd "C-n") nil)
@@ -474,6 +521,7 @@ using this command."
 
 (use-package project :ensure nil
   :config
+  (setq project-mode-line t)
   (setq vc-handled-backends '(Git))
   (setq project-vc-extra-root-markers '(".project" ".vscode"))
   (defun my-vc-off-if-remote ()
@@ -487,6 +535,7 @@ using this command."
 
 
 (use-package project-x
+  :disabled
   :ensure (:host github :repo "karthink/project-x")
   :config
   (setq project-x-local-identifier '(".project"))
