@@ -57,6 +57,13 @@ using this command."
         (message "Reloaded: %s" (mapconcat #'symbol-name package-features " "))))))
 
 
+;; set settings before
+(when (eq system-type 'windows-nt)
+  (setq elpaca-queue-limit 12)
+  (setq native-comp-async-jobs-number (num-processors))
+  )
+
+
 ;; elpaca installer
 (defvar elpaca-installer-version 0.12)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
@@ -100,12 +107,8 @@ using this command."
 ;; end elpaca-installer
 ;; startup files
 
-(if (eq system-type 'windows-nt)
-    (setq elpaca-queue-limit 12)
-  (elpaca-no-symlink-mode)
-  (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
-  (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
-  )
+(when (eq system-type 'windows-nt)
+  (elpaca-no-symlink-mode))
 
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
 (add-hook 'elpaca-after-init-hook (lambda () (load org-custom-file 'noerror)))
@@ -115,6 +118,10 @@ using this command."
   (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
   (add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
   )
+
+;; (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
+;; (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
+
 
 ;; ;; use-package
 ;; Install use-package support
@@ -227,13 +234,19 @@ using this command."
   (setq create-lockfiles nil) ;; no need to create lockfiles
 
   (set-charset-priority 'unicode) ;; utf8 everywhere
-  (setq locale-coding-system 'utf-8
-	coding-system-for-read 'utf-8
-	coding-system-for-write 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (set-selection-coding-system 'utf-8)
-  (prefer-coding-system 'utf-8)
+
+  (setq-default buffer-file-coding-system 'utf-8-unix)
+  (setq-default default-buffer-file-coding-system 'utf-8-unix)
+  (set-default-coding-systems 'utf-8-unix)
+  (prefer-coding-system 'utf-8-unix)
+
+  ;; (setq locale-coding-system 'utf-8
+  ;; 	coding-system-for-read 'utf-8
+  ;; 	coding-system-for-write 'utf-8)
+  ;; (set-terminal-coding-system 'utf-8)
+  ;; (set-keyboard-coding-system 'utf-8)
+  ;; (set-selection-coding-system 'utf-8)
+  ;; (prefer-coding-system 'utf-8)
 
   ;; Don't persist a custom file
   (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
@@ -351,6 +364,11 @@ using this command."
   :config
   ;; :hook (tty-setup global-clipetty-mode);
   :hook (elpaca-after-init . 'global-clipetty-mode))
+
+(use-package xclip :ensure t
+  ;; :config
+  ;; (xclip-mode 1)
+  :hook (tty-setup . xclip-mode))
 
 ;; gui get path from shell
 ;; (use-package exec-path-from-shell
@@ -521,7 +539,7 @@ using this command."
 
 (use-package project :ensure nil
   :config
-  (setq project-mode-line t)
+  ;; (setq project-mode-line t)
   (setq vc-handled-backends '(Git))
   (setq project-vc-extra-root-markers '(".project" ".vscode"))
   (defun my-vc-off-if-remote ()
@@ -1289,7 +1307,9 @@ using this command."
 						     "--completion-style=detailed"
 						     "--pch-storage=memory"
 						     "--header-insertion=never"
-						     "--header-insertion-decorators=0")))
+						     "--header-insertion-decorators=0"))
+               '(python-base-mode . ("basedpyright-langserver" "--stdio")))
+
 
   ;; harper-ls
   (add-to-list 'eglot-server-programs
@@ -1320,6 +1340,20 @@ using this command."
 					    :maxFileLength 120000
 					    :ignoredLintsPath ""
 					    :excludePatterns [])))
+  ;; (setq-default
+  ;;  eglot-workspace-configuration
+  ;;  '(:basedpyright (
+  ;; 		    :typeCheckingMode "recommended"
+  ;; 		    )
+  ;; 		   :basedpyright.analysis (
+  ;; 					   :diagnosticSeverityOverrides (
+  ;; 									 :reportUnusedCallResult "none"
+  ;; 									 )
+  ;; 					   :inlayHints (
+  ;; 							:callArgumentNames :json-false
+  ;; 							)
+  ;; 					   )))
+
   )
 
 (use-package eglot-booster
@@ -1648,18 +1682,7 @@ using this command."
 ;;; TRAMP
 (use-package tramp
   :ensure nil
-  ;; :custom
-  ;; (tramp-default-remote-shell "/bin/bash")
-
   :config
-  ;; ;; per-host config
-  ;;(connection-local-set-profile-variables 'remote-path-with-bin
-  ;;                                         '(tramp-remote-path . ("~/.cargo/bin/" tramp-default-remote-path))
-  ;; 					  )
-  ;; (connection-local-set-profiles '(:application tramp :user "hxia" :machine "orangepi5")
-  ;;  				 'remote-path-with-bin)
-  ;; (connection-local-set-profiles '(:application tramp :user "haoming" :machine "localhost")
-  ;; 'remote-path-with-bin)
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
   ;;; various perf improvements
@@ -1670,26 +1693,31 @@ using this command."
   (setq tramp-copy-size-limit (* 1024 1024) ;; 1MB
 	tramp-verbose 2)
 
-  (connection-local-set-profile-variables
-   'remote-direct-async-process
-   '((tramp-direct-async-process . t)))
-
-  (connection-local-set-profiles
-   '(:application tramp :protocol "rsync") ;; scp if it breaks things ;; makes things faster but conflict w/ dirvish
-   'remote-direct-async-process)
-
   (with-eval-after-load 'tramp
     (with-eval-after-load 'compile
       (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
 
   ;; Enable full-featured Dirvish over TRAMP on ssh connections
   ;; https://www.gnu.org/software/tramp/#Improving-performance-of-asynchronous-remote-processes
+
   (connection-local-set-profile-variables
    'remote-direct-async-process
    '((tramp-direct-async-process . t)))
-  (connection-local-set-profiles
-   '(:application tramp :protocol "ssh")
-   'remote-direct-async-process)
+
+  (if (eq system-type 'windows-nt)
+      (progn
+	(connection-local-set-profiles
+	 '(:application tramp :protocol "plinkx")
+	 'remote-direct-async-process)
+	(setq tramp-default-method "plinkx"))
+    (connection-local-set-profiles
+     '(:application tramp :protocol "ssh")
+     'remote-direct-async-process))
+
+
+  ;; (when (eq system-type 'window-nt)
+  ;;   )
+
   ;; Tips to speed up connections
   (setq tramp-verbose 0)
   (setq tramp-chunksize 2000)
@@ -1701,6 +1729,7 @@ using this command."
   :unless (eq system-type 'windows-nt)
   :ensure t
   :bind (("C-c s" . mistty) ;; snippet
+	 ("C-x p s" . mistty-in-project)
 
          ;; bind here the shortcuts you'd like the
          ;; shell to handle instead of Emacs.
@@ -1875,9 +1904,14 @@ using this command."
   :unless (eq system-type 'windows-nt)
   :mode "\\.nix\\'")
 
+(use-package buffer-env :ensure t
+  :hook (hack-local-variables . buffer-env-update)
+  :hook (comint-mode . buffer-env-update))
+
 (use-package envrc :ensure t
   :config
   (setq envrc-remote t)
+  (setq envrc-supported-tramp-methods '("plinkx" "sshx" "plink" "ssh"))
   :hook (elpaca-after-init . envrc-global-mode))
 
 (use-package pet :ensure t
@@ -1885,6 +1919,8 @@ using this command."
   :hook ((python-mode python-ts-mode) . pet-flycheck-setup)
   :config
   (add-hook 'python-base-mode-hook 'pet-mode -10))
+
+
 
 (use-package markdown-mode
   :ensure t
