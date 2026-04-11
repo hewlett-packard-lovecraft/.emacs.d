@@ -3,7 +3,6 @@
 ;; A basic config for editing Org files and LaTeX. Works on Windows.
 ;;
 ;;; Code:
-;; (setq use-package-compute-statistics t)
 
 ;; define custom functions early on so they still work if something breaks
 (defun initel()
@@ -111,16 +110,16 @@ using this command."
   (elpaca-no-symlink-mode))
 
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load org-custom-file 'noerror)))
+
+(add-hook 'elpaca-after-init-hook
+	  (lambda () (load org-custom-file 'noerror)))
 
 ;; load wsl, terminal file unless on Windows
-(unless (eq system-type 'windows-nt)
-  (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
-  (add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
-  )
+(setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
+(add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
 
-;; (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
-;; (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
+(setq customs-file (expand-file-name "customs.el" user-emacs-directory))
+(add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
 
 
 ;; ;; use-package
@@ -195,13 +194,6 @@ using this command."
   ;; (menu-bar-mode -1)
 
   ;; (cua-mode 1)
-
-  ;; remember last opened file
-  (recentf-mode 1)
-
-  ;; restore the last cursor location of opened files
-  (save-place-mode 1)
-
   :hook (prog-mode . context-menu-mode)
   :hook (conf-mode . context-menu-mode)
   :hook (text-mode . context-menu-mode)
@@ -278,17 +270,6 @@ using this command."
   (setq select-enable-clipboard t)
   (setq select-enable-primary t)
 
-  (when (daemonp) (menu-bar-mode -1)) ;; looks gross on lucid
-
-  (cond  ((eq system-type 'windows-nt)
-	  (add-to-list 'default-frame-alist '(font . "Iosevka NFM-12")))
-	 ((and (eq system-type 'gnu/linux) (getenv "WSLENV"))
-	  (add-to-list 'default-frame-alist
-		       '(font . "Iosevka Nerd Font Mono-12")))
-	 ((eq system-type 'gnu/linux)
-	  (add-to-list 'default-frame-alist
-		       '(font . "Iosevka Nerd Font Mono-14"))))
-
   ;; performance https://emacsredux.com/
   (setq-default bidi-display-reordering 'left-to-right
 		bidi-paragraph-direction 'left-to-right)
@@ -315,11 +296,26 @@ using this command."
   (setq set-mark-command-repeat-pop t)
 
 
-  :hook (elpaca-after-init . (lambda ()
-			       (when (eq system-type 'windows-nt)
-				 (set-face-attribute 'default nil :font "Iosevka NFM-10" :height 120))
-			       (when (eq system-type 'gnu/linux)
-				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-14" :height 140))))
+  ;; :hook (elpaca-after-init . (lambda ()
+  ;; 			       (when (eq system-type 'windows-nt)
+  ;; 				 (set-face-attribute 'default nil :font "Iosevka NFM-10" :height 120))
+  ;; 			       (when (eq system-type 'gnu/linux)
+  ;; 				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-14" :height 140))))
+
+
+  ;; non-daemon GUI settings (daemon handled by wsl-t.el)
+  (when (daemonp) (menu-bar-mode -1)) ;; looks gross on lucid
+
+  (cond  ((eq system-type 'windows-nt)
+	  (add-to-list 'default-frame-alist '(font . "Iosevka NFM-12")))
+	 ((and (eq system-type 'gnu/linux) (getenv "WSLENV"))
+	  (add-to-list 'default-frame-alist
+		       '(font . "Iosevka Nerd Font Mono-12")))
+	 ((eq system-type 'gnu/linux)
+	  (add-to-list 'default-frame-alist
+		       '(font . "Iosevka Nerd Font Mono-14"))))
+
+
   :hook (after-save . executable-make-buffer-file-executable-if-script-p)
   )
 
@@ -334,30 +330,26 @@ using this command."
   ;; (windmove-default-keybindings)
   )
 
-(use-package kaolin-themes
-  :ensure t
-  :disabled
-  :config
-  (when (daemonp) (load-theme 'kaolin-dark)))
-
-(use-package eink-theme :ensure t
-  :disabled
-  :config
-  (load-theme 'kaolin-dark)
-  )
-
 (use-package paren-face :ensure t)
+
+
+(use-package saveplace :ensure nil
+  :config
+  ;; restore the last cursor location of opened files
+  (advice-add 'save-place-find-file-hook :after
+              (lambda (&rest _)
+		(when buffer-file-name (ignore-errors (recenter)))))
+  :hook (elpaca-after-init . save-place-mode))
 
 (use-package savehist
   :hook (savehist-save . (lambda ()
 			   (setq kill-ring
 				 (mapcar #'substring-no-properties
 					 (cl-remove-if-not #'stringp kill-ring)))))
-  :init
-  ;; https://emacsredux.com/blog/2026/04/07/stealing-from-the-best-emacs-configs/
-  (setq savehist-additional-variables ;; save kill ring
-	'(search-ring regexp-search-ring kill-ring))
-  (savehist-mode))
+  ;; https://emacsredux.com/blog/2026/04/07/stealing-from-the-best-emacs-
+  :custom ;; save clipboard before kill
+  (savehist-additional-variables  '(search-ring regexp-search-ring kill-ring))
+  :hook (elpaca-after-init . savehist-mode))
 
 ;; terminal copy
 (use-package clipetty :ensure t
@@ -647,11 +639,11 @@ using this command."
 (use-package recentf :ensure nil
   :hook (elpaca-after-init . recentf-mode)
   :bind ("C-x C-r" . recentf-open)
-  :config
-  ;; (global-set-key (kbd "C-x C-r") 'recentf-open)
-  (setq recentf-max-saved-items 50)
-  (setq recentf-keep '(file-remote-p file-readable-p))
+  :custom
+  (recentf-max-saved-items 100)
+  (recentf-keep '(file-remote-p file-readable-p))
 
+  :preface
   (defun recentf-open ()
     (interactive)
     (if (find-file (completing-read "Find recent file: " recentf-list))
@@ -919,6 +911,8 @@ using this command."
 		  :build (:not elpaca--compile-info) ;; Make will take care of this step
 		  :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
 		  :version (lambda (_) (require 'auctex) AUCTeX-version))
+  :defer t
+  :mode ("\\.tex\\'" . LaTeX-mode)
   :init
   (setq TeX-parse-self t ; parse on load
 	reftex-plug-into-AUCTeX t
@@ -932,13 +926,21 @@ using this command."
 	TeX-save-query nil
 	TeX-electric-math (cons "\\(" "\\)")) ;; '$' inserts an in-line equation '\(...\)'
 
-  (add-hook 'TeX-mode-hook #'reftex-mode)
-  (add-hook 'TeX-mode-hook #'olivetti-mode)
-  (add-hook 'TeX-mode-hook #'turn-on-auto-fill)
-  (add-hook 'TeX-mode-hook #'prettify-symbols-mode)
-  (add-hook 'TeX-after-compilation-finished-functions
-	    #'TeX-revert-document-buffer)
-  (add-hook 'TeX-mode-hook #'outline-minor-mode)
+  ;; (add-hook 'TeX-mode-hook #'reftex-mode)
+  ;; (add-hook 'TeX-mode-hook #'olivetti-mode)
+  ;; (add-hook 'TeX-mode-hook #'turn-on-auto-fill)
+  ;; (add-hook 'TeX-mode-hook #'prettify-symbols-mode)
+  ;; (add-hook 'TeX-after-compilation-finished-functions
+  ;; 	    #'TeX-revert-document-buffer)
+  ;; (add-hook 'TeX-mode-hook #'outline-minor-mode)
+
+  :hook ((TeX-mode . reftex-mode)
+	 (TeX-mode . olivetti-mode)
+	 (TeX-mode . turn-on-auto-fill)
+	 (TeX-mode . prettify-symbols-mode)
+	 (TeX-after-compilation-finished-functions . TeX-revert-document-buffer)
+	 (TeX-mode . outline-minor-mode))
+
 
   ;; :general
   ;; (my/local-leader-keys
@@ -1024,21 +1026,19 @@ using this command."
 (use-package org
   :hook ((org-mode . visual-line-mode)
 	 (org-mode . org-indent-mode))
-  :config
-  (setq org-src-fontify-natively t)
-  ;; (setq org-highlight-latex-and-related '(latex script entities))
-
-  ;; syntax highlighting with minted (requires minted in miktex)
-  (add-to-list 'org-latex-packages-alist '("" "minted" nil))
-  (setq org-latex-src-block-backend 'minted)
-
-  ;; https://lucidmanager.org/productivity/ricing-org-mode/
-  (setq-default org-startup-indented t
-		org-pretty-entities t
-		org-use-sub-superscripts "{}"
-		org-hide-emphasis-markers t
-		org-startup-with-inline-images t
-		org-image-actual-width '(300))
+  :defer t
+  :custom
+  (org-src-fontify-natively t)
+  ;; (org-highlight-latex-and-related '(latex script entities))
+  ;;https://github.com/pprevos/emacs-writing-studio/blob/master/init.el
+  (org-startup-indented t)
+  (org-hide-emphasis-markers t)
+  (org-startup-with-inline-images t)
+  (org-image-actual-width '(450))
+  (org-pretty-entities t)
+  (org-use-sub-superscripts "{}")
+  (org-id-link-to-org-use-id t)
+  (org-fold-catch-invisible-edits 'show)
 
   :bind (:map org-mode-map
 	      ("C-c d" . TeX-insert-dollar))
@@ -1308,14 +1308,20 @@ using this command."
 						     "--pch-storage=memory"
 						     "--header-insertion=never"
 						     "--header-insertion-decorators=0"))
-               '(python-base-mode . ("basedpyright-langserver" "--stdio")))
+	       '(python-base-mode . ("basedpyright-langserver" "--stdio"))
 
+	       ;;; sql
+	       ;; '(sql-mode . ("postgres-lsp" "server"))
+	       )
 
-  ;; harper-ls
   (add-to-list 'eglot-server-programs
+	       '(sql-mode . ("postgres-lsp" "server")))
+
+  (add-to-list 'eglot-server-programs
+	       	       ;;;  harper-ls
 	       ;; '((english-prose-mode :language-id "plaintext") . ("harper-ls" "--stdio"))
 	       '((org-mode :language-id "org") . ("harper-ls" "--stdio"))
-	       ;; '((markdown-mode :language-id "markdown") . ("harper-ls" "--stdio"))
+	       ;; '((markdown-mode :language-id "markdown") . ("harper-ls" "--stdio")))
 	       )
   (setq-default eglot-workspace-configuration
 		'(:harper-ls (:userDictPath ""
@@ -1364,6 +1370,9 @@ using this command."
   :config
   (setq eglot-booster-mode t)
   (setq eglot-booster-io-only t))
+
+(use-package pg :ensure t)
+
 
 ;; shamelessly stolen from patrick d elliot
 
@@ -1448,9 +1457,12 @@ using this command."
   :hook (yas-minor-mode . yas-reload-all)
   :hook (org-mode . yas-global-mode-enable-in-buffer)
   :hook (LaTeX-mode . yas-global-mode-enable-in-buffer)
-  :config
-  (yas-reload-all)
-  (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory )))
+  :custom
+  (yas-snippet-dirs '("~/.emacs.d/snippets"))
+  ;; :config
+  ;; (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory ))
+  :hook (elpaca-after-init . yas-reload-all)
+  )
 
 (use-package tempel :ensure t
   :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
@@ -1480,7 +1492,8 @@ using this command."
 (use-package doom-snippets :ensure (:host github :repo "doomemacs/snippets" :files ("*.el" "*"))
   :after yasnippet)
 
-(use-package yasnippet-snippets :ensure t)
+(use-package yasnippet-snippets :ensure t
+  :after yasnippet)
 
 (use-package nerd-icons
   :ensure t
@@ -1626,6 +1639,8 @@ using this command."
   (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
    '(("h" "~/"                          "Home")
      ("d" "~/Downloads/"                "Downloads")
+
+
      ("m" "/mnt/"                       "Drives")
      ;; ("s" "/ssh:my-remote-server")      "SSH server"
      ("e" "/sudo:root@localhost:/etc")  "Modify program settings"
@@ -1710,9 +1725,12 @@ using this command."
 	 '(:application tramp :protocol "plinkx")
 	 'remote-direct-async-process)
 	(setq tramp-default-method "plinkx"))
-    (connection-local-set-profiles
-     '(:application tramp :protocol "ssh")
-     'remote-direct-async-process))
+    (progn
+      (connection-local-set-profiles
+       '(:application tramp :protocol "ssh")
+       'remote-direct-async-process))
+    (setq tramp-ssh-controlmaster-options nil)
+    )
 
 
   ;; (when (eq system-type 'window-nt)
@@ -1721,7 +1739,8 @@ using this command."
   ;; Tips to speed up connections
   (setq tramp-verbose 0)
   (setq tramp-chunksize 2000)
-  (setq tramp-ssh-controlmaster-options nil)
+  ;; (setq tramp-ssh-controlmaster-options nil)
+
   )
 
 ;; wrapper around terminal
@@ -1784,7 +1803,7 @@ using this command."
 
 ;; indent-bars, since it has (optional) treesitter support
 (use-package indent-bars :ensure t
-  :unless (eq system-type 'windows-nt)
+  ;; :unless (eq system-type 'windows-nt)
 
   :hook ((python-base-mode yaml-mode html-mode c-mode c++-mode) . indent-bars-mode)
   :hook ((python-ts-mode yaml-ts-mode html-ts-mode c-ts-mode c++-ts-mode) . indent-bars-mode)
@@ -1822,7 +1841,7 @@ using this command."
 
 (use-package treesit
   :ensure nil
-  :unless (eq system-type 'windows-nt)
+  ;; :unless (eq system-type 'windows-nt)
   :mode (("\\.tsx\\'" . tsx-ts-mode))
   :preface
   (defun mp-setup-install-grammars ()
@@ -1904,23 +1923,59 @@ using this command."
   :unless (eq system-type 'windows-nt)
   :mode "\\.nix\\'")
 
-(use-package buffer-env :ensure t
-  :hook (hack-local-variables . buffer-env-update)
-  :hook (comint-mode . buffer-env-update))
-
 (use-package envrc :ensure t
   :config
   (setq envrc-remote t)
-  (setq envrc-supported-tramp-methods '("plinkx" "sshx" "plink" "ssh"))
+  ;; (setq envrc-supported-tramp-methods '("plinkx" "sshx" "plink" "ssh"))
   :hook (elpaca-after-init . envrc-global-mode))
 
 (use-package pet :ensure t
-  ;; :hook ((python-mode python-ts-mode) . (lambda () pet-mode -10))
-  :hook ((python-mode python-ts-mode) . pet-flycheck-setup)
   :config
-  (add-hook 'python-base-mode-hook 'pet-mode -10))
+  (setq pet-debug t)
+  :hook (elpaca-after-init . (lambda ()  (progn
+
+					   ;; (add-hook 'python-base-mode-hook
+					   ;; 		  (lambda ()
+					   ;; 		    (setq-local python-shell-interpreter (pet-executable-find "python")
+					   ;; 				python-shell-virtualenv-root (pet-virtualenv-root))
+
+					   ;; 		    (pet-eglot-setup)
+					   ;; 		    (eglot-ensure)
+
+					   ;; 		    ;; (pet-flycheck-setup)
+					   ;; 		    ;; (flycheck-mode)
+
+					   ;; 		    ;; (setq-local lsp-jedi-executable-command
+					   ;; 		    ;; 		 (pet-executable-find "jedi-language-server"))
+
+					   ;; 		    ;; (setq-local lsp-pyright-python-executable-cmd python-shell-interpreter
+					   ;; 		    ;; 		 lsp-pyright-venv-path python-shell-virtualenv-root)
+
+					   ;; 		    ;; (lsp)
+
+					   ;; 		    (setq-local dap-python-executable python-shell-interpreter)
+
+					   ;; 		    (setq-local python-pytest-executable (pet-executable-find "pytest"))
+
+					   ;; 		    (when-let ((ruff-executable (pet-executable-find "ruff")))
+					   ;; 		      (setq-local ruff-format-command ruff-executable)
+					   ;; 		      (ruff-format-on-save-mode))
+
+					   ;; 		    (when-let ((black-executable (pet-executable-find "black")))
+					   ;; 		      (setq-local python-black-command black-executable)
+					   ;; 		      (python-black-on-save-mode))
+
+					   ;; 		    (when-let ((isort-executable (pet-executable-find "isort")))
+					   ;; 		      (setq-local python-isort-command isort-executable)
+					   ;; 		      (python-isort-on-save-mode))))
+					   (add-hook 'python-base-mode-hook 'pet-mode -10)
 
 
+					   ))))
+
+
+(use-package tomlparse :ensure t)
+(use-package yaml :ensure t)
 
 (use-package markdown-mode
   :ensure t
@@ -1944,7 +1999,7 @@ using this command."
   )
 
 (use-package drepl
-  :unless (eq system-type 'windows-nt)
+  ;; :unless (eq system-type 'windows-nt)
   :ensure t)
 
 (use-package code-cells
@@ -1981,7 +2036,7 @@ using this command."
 
 
 (use-package treesit-auto
-  :unless (eq system-type 'windows-nt)
+  ;; :unless (eq system-type 'windows-nt)
   :ensure t
   :custom
   (treesit-auto-install 'prompt)
@@ -2019,6 +2074,7 @@ using this command."
 ;;  https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
 (use-package emacs-solo-clipboard
   ;; :unless (display-graphic-p)
+  :disabled
   :ensure nil
   :no-require t
   :defer t

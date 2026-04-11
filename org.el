@@ -23,6 +23,14 @@
 	       )
   )
 
+(with-eval-after-load 'org
+  ;; syntax highlighting with minted (requires minted in miktex)
+  (add-to-list 'org-latex-packages-alist '("" "minted" nil))
+  (setopt org-latex-src-block-backend 'minted)
+
+  )
+
+
 ;; #+OPTIONS for PDF:
 ;;     toc:t or nil: Toggle Table of Contents.
 ;;     num:t or nil: Toggle section numbering.

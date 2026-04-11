@@ -1,4 +1,9 @@
 ;;; performance  -*- lexical-binding: t; -*-
+
+;; profiling
+;; (setq use-package-compute-statistics t)
+(setq use-package-enable-imenu-support t)
+
 ;; temporarily increase GC threshold during startup
 (setq gc-cons-threshold most-positive-fixnum)
 
@@ -30,7 +35,7 @@
 (setq inhibit-startup-screen t)
 ;; (setq initial-buffer-choice 'recentf-open-files)
 
-(when (eq system-type 'windows-nt)
-  (add-to-list 'exec-path (expand-file-name "C:\\msys64\\usr\\bin"))
-  ;; (add-to-list 'exec-path (expand-file-name "C:\\Program Files\\Git\\git.exe"))
-  )
+;; (when (eq system-type 'windows-nt)
+;;   (add-to-list 'exec-path (expand-file-name "C:\\msys64\\usr\\bin"))
+;;   ;; (add-to-list 'exec-path (expand-file-name "C:\\Program Files\\Git\\git.exe"))
+;;   )
