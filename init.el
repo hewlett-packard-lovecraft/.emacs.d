@@ -532,7 +532,8 @@ using this command."
 (use-package project :ensure nil
   :config
   ;; (setq project-mode-line t)
-  (setq vc-handled-backends '(Git))
+  ;; (setq vc-handled-backends '(Git))
+  (setq vc-handled-backends nil)
   (setq project-vc-extra-root-markers '(".project" ".vscode"))
   (defun my-vc-off-if-remote ()
     (if (file-remote-p (buffer-file-name))
@@ -851,6 +852,7 @@ using this command."
 
 ;; autoformat
 (use-package format-all
+  :disabled
   :ensure t
   :commands format-all-mode
   :hook (prog-mode . format-all-mode)
@@ -1363,6 +1365,7 @@ using this command."
   )
 
 (use-package eglot-booster
+  :disabled
   :unless (eq system-type 'windows-nt)
   :ensure (:host github
 		 :repo "jdtsmith/eglot-booster")
@@ -1574,6 +1577,7 @@ using this command."
 ;; autocorrect
 
 (use-package ispell
+  :disabled
   :if (eq system-type 'windows-nt)
   :init
   (setenv "DICTIONARY" "en_CA")
@@ -1600,12 +1604,14 @@ using this command."
 
 ;; flyspell
 (use-package flyspell
+  :disabled
   :config
   (add-hook 'text-mode-hook 'flyspell-mode)
   (add-hook 'prog-mode-hook 'flyspell-prog-mode)
   )
 
 (use-package flyspell-correct
+  :disabled
   :ensure t
   :after flyspell
   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
@@ -1706,6 +1712,10 @@ using this command."
   :ensure nil
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  
+  (add-to-list 'tramp-connection-properties
+             (list (regexp-quote "/ssh:acer-hxia:")
+                   "remote-shell" "/usr/bin/bash"))
 
   ;;; various perf improvements
   (setq remote-file-name-inhibit-locks t
@@ -1729,6 +1739,8 @@ using this command."
   (connection-local-set-profiles
    '(:application tramp :protocol "ssh")
    'remote-direct-async-process)
+
+  (setq tramp-direct-async-process t)
   
   ;; (if (eq system-type 'windows-nt)
   ;;     (progn
@@ -1749,9 +1761,8 @@ using this command."
 
   ;; Tips to speed up connections
   (setq tramp-verbose 0)
-  (setq tramp-chunksize 2000)
+  ;; (setq tramp-chunksize 2000)
   (setq tramp-ssh-controlmaster-options nil)
-
   )
 
 ;; wrapper around terminal
@@ -1935,12 +1946,14 @@ using this command."
   :mode "\\.nix\\'")
 
 (use-package envrc :ensure t
+  ;; :disabled
   :config
   (setq envrc-remote t)
   ;; (setq envrc-supported-tramp-methods '("plinkx" "sshx" "plink" "ssh"))
   :hook (elpaca-after-init . envrc-global-mode))
 
 (use-package pet :ensure t
+  :disabled
   :config
   (setq pet-debug t)
   :hook (elpaca-after-init . (lambda ()  (progn
