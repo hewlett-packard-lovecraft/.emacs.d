@@ -1817,7 +1817,7 @@ using this command."
   )
 
 (use-package vterm-toggle :ensure t
-  :after vterm
+  :commands (vterm-toggle vterm-toggle-cd)
   :unless (eq system-type 'windows-nt)
   :bind (("<f2>" . vterm-toggle) ("C-<f2>" . vterm-toggle-cd))
   :bind (:map vterm-mode-map ("s-n" . vterm-toggle-forward) ("s-p" . vterm-toggle-backward) ))
