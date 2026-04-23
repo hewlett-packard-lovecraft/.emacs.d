@@ -27,33 +27,33 @@ deactivated or when Emacs exits, the user should do so before
 using this command."
   (interactive
    (list (let ((elpaca-overriding-prompt "Reload package: "))
-           (elpaca--read-queued))
-         current-prefix-arg))
+	   (elpaca--read-queued))
+	 current-prefix-arg))
   ;; This finds features in the currently installed version of PACKAGE, so if
   ;; it provided other features in an older version, those are not unloaded.
   (when (yes-or-no-p (format "Unload all of %s's symbols and reload its features? " package))
     (let* ((package-name (symbol-name package))
-           (package-dir (file-name-directory
-                         (locate-file package-name load-path (get-load-suffixes))))
-           (package-files (directory-files package-dir 'full (rx ".el" eos)))
-           (package-features
-            (cl-loop for file in package-files
-                     when (with-temp-buffer
-                            (insert-file-contents file)
-                            (when (re-search-forward (rx bol "(provide" (1+ space)) nil t)
-                              (goto-char (match-beginning 0))
-                              (cadadr (read (current-buffer)))))
-                     collect it)))
+	   (package-dir (file-name-directory
+			 (locate-file package-name load-path (get-load-suffixes))))
+	   (package-files (directory-files package-dir 'full (rx ".el" eos)))
+	   (package-features
+	    (cl-loop for file in package-files
+		     when (with-temp-buffer
+			    (insert-file-contents file)
+			    (when (re-search-forward (rx bol "(provide" (1+ space)) nil t)
+			      (goto-char (match-beginning 0))
+			      (cadadr (read (current-buffer)))))
+		     collect it)))
       (unless allp
-        (setf package-features (seq-intersection package-features features)))
+	(setf package-features (seq-intersection package-features features)))
       (dolist (feature package-features)
-        (ignore-errors
-          ;; Ignore error in case it's not loaded.
-          (unload-feature feature 'force)))
+	(ignore-errors
+	  ;; Ignore error in case it's not loaded.
+	  (unload-feature feature 'force)))
       (dolist (feature package-features)
-        (require feature))
+	(require feature))
       (when package-features
-        (message "Reloaded: %s" (mapconcat #'symbol-name package-features " "))))))
+	(message "Reloaded: %s" (mapconcat #'symbol-name package-features " "))))))
 
 
 ;; set settings before
@@ -69,9 +69,9 @@ using this command."
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-sources-directory (expand-file-name "sources/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1 :inherit ignore
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca-activate)))
+			      :ref nil :depth 1 :inherit ignore
+			      :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+			      :build (:not elpaca-activate)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-sources-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
@@ -81,20 +81,20 @@ using this command."
     (make-directory repo t)
     (when (<= emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                  ,@(when-let* ((depth (plist-get order :depth)))
-                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                  ,(plist-get order :repo) ,repo))))
-                  ((zerop (call-process "git" nil buffer t "checkout"
-                                        (or (plist-get order :ref) "--"))))
-                  (emacs (concat invocation-directory invocation-name))
-                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                  ((require 'elpaca))
-                  ((elpaca-generate-autoloads "elpaca" repo)))
-            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-          (error "%s" (with-current-buffer buffer (buffer-string))))
+	(if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+		  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+						  ,@(when-let* ((depth (plist-get order :depth)))
+						      (list (format "--depth=%d" depth) "--no-single-branch"))
+						  ,(plist-get order :repo) ,repo))))
+		  ((zerop (call-process "git" nil buffer t "checkout"
+					(or (plist-get order :ref) "--"))))
+		  (emacs (concat invocation-directory invocation-name))
+		  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+					"--eval" "(byte-recompile-directory \".\" 0 'force)")))
+		  ((require 'elpaca))
+		  ((elpaca-generate-autoloads "elpaca" repo)))
+	    (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+	  (error "%s" (with-current-buffer buffer (buffer-string))))
       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
   (unless (require 'elpaca-autoloads nil t)
     (require 'elpaca)
@@ -106,8 +106,28 @@ using this command."
 ;; end elpaca-installer
 ;; startup files
 
+;; all windows stuff here
 (when (eq system-type 'windows-nt)
-  (elpaca-no-symlink-mode))
+  (elpaca-no-symlink-mode)
+
+  (setq w32-allow-system-shell t) ; enables cmd.exe as shell
+  (setq explicit-shell-file-name "C:/msys64/usr/bin/bash.exe")
+  (setq shell-file-name explicit-shell-file-name)
+  (setenv "SHELL" explicit-shell-file-name)
+  (add-to-list 'exec-path "C:/msys64/ucrt64/bin")
+  (add-to-list 'exec-path "C:/msys64/usr/bin")
+
+
+  (setq save-interprogram-paste-before-kill 1 ; stop killing my clipboard, plz
+					; ghostscript on windows
+					; see https://www.emacswiki.org/emacs/docviewmode for details
+	doc-view-ghostscript-program "c:/msys64/msys2/ucrt64/bin/gswin64c.exe"
+					; set curl location
+	request-curl "c:/msys64/ucrt64/bin/curl.exe")
+  (cond ((executable-find "aspell") ; spell-checking
+	 ;; (setq ispell-program-name "aspell")
+	 (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_CA")))))
+
 
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
 
@@ -154,6 +174,8 @@ using this command."
   ;; ;; corfu
   ;; TAB cycle if there are only few candidates
   (completion-cycle-threshold 5)
+  (display-line-numbers-type 'relative)
+  (column-number-mode 1)
 
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
@@ -169,14 +191,12 @@ using this command."
   ;; useful beyond Corfu.
   (read-extended-command-predicate #'command-completion-default-include-p)
 
-  :hook (prog-mode . display-line-numbers-mode)
-  :hook (conf-mode . display-line-numbers-mode)
-  ;; :hook (text-mode . context-menu-mode)
+  :hook ((conf-mode prog-mode) . display-line-numbers-mode)
+  :hook ((conf-mode prog-mode) . hl-line-mode)
   :config
   ;; line numbers
   ;; (global-display-line-numbers-mode 1) # instead use hook
   (setq display-line-numbers-type 'relative)
-  (setq column-number-mode t) ;; display column number in mode line
 
 
   ;; autoreload buffers
@@ -233,8 +253,8 @@ using this command."
   (prefer-coding-system 'utf-8-unix)
 
   ;; (setq locale-coding-system 'utf-8
-  ;; 	coding-system-for-read 'utf-8
-  ;; 	coding-system-for-write 'utf-8)
+  ;;	coding-system-for-read 'utf-8
+  ;;	coding-system-for-write 'utf-8)
   ;; (set-terminal-coding-system 'utf-8)
   ;; (set-keyboard-coding-system 'utf-8)
   ;; (set-selection-coding-system 'utf-8)
@@ -297,10 +317,10 @@ using this command."
 
 
   ;; :hook (elpaca-after-init . (lambda ()
-  ;; 			       (when (eq system-type 'windows-nt)
-  ;; 				 (set-face-attribute 'default nil :font "Iosevka NFM-10" :height 120))
-  ;; 			       (when (eq system-type 'gnu/linux)
-  ;; 				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-14" :height 140))))
+  ;;			       (when (eq system-type 'windows-nt)
+  ;;				 (set-face-attribute 'default nil :font "Iosevka NFM-10" :height 120))
+  ;;			       (when (eq system-type 'gnu/linux)
+  ;;				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-14" :height 140))))
 
 
   ;; non-daemon GUI settings (daemon handled by wsl-t.el)
@@ -330,6 +350,29 @@ using this command."
   ;; (windmove-default-keybindings)
   )
 
+
+(use-package whitespace :ensure nil
+  :diminish (global-whitespace-mode whitespace-mode) ; Hide from modeline
+  :hook ((prog-mode conf-mode) . whitespace-mode)
+  :init
+  (setq
+   whitespace-style
+   '(face ; viz via faces
+     trailing ; trailing blanks visualized
+     lines-tail ; lines beyond
+					; whitespace-line-column
+     space-before-tab
+     space-after-tab
+     newline ; lines with only blanks
+     indentation ; spaces used for indent
+					; when config wants tabs
+     empty ; empty lines at beginning or end
+     )
+   whitespace-line-column 100 ; column at which
+					; whitespace-mode says the line is too long
+   ))
+
+
 (use-package paren-face :ensure t)
 
 
@@ -337,7 +380,7 @@ using this command."
   :config
   ;; restore the last cursor location of opened files
   (advice-add 'save-place-find-file-hook :after
-              (lambda (&rest _)
+	      (lambda (&rest _)
 		(when buffer-file-name (ignore-errors (recenter)))))
   :hook (elpaca-after-init . save-place-mode))
 
@@ -391,12 +434,12 @@ using this command."
    . (lambda ()
        (desktop-save-mode 1) ; Enable the mode right before
        (let ((key "--no-desktop"))
-         (when (member key command-line-args)
-           (setq command-line-args (delete key command-line-args))
-           (desktop-save-mode 0)))
+	 (when (member key command-line-args)
+	   (setq command-line-args (delete key command-line-args))
+	   (desktop-save-mode 0)))
        (when desktop-save-mode
-         (desktop-read)
-         (setq inhibit-startup-screen t)))))
+	 (desktop-read)
+	 (setq inhibit-startup-screen t)))))
 
 (use-package avy :ensure t
   :bind (("C-|" . avy-goto-char-2)
@@ -479,8 +522,8 @@ using this command."
 ;;   (defun evil-surround-elisp ()
 ;;     (push '(?\` . ("`" . "'")) evil-surround-pairs-alist))
 ;;   (defun evil-surround-org ()
-;;     (push '(?\" . ("“" . "”")) evil-surround-pairs-alist)
-;;     (push '(?\' . ("‘" . "’")) evil-surround-pairs-alist)
+;;     (push '(?\" . ("ï¿½" . "ï¿½")) evil-surround-pairs-alist)
+;;     (push '(?\' . ("ï¿½" . "ï¿½")) evil-surround-pairs-alist)
 ;;     (push '(?b . ("*" . "*")) evil-surround-pairs-alist)
 ;;     (push '(?* . ("*" . "*")) evil-surround-pairs-alist)
 ;;     (push '(?i . ("/" . "/")) evil-surround-pairs-alist)
@@ -532,9 +575,8 @@ using this command."
 (use-package project :ensure nil
   :config
   ;; (setq project-mode-line t)
-  ;; (setq vc-handled-backends '(Git))
-  (setq vc-handled-backends nil)
-  (setq project-vc-extra-root-markers '(".project" ".vscode"))
+  (setq vc-handled-backends '(Git))
+  (setq project-vc-extra-root-markers '(".project" "go.mod"))
   (defun my-vc-off-if-remote ()
     (if (file-remote-p (buffer-file-name))
 	(setq-local vc-handled-backends nil)))
@@ -546,7 +588,6 @@ using this command."
 
 
 (use-package project-x
-  :disabled
   :ensure (:host github :repo "karthink/project-x")
   :config
   (setq project-x-local-identifier '(".project"))
@@ -629,7 +670,7 @@ using this command."
 (use-package dabbrev
   ;; Swap M-/ and C-M-/
   :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand))
+	 ("C-M-/" . dabbrev-expand))
   :config
   (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
   (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
@@ -683,58 +724,58 @@ using this command."
 
   ;; Replace bindings. Lazily loaded by `use-package'.
   :bind (;; C-c bindings in `mode-specific-map'
-         ("C-c M-x" . consult-mode-command)
-         ("C-c h" . consult-history)
-         ("C-c k" . consult-kmacro)
-         ("C-c m" . consult-man)
-         ("C-c i" . consult-info)
-         ([remap Info-search] . consult-info)
-         ;; C-x bindings in `ctl-x-map'
-         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-         ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
-         ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
-         ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
-         ;; Custom M-# bindings for fast register access
-         ("M-#" . consult-register-load)
-         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-M-#" . consult-register)
-         ;; Other custom bindings
-         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-         ;; M-g bindings in `goto-map'
-         ("M-g e" . consult-compile-error)
-         ("M-g r" . consult-grep-match)
-         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-         ("M-g g" . consult-goto-line)             ;; orig. goto-line
-         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-         ("M-g m" . consult-mark)
-         ("M-g k" . consult-global-mark)
-         ("M-g i" . consult-imenu)
-         ("M-g I" . consult-imenu-multi)
-         ;; M-s bindings in `search-map'
-         ("M-s d" . consult-find)                  ;; Alternative: consult-fd
-         ("M-s c" . consult-locate)
-         ("M-s g" . consult-grep)
-         ("M-s G" . consult-git-grep)
-         ("M-s r" . consult-ripgrep)
-         ("M-s l" . consult-line)
-         ("M-s L" . consult-line-multi)
-         ("M-s k" . consult-keep-lines)
-         ("M-s u" . consult-focus-lines)
-         ;; Isearch integration
-         ("M-s e" . consult-isearch-history)
-         :map isearch-mode-map
-         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
-         ;; Minibuffer history
-         :map minibuffer-local-map
-         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+	 ("C-c M-x" . consult-mode-command)
+	 ("C-c h" . consult-history)
+	 ("C-c k" . consult-kmacro)
+	 ("C-c m" . consult-man)
+	 ("C-c i" . consult-info)
+	 ([remap Info-search] . consult-info)
+	 ;; C-x bindings in `ctl-x-map'
+	 ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+	 ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+	 ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+	 ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+	 ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
+	 ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+	 ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+	 ;; Custom M-# bindings for fast register access
+	 ("M-#" . consult-register-load)
+	 ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+	 ("C-M-#" . consult-register)
+	 ;; Other custom bindings
+	 ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+	 ;; M-g bindings in `goto-map'
+	 ("M-g e" . consult-compile-error)
+	 ("M-g r" . consult-grep-match)
+	 ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+	 ("M-g g" . consult-goto-line)             ;; orig. goto-line
+	 ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+	 ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+	 ("M-g m" . consult-mark)
+	 ("M-g k" . consult-global-mark)
+	 ("M-g i" . consult-imenu)
+	 ("M-g I" . consult-imenu-multi)
+	 ;; M-s bindings in `search-map'
+	 ("M-s d" . consult-find)                  ;; Alternative: consult-fd
+	 ("M-s c" . consult-locate)
+	 ("M-s g" . consult-grep)
+	 ("M-s G" . consult-git-grep)
+	 ("M-s r" . consult-ripgrep)
+	 ("M-s l" . consult-line)
+	 ("M-s L" . consult-line-multi)
+	 ("M-s k" . consult-keep-lines)
+	 ("M-s u" . consult-focus-lines)
+	 ;; Isearch integration
+	 ("M-s e" . consult-isearch-history)
+	 :map isearch-mode-map
+	 ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+	 ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+	 ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+	 ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+	 ;; Minibuffer history
+	 :map minibuffer-local-map
+	 ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+	 ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
   ;; Enable automatic preview at point in the *Completions* buffer. This is
   ;; relevant when you use the default completion UI.
@@ -796,10 +837,10 @@ using this command."
 (use-package consult-notes
   :ensure t
   :commands (consult-notes
-             consult-notes-search-in-all-notes
-             ;; if using org-roam
-             ;;consult-notes-org-roam-find-node
-             ;; consult-notes-org-roam-find-node-relation
+	     consult-notes-search-in-all-notes
+	     ;; if using org-roam
+	     ;;consult-notes-org-roam-find-node
+	     ;; consult-notes-org-roam-find-node-relation
 	     )
   :bind (
 	 :map global-map
@@ -812,7 +853,7 @@ using this command."
     (setq consult-notes-file-dir-sources
 	  '(("Schoolwork"             ?s "~/../../OneDrive/Documents/00-schoolwork/")
 	    ("Org"             ?o "~/../../OneDrive/Documents/02-Org/")
-            ;; ("Org Refile"      ?r "~/Dropbox/Work/projects/notebook/org-refile/"
+	    ;; ("Org Refile"      ?r "~/Dropbox/Work/projects/notebook/org-refile/"
 	    ))
 
     (setq consult-notes-org-headings-files '( "~/../../OneDrive/Documents/00-schoolwork/index.org"))
@@ -933,11 +974,12 @@ using this command."
   ;; (add-hook 'TeX-mode-hook #'turn-on-auto-fill)
   ;; (add-hook 'TeX-mode-hook #'prettify-symbols-mode)
   ;; (add-hook 'TeX-after-compilation-finished-functions
-  ;; 	    #'TeX-revert-document-buffer)
+  ;;	    #'TeX-revert-document-buffer)
   ;; (add-hook 'TeX-mode-hook #'outline-minor-mode)
 
   :hook ((TeX-mode . reftex-mode)
-	 (TeX-mode . olivetti-mode)
+	 ;; (TeX-mode . olivetti-mode)
+	 (TeX-mode . spacious-padding-mode)
 	 (TeX-mode . turn-on-auto-fill)
 	 (TeX-mode . prettify-symbols-mode)
 	 (TeX-after-compilation-finished-functions . TeX-revert-document-buffer)
@@ -959,26 +1001,26 @@ using this command."
   ;;   "c" '(TeX-command-run-all :wk "compile"))
 
   ;; :bind (:map LaTeX-mode-map
-  ;; 	      ("M-, S-e" . latex-math-from-calc))
+  ;;	      ("M-, S-e" . latex-math-from-calc))
   ;; :config
   ;; ;; Format math as a Latex string with Calc
   ;; (defun latex-math-from-calc ()
   ;;   "Evaluate `calc' on the contents of line at point."
   ;;   (interactive)
   ;;   (cond ((region-active-p)
-  ;; 	   (let* ((beg (region-beginning))
-  ;; 		  (end (region-end))
-  ;; 		  (string (buffer-substring-no-properties beg end)))
-  ;; 	     (kill-region beg end)
-  ;; 	     (insert (calc-eval `(,string calc-language latex
-  ;; 					  calc-prefer-frac t
-  ;; 					  calc-angle-mode rad)))))
-  ;; 	  (t (let ((l (thing-at-point 'line)))
-  ;; 	       (end-of-line 1) (kill-line 0)
-  ;; 	       (insert (calc-eval `(,l
-  ;; 				    calc-language latex
-  ;; 				    calc-prefer-frac t
-  ;; 				    calc-angle-mode rad)))))))
+  ;;	   (let* ((beg (region-beginning))
+  ;;		  (end (region-end))
+  ;;		  (string (buffer-substring-no-properties beg end)))
+  ;;	     (kill-region beg end)
+  ;;	     (insert (calc-eval `(,string calc-language latex
+  ;;					  calc-prefer-frac t
+  ;;					  calc-angle-mode rad)))))
+  ;;	  (t (let ((l (thing-at-point 'line)))
+  ;;	       (end-of-line 1) (kill-line 0)
+  ;;	       (insert (calc-eval `(,l
+  ;;				    calc-language latex
+  ;;				    calc-prefer-frac t
+  ;;				    calc-angle-mode rad)))))))
 
   ;; :config
   ;; (use-package evil-tex
@@ -988,11 +1030,12 @@ using this command."
   ;;   :hook (LaTeX-mode . evil-tex-mode)
   ;;   :general
   ;;   (:keymaps 'evil-tex-mode-map
-  ;; 	      "M-]" 'evil-tex-brace-movement)
+  ;;	      "M-]" 'evil-tex-brace-movement)
   ;;   :hook (LaTeX-mode . evil-tex-mode))
   )
 
 (use-package olivetti
+  :disabled
   :ensure t
   :init
   (setq olivetti-body-width 94)
@@ -1004,6 +1047,9 @@ using this command."
   :hook (olivetti-mode . (lambda () (display-line-numbers-mode -1)))
   :hook ((org-mode LaTeX-mode) . olivetti-mode)
   )
+
+(use-package spacious-padding :ensure t
+  :hook ((TeX-mode org-mode markdown-mode text-mode) . spacious-padding-mode))
 
 (use-package pdf-tools
   :ensure t
@@ -1089,7 +1135,7 @@ using this command."
   (org-download-image-dir "images")
   (org-download-heading-lvl nil)
   (org-download-timestamp "%Y%m%d-%H%M%S_")
-  (org-image-actual-width 300)
+  (org-image-actual-width 420)
   ;; (org-image-actual-width (truncate (* (display-pixel-width) 0.8)))
 
   (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)")
@@ -1290,14 +1336,32 @@ using this command."
 (use-package eglot
   :defer t
   ;; refer to evil-collection bindings
-  :hook ((python-ts-mode c++-ts-mode c-ts-mode cmake-ts-mode bash-ts-mode yaml-ts-mode nix-ts-mode ) . eglot-ensure)
-  :hook ((python-mode c++-mode c-mode cmake-mode bash-mode yaml-mode nix-mode dockerfile-mode) . eglot-ensure)
+  :hook ((python-ts-mode
+	  c++-ts-mode
+	  c-ts-mode
+	  cmake-ts-mode
+	  bash-ts-mode
+	  yaml-ts-mode
+	  nix-ts-mode
+	  go-ts-mode
+	  go-mod-ts-mode)
+	 . eglot-ensure)
+  :hook (
+	 (python-base-mode c++-mode c-mode cmake-mode bash-mode yaml-mode nix-mode go-mode
+			   dockerfile-mode)
+	 . eglot-ensure)
   :hook ((LaTeX-mode) . eglot-ensure)
   :hook (((html-mode html-ts-mode) . eglot-ensure) ; start eglot for html files
 	 ((css-mode css-ts-mode) . eglot-ensure)   ; start eglot for css files
 	 ((js-mode js-ts-mode) . eglot-ensure)    ; start eglot for js files
 	 ((rjsx-mode rjsx-ts-mode) . eglot-ensure) ; start eglot for React/JSX files
 	 ((typescript-mode typescript-ts-mode) . eglot-ensure)) ; start eglot for ts files
+  :bind (:map eglot-mode-map
+	      ("C-c l a" . eglot-code-actions)
+	      ("C-c l f" . eglot-format)
+	      ("C-c l r" . eglot-rename)
+	      ("C-c l i" . eglot-code-action-organize-imports)
+	      )
   :config
   (add-to-list 'eglot-server-programs
 	       '((c-or-c++-mode c-or-c++-ts-mode) . ("clangd" "-j=24"
@@ -1320,11 +1384,12 @@ using this command."
 	       '(sql-mode . ("postgres-lsp" "server")))
 
   (add-to-list 'eglot-server-programs
-	       	       ;;;  harper-ls
+		       ;;;  harper-ls
 	       ;; '((english-prose-mode :language-id "plaintext") . ("harper-ls" "--stdio"))
 	       '((org-mode :language-id "org") . ("harper-ls" "--stdio"))
 	       ;; '((markdown-mode :language-id "markdown") . ("harper-ls" "--stdio")))
 	       )
+
   (setq-default eglot-workspace-configuration
 		'(:harper-ls (:userDictPath ""
 					    :workspaceDictPath ""
@@ -1347,29 +1412,21 @@ using this command."
 					    :dialect "Canadian"
 					    :maxFileLength 120000
 					    :ignoredLintsPath ""
-					    :excludePatterns [])))
-  ;; (setq-default
-  ;;  eglot-workspace-configuration
-  ;;  '(:basedpyright (
-  ;; 		    :typeCheckingMode "recommended"
-  ;; 		    )
-  ;; 		   :basedpyright.analysis (
-  ;; 					   :diagnosticSeverityOverrides (
-  ;; 									 :reportUnusedCallResult "none"
-  ;; 									 )
-  ;; 					   :inlayHints (
-  ;; 							:callArgumentNames :json-false
-  ;; 							)
-  ;; 					   )))
-
-  )
+					    :excludePatterns [])
+			     :basedpyright (:typeCheckingMode "recommended")
+			     :basedpyright.analysis (
+						     :diagnosticSeverityOverrides
+						     (:reportUnusedCallResult "none")
+						     :inlayHints (:callArgumentNames :json-false)
+						     )
+			     :gopls (:usePlaceholders t :staticcheck t)
+			     )))
 
 (use-package eglot-booster
   :disabled
   :unless (eq system-type 'windows-nt)
   :ensure (:host github
 		 :repo "jdtsmith/eglot-booster")
-  :after eglot
   :config
   (setq eglot-booster-mode t)
   (setq eglot-booster-io-only t))
@@ -1385,17 +1442,17 @@ using this command."
   :config
   ;; easy emoji entry in text mode.
   (aas-set-snippets 'text-mode
-		    ":-)" "??"
-		    "8-)" "??"
-		    ":rofl" "??"
-		    ":lol" "??"
-		    "<3" "??"
-		    ":eyes" "??"
-		    ":dragon" "??"
-		    ":fire" "??"
-		    ":hole" "???"
-		    ":flush" "??"
-		    ":wow" "??"))
+    ":-)" "??"
+    "8-)" "??"
+    ":rofl" "??"
+    ":lol" "??"
+    "<3" "??"
+    ":eyes" "??"
+    ":dragon" "??"
+    ":fire" "??"
+    ":hole" "???"
+    ":flush" "??"
+    ":wow" "??"))
 
 (use-package laas :ensure t
   ;; disables accent snippets - things like 'l (which expands to \textsl{}) end up being very disruptive in practice.
@@ -1404,56 +1461,56 @@ using this command."
 	 (org-mode . laas-mode))
   :config
   (aas-set-snippets 'laas-mode
-		    ;; I need to make sure not to accidentally trigger the following, so I should only use impossible (or extremely rare) bigrams/trigrams.
-		    ;; "*b" (lambda () (interactive)
-		    ;;        (yas-expand-snippet "\\textbf{$1}$0"))
-		    ;; "*i" (lambda () (interactive)
-		    ;;     (yas-expand-snippet "\\textit{$1}$0"))
-		    "mx" (lambda () (interactive)
-			   (yas-expand-snippet "\\\\($1\\\\)$0"))
-		    "mq" (lambda () (interactive)
-			   (yas-expand-snippet "\\[$1\\]$0"))
-		    ;; "*I" (lambda () (interactive)
-		    ;;      (yas-expand-snippet "\\begin{enumerate}\n$>\\item $0\n\\end{enumerate}"))
-		    ;; "*e" (lambda () (interactive)
-		    ;;      (yas-expand-snippet "\\begin{exe}\n$>\\ex $0\n\\end{exe}"))
-		    ;; "*f" (lambda () (interactive)
-		    ;;      (yas-expand-snippet "\\begin{forest}\n[{$1}\n[{$2}]\n[{$0}]\n]\n\\end{forest}"))
-		    "*\"" (lambda () (interactive)
-			    (yas-expand-snippet "\\enquote{$1}$0"))
-		    :cond #'texmathp ; expand only while in math
-		    "Olon" "O(n \\log n)"
-		    ";:" "\\coloneq"
-		    ";;N" "\\mathbb{N}"
-		    ";T" "\\top"
-		    ";B" "\\bot"
-		    ";;x" "\\times"
-		    ";;v" "\\veebar"
-		    ";;u" "\\cup"
-		    ";;{" "\\subseteq"
-		    ";D" "\\Diamond"
-		    ";;b" "\\Box"
-		    ;; bind to functions!
-		    "sum" (lambda () (interactive)
-			    (yas-expand-snippet "\\sum_{$1}^{$2} $0"))
-		    "grandu" (lambda () (interactive)
-			       (yas-expand-snippet "\\bigcup\limits_{$1} $0"))
-		    "Span" (lambda () (interactive)
-			     (yas-expand-snippet "\\Span($1)$0"))
-		    "lam" (lambda () (interactive)
-			    (yas-expand-snippet "\\lambda $1_{$2}\\,.\\,$0"))
-		    ;; "set" (lambda () (interactive)
-		    ;;           (yas-expand-snippet "\\set{ $1 | $2} $0"))
-		    "txt" (lambda () (interactive)
-			    (yas-expand-snippet "\\text{$1} $0"))
-		    ";;o" (lambda () (interactive)
-			    (yas-expand-snippet "\\oplus"))
-		    ;; "ev" (lambda () (interactive)
-		    ;;             (yas-expand-snippet "\\left\\llbracket$3\\right\\rrbracket^$1_$2 $3"))
-		    ;; clash with event type sigs
-		    ;; add accent snippets
-		    :cond #'laas-object-on-left-condition
-		    "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
+    ;; I need to make sure not to accidentally trigger the following, so I should only use impossible (or extremely rare) bigrams/trigrams.
+    ;; "*b" (lambda () (interactive)
+    ;;        (yas-expand-snippet "\\textbf{$1}$0"))
+    ;; "*i" (lambda () (interactive)
+    ;;     (yas-expand-snippet "\\textit{$1}$0"))
+    "mx" (lambda () (interactive)
+	   (yas-expand-snippet "\\\\($1\\\\)$0"))
+    "mq" (lambda () (interactive)
+	   (yas-expand-snippet "\\[$1\\]$0"))
+    ;; "*I" (lambda () (interactive)
+    ;;      (yas-expand-snippet "\\begin{enumerate}\n$>\\item $0\n\\end{enumerate}"))
+    ;; "*e" (lambda () (interactive)
+    ;;      (yas-expand-snippet "\\begin{exe}\n$>\\ex $0\n\\end{exe}"))
+    ;; "*f" (lambda () (interactive)
+    ;;      (yas-expand-snippet "\\begin{forest}\n[{$1}\n[{$2}]\n[{$0}]\n]\n\\end{forest}"))
+    "*\"" (lambda () (interactive)
+	    (yas-expand-snippet "\\enquote{$1}$0"))
+    :cond #'texmathp ; expand only while in math
+    "Olon" "O(n \\log n)"
+    ";:" "\\coloneq"
+    ";;N" "\\mathbb{N}"
+    ";T" "\\top"
+    ";B" "\\bot"
+    ";;x" "\\times"
+    ";;v" "\\veebar"
+    ";;u" "\\cup"
+    ";;{" "\\subseteq"
+    ";D" "\\Diamond"
+    ";;b" "\\Box"
+    ;; bind to functions!
+    "sum" (lambda () (interactive)
+	    (yas-expand-snippet "\\sum_{$1}^{$2} $0"))
+    "grandu" (lambda () (interactive)
+	       (yas-expand-snippet "\\bigcup\limits_{$1} $0"))
+    "Span" (lambda () (interactive)
+	     (yas-expand-snippet "\\Span($1)$0"))
+    "lam" (lambda () (interactive)
+	    (yas-expand-snippet "\\lambda $1_{$2}\\,.\\,$0"))
+    ;; "set" (lambda () (interactive)
+    ;;           (yas-expand-snippet "\\set{ $1 | $2} $0"))
+    "txt" (lambda () (interactive)
+	    (yas-expand-snippet "\\text{$1} $0"))
+    ";;o" (lambda () (interactive)
+	    (yas-expand-snippet "\\oplus"))
+    ;; "ev" (lambda () (interactive)
+    ;;             (yas-expand-snippet "\\left\\llbracket$3\\right\\rrbracket^$1_$2 $3"))
+    ;; clash with event type sigs
+    ;; add accent snippets
+    :cond #'laas-object-on-left-condition
+    "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
 
 (use-package yasnippet :ensure t
   :hook (prog-mode . yas-minor-mode)
@@ -1475,7 +1532,7 @@ using this command."
   ;; (my/leader-keys
   ;;   "ti" '(tempel-insert :wk "tempel insert"))
   ;; (:keymaps 'tempel-map
-  ;; 	    "TAB" 'tempel-next) ;; progress through fields via `TAB'
+  ;;	    "TAB" 'tempel-next) ;; progress through fields via `TAB'
   :init
   (defun tempel-setup-capf ()
     (add-hook 'completion-at-point-functions #'tempel-expand))
@@ -1514,7 +1571,7 @@ using this command."
 
   ;; ;; Optionally:
   ;; (setq nerd-icons-corfu-mapping
-  ;; 	'((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
+  ;;	'((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
   ;;         (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
   ;;         ;; You can alternatively specify a function to perform the mapping,
   ;;         ;; use this when knowing the exact completion candidate is important.
@@ -1577,6 +1634,7 @@ using this command."
 ;; autocorrect
 
 (use-package ispell
+  :disabled
   :disabled
   :if (eq system-type 'windows-nt)
   :init
@@ -1691,11 +1749,11 @@ using this command."
 ;;    ))
 (use-package dired-rsync :ensure t
   :bind (:map dired-mode-map
-              ("C-c C-r" . dired-rsync)))
+	      ("C-c C-r" . dired-rsync)))
 
 (use-package dired-rsync-transient :ensure t
   :bind (:map dired-mode-map
-              ("C-c C-x" . dired-rsync-transient)))
+	      ("C-c C-x" . dired-rsync-transient)))
 
 
 ;; Additional syntax highlighting for dired
@@ -1740,14 +1798,15 @@ using this command."
    '(:application tramp :protocol "ssh")
    'remote-direct-async-process)
 
+
   (setq tramp-direct-async-process t)
   
   ;; (if (eq system-type 'windows-nt)
   ;;     (progn
-  ;; 	(connection-local-set-profiles
-  ;; 	 '(:application tramp :protocol "plinkx")
-  ;; 	 'remote-direct-async-process)
-  ;; 	(setq tramp-default-method "plinkx"))
+  ;;	(connection-local-set-profiles
+  ;;	 '(:application tramp :protocol "plinkx")
+  ;;	 'remote-direct-async-process)
+  ;;	(setq tramp-default-method "plinkx"))
   ;;   (progn
   ;;     (connection-local-set-profiles
   ;;      '(:application tramp :protocol "ssh")
@@ -1767,20 +1826,19 @@ using this command."
 
 ;; wrapper around terminal
 (use-package mistty
-  :unless (eq system-type 'windows-nt)
   :ensure t
-  :bind (("C-c s" . mistty) ;; snippet
-	 ("C-x p s" . mistty-in-project)
+  :bind (("C-c t" . mistty) ;; snippet
+	 ("C-x p t" . mistty-in-project)
 
-         ;; bind here the shortcuts you'd like the
-         ;; shell to handle instead of Emacs.
-         :map mistty-prompt-map
+	 ;; bind here the shortcuts you'd like the
+	 ;; shell to handle instead of Emacs.
+	 :map mistty-prompt-map
 
-         ;; fish: directory history
-         ("M-<up>" . mistty-send-key)
-         ("M-<down>" . mistty-send-key)
-         ("M-<left>" . mistty-send-key)
-         ("M-<right>" . mistty-send-key))
+	 ;; fish: directory history
+	 ("M-<up>" . mistty-send-key)
+	 ("M-<down>" . mistty-send-key)
+	 ("M-<left>" . mistty-send-key)
+	 ("M-<right>" . mistty-send-key))
   )
 
 ;; declare linux specific packages here
@@ -1834,13 +1892,13 @@ using this command."
   (indent-bars-no-descend-lists 'skip) ; prevent extra bars in nested lists + skip intermediate bars
   ;; SET EITHER NO_DESCEND_LISTS OR TS_WRAP, NOT BOTH!
   ;; (indent-bars-treesit-wrap '((python argument_list parameters
-  ;; 				      list list_comprehension
-  ;; 				      dictionary dictionary_comprehension
-  ;; 				      parenthesized_expression subscript)
-  ;; 			      (c argument_list parameter_list init_declarator parenthesized_expression)
-  ;; 			      (toml table array comment)
-  ;; 			      (yaml block_mapping_pair comment)
-  ;; 			      ))
+  ;;				      list list_comprehension
+  ;;				      dictionary dictionary_comprehension
+  ;;				      parenthesized_expression subscript)
+  ;;			      (c argument_list parameter_list init_declarator parenthesized_expression)
+  ;;			      (toml table array comment)
+  ;;			      (yaml block_mapping_pair comment)
+  ;;			      ))
   (indent-bars-treesit-scope '((python function_definition class_definition for_statement
 				       if_statement with_statement while_statement)))
   (indent-bars-treesit-ignore-blank-lines-types '("module")))
@@ -1949,7 +2007,7 @@ using this command."
   ;; :disabled
   :config
   (setq envrc-remote t)
-  ;; (setq envrc-supported-tramp-methods '("plinkx" "sshx" "plink" "ssh"))
+  (setq envrc-supported-tramp-methods '("plinkx" "sshx" "plink" "ssh"))
   :hook (elpaca-after-init . envrc-global-mode))
 
 (use-package pet :ensure t
@@ -1959,39 +2017,39 @@ using this command."
   :hook (elpaca-after-init . (lambda ()  (progn
 
 					   ;; (add-hook 'python-base-mode-hook
-					   ;; 		  (lambda ()
-					   ;; 		    (setq-local python-shell-interpreter (pet-executable-find "python")
-					   ;; 				python-shell-virtualenv-root (pet-virtualenv-root))
+					   ;;		  (lambda ()
+					   ;;		    (setq-local python-shell-interpreter (pet-executable-find "python")
+					   ;;				python-shell-virtualenv-root (pet-virtualenv-root))
 
-					   ;; 		    (pet-eglot-setup)
-					   ;; 		    (eglot-ensure)
+					   ;;		    (pet-eglot-setup)
+					   ;;		    (eglot-ensure)
 
-					   ;; 		    ;; (pet-flycheck-setup)
-					   ;; 		    ;; (flycheck-mode)
+					   ;;		    ;; (pet-flycheck-setup)
+					   ;;		    ;; (flycheck-mode)
 
-					   ;; 		    ;; (setq-local lsp-jedi-executable-command
-					   ;; 		    ;; 		 (pet-executable-find "jedi-language-server"))
+					   ;;		    ;; (setq-local lsp-jedi-executable-command
+					   ;;		    ;;		 (pet-executable-find "jedi-language-server"))
 
-					   ;; 		    ;; (setq-local lsp-pyright-python-executable-cmd python-shell-interpreter
-					   ;; 		    ;; 		 lsp-pyright-venv-path python-shell-virtualenv-root)
+					   ;;		    ;; (setq-local lsp-pyright-python-executable-cmd python-shell-interpreter
+					   ;;		    ;;		 lsp-pyright-venv-path python-shell-virtualenv-root)
 
-					   ;; 		    ;; (lsp)
+					   ;;		    ;; (lsp)
 
-					   ;; 		    (setq-local dap-python-executable python-shell-interpreter)
+					   ;;		    (setq-local dap-python-executable python-shell-interpreter)
 
-					   ;; 		    (setq-local python-pytest-executable (pet-executable-find "pytest"))
+					   ;;		    (setq-local python-pytest-executable (pet-executable-find "pytest"))
 
-					   ;; 		    (when-let ((ruff-executable (pet-executable-find "ruff")))
-					   ;; 		      (setq-local ruff-format-command ruff-executable)
-					   ;; 		      (ruff-format-on-save-mode))
+					   ;;		    (when-let ((ruff-executable (pet-executable-find "ruff")))
+					   ;;		      (setq-local ruff-format-command ruff-executable)
+					   ;;		      (ruff-format-on-save-mode))
 
-					   ;; 		    (when-let ((black-executable (pet-executable-find "black")))
-					   ;; 		      (setq-local python-black-command black-executable)
-					   ;; 		      (python-black-on-save-mode))
+					   ;;		    (when-let ((black-executable (pet-executable-find "black")))
+					   ;;		      (setq-local python-black-command black-executable)
+					   ;;		      (python-black-on-save-mode))
 
-					   ;; 		    (when-let ((isort-executable (pet-executable-find "isort")))
-					   ;; 		      (setq-local python-isort-command isort-executable)
-					   ;; 		      (python-isort-on-save-mode))))
+					   ;;		    (when-let ((isort-executable (pet-executable-find "isort")))
+					   ;;		      (setq-local python-isort-command isort-executable)
+					   ;;		      (python-isort-on-save-mode))))
 					   (add-hook 'python-base-mode-hook 'pet-mode -10)
 
 
@@ -2031,8 +2089,8 @@ using this command."
   :hook (python-base-mode . code-cells-mode-maybe )
   ;; :config
   ;; (setq code-cells-convert-ipynb-style '(("pandoc" "--to" "ipynb" "--from" "org")
-  ;; 					 ("pandoc" "--to" "org" "--from" "ipynb" "--extract-media" "./ipynb-images/")
-  ;; 					 (lambda () #'org-mode)))
+  ;;					 ("pandoc" "--to" "org" "--from" "ipynb" "--extract-media" "./ipynb-images/")
+  ;;					 (lambda () #'org-mode)))
   :bind (:map code-cells-mode-map
 	      ("M-p" . code-cells-backward-cell)
 	      ("M-n" . code-cells-forward-cell)
@@ -2144,11 +2202,11 @@ using this command."
    ;; Linux with xclip (X11)
    ((and (eq system-type 'gnu/linux) (executable-find "xclip"))
     (setq interprogram-cut-function
-	  (lambda (text &optional _)
-	    (let ((process-connection-type nil))
-	      (let ((proc (start-process "xclip" "*Messages*" "xclip" "-selection" "clipboard")))
-		(process-send-string proc text)
-		(process-send-eof proc)))))
+	  cn	  (lambda (text &optional _)
+		    (let ((process-connection-type nil))
+		      (let ((proc (start-process "xclip" "*Messages*" "xclip" "-selection" "clipboard")))
+			(process-send-string proc text)
+			(process-send-eof proc)))))
     (setq interprogram-paste-function
 	  (lambda ()
 	    (shell-command-to-string "xclip -selection clipboard -o"))))))
