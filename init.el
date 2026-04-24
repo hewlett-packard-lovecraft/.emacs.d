@@ -702,7 +702,12 @@ using this command."
   :init
   (vertico-mode)
   (vertico-multiform-mode)
-  (setq vertico-cycle t)
+  (vertico-mouse-mode)
+
+  :bind (
+	 :map vertico-map
+	 ("M-q" . vertico-quick-insert)
+	 ("C-q" . vertico-quick-exit))
   ;; :general
   ;; (:keymaps 'vertico-map
   ;;           ;; keybindings to cycle through vertico results.
@@ -716,6 +721,17 @@ using this command."
   ;; (:keymaps 'minibuffer-local-map
   ;;           "M-h" 'backward-kill-word)
   )
+
+(use-package vertico-directory
+  :after vertico
+  :ensure nil
+  ;; More convenient directory navigation commands
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
+  ;; Tidy shadowed file names
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
 ;; Consult
 (use-package consult
@@ -844,8 +860,8 @@ using this command."
 	     )
   :bind (
 	 :map global-map
-	 ("C-x n" . consult-notes)
-	 ("C-c n s" . consult-notes-search-in-all-notes)
+	 ("C-c n N" . consult-notes)
+	 ("C-c n F" . consult-notes-search-in-all-notes)
 	 )
   :config
   ;; Set org-roam integration, denote integration, or org-heading integration e.g.:
@@ -893,7 +909,6 @@ using this command."
 
 ;; autoformat
 (use-package format-all
-  :disabled
   :ensure t
   :commands format-all-mode
   :hook (prog-mode . format-all-mode)
@@ -1357,11 +1372,16 @@ using this command."
 	 ((rjsx-mode rjsx-ts-mode) . eglot-ensure) ; start eglot for React/JSX files
 	 ((typescript-mode typescript-ts-mode) . eglot-ensure)) ; start eglot for ts files
   :bind (:map eglot-mode-map
-	      ("C-c l a" . eglot-code-actions)
-	      ("C-c l f" . eglot-format)
-	      ("C-c l r" . eglot-rename)
-	      ("C-c l i" . eglot-code-action-organize-imports)
+	      :prefix-map eglot-mode-keymap
+	      :prefix "C-c C-l"
+	      ("a" . eglot-code-actions)
+	      ("f" . eglot-format)
+	      ("r" . eglot-rename)
+	      ("i" . eglot-code-action-organize-imports)
+	      ("s" . eglot-shutdown)
+	      ("S" . eglot-shutdown-all)
 	      )
+  :bind ()
   :config
   (add-to-list 'eglot-server-programs
 	       '((c-or-c++-mode c-or-c++-ts-mode) . ("clangd" "-j=24"
@@ -1433,6 +1453,8 @@ using this command."
 
 (use-package pg :ensure t)
 
+(use-package pgmacs
+  :requires pg :ensure (pgmacs :host github :repo "emarsden/pgmacs"))
 
 ;; shamelessly stolen from patrick d elliot
 
@@ -1442,17 +1464,17 @@ using this command."
   :config
   ;; easy emoji entry in text mode.
   (aas-set-snippets 'text-mode
-    ":-)" "??"
-    "8-)" "??"
-    ":rofl" "??"
-    ":lol" "??"
-    "<3" "??"
-    ":eyes" "??"
-    ":dragon" "??"
-    ":fire" "??"
-    ":hole" "???"
-    ":flush" "??"
-    ":wow" "??"))
+		    ":-)" "??"
+		    "8-)" "??"
+		    ":rofl" "??"
+		    ":lol" "??"
+		    "<3" "??"
+		    ":eyes" "??"
+		    ":dragon" "??"
+		    ":fire" "??"
+		    ":hole" "???"
+		    ":flush" "??"
+		    ":wow" "??"))
 
 (use-package laas :ensure t
   ;; disables accent snippets - things like 'l (which expands to \textsl{}) end up being very disruptive in practice.
@@ -1461,56 +1483,56 @@ using this command."
 	 (org-mode . laas-mode))
   :config
   (aas-set-snippets 'laas-mode
-    ;; I need to make sure not to accidentally trigger the following, so I should only use impossible (or extremely rare) bigrams/trigrams.
-    ;; "*b" (lambda () (interactive)
-    ;;        (yas-expand-snippet "\\textbf{$1}$0"))
-    ;; "*i" (lambda () (interactive)
-    ;;     (yas-expand-snippet "\\textit{$1}$0"))
-    "mx" (lambda () (interactive)
-	   (yas-expand-snippet "\\\\($1\\\\)$0"))
-    "mq" (lambda () (interactive)
-	   (yas-expand-snippet "\\[$1\\]$0"))
-    ;; "*I" (lambda () (interactive)
-    ;;      (yas-expand-snippet "\\begin{enumerate}\n$>\\item $0\n\\end{enumerate}"))
-    ;; "*e" (lambda () (interactive)
-    ;;      (yas-expand-snippet "\\begin{exe}\n$>\\ex $0\n\\end{exe}"))
-    ;; "*f" (lambda () (interactive)
-    ;;      (yas-expand-snippet "\\begin{forest}\n[{$1}\n[{$2}]\n[{$0}]\n]\n\\end{forest}"))
-    "*\"" (lambda () (interactive)
-	    (yas-expand-snippet "\\enquote{$1}$0"))
-    :cond #'texmathp ; expand only while in math
-    "Olon" "O(n \\log n)"
-    ";:" "\\coloneq"
-    ";;N" "\\mathbb{N}"
-    ";T" "\\top"
-    ";B" "\\bot"
-    ";;x" "\\times"
-    ";;v" "\\veebar"
-    ";;u" "\\cup"
-    ";;{" "\\subseteq"
-    ";D" "\\Diamond"
-    ";;b" "\\Box"
-    ;; bind to functions!
-    "sum" (lambda () (interactive)
-	    (yas-expand-snippet "\\sum_{$1}^{$2} $0"))
-    "grandu" (lambda () (interactive)
-	       (yas-expand-snippet "\\bigcup\limits_{$1} $0"))
-    "Span" (lambda () (interactive)
-	     (yas-expand-snippet "\\Span($1)$0"))
-    "lam" (lambda () (interactive)
-	    (yas-expand-snippet "\\lambda $1_{$2}\\,.\\,$0"))
-    ;; "set" (lambda () (interactive)
-    ;;           (yas-expand-snippet "\\set{ $1 | $2} $0"))
-    "txt" (lambda () (interactive)
-	    (yas-expand-snippet "\\text{$1} $0"))
-    ";;o" (lambda () (interactive)
-	    (yas-expand-snippet "\\oplus"))
-    ;; "ev" (lambda () (interactive)
-    ;;             (yas-expand-snippet "\\left\\llbracket$3\\right\\rrbracket^$1_$2 $3"))
-    ;; clash with event type sigs
-    ;; add accent snippets
-    :cond #'laas-object-on-left-condition
-    "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
+		    ;; I need to make sure not to accidentally trigger the following, so I should only use impossible (or extremely rare) bigrams/trigrams.
+		    ;; "*b" (lambda () (interactive)
+		    ;;        (yas-expand-snippet "\\textbf{$1}$0"))
+		    ;; "*i" (lambda () (interactive)
+		    ;;     (yas-expand-snippet "\\textit{$1}$0"))
+		    "mx" (lambda () (interactive)
+			   (yas-expand-snippet "\\\\($1\\\\)$0"))
+		    "mq" (lambda () (interactive)
+			   (yas-expand-snippet "\\[$1\\]$0"))
+		    ;; "*I" (lambda () (interactive)
+		    ;;      (yas-expand-snippet "\\begin{enumerate}\n$>\\item $0\n\\end{enumerate}"))
+		    ;; "*e" (lambda () (interactive)
+		    ;;      (yas-expand-snippet "\\begin{exe}\n$>\\ex $0\n\\end{exe}"))
+		    ;; "*f" (lambda () (interactive)
+		    ;;      (yas-expand-snippet "\\begin{forest}\n[{$1}\n[{$2}]\n[{$0}]\n]\n\\end{forest}"))
+		    "*\"" (lambda () (interactive)
+			    (yas-expand-snippet "\\enquote{$1}$0"))
+		    :cond #'texmathp ; expand only while in math
+		    "Olon" "O(n \\log n)"
+		    ";:" "\\coloneq"
+		    ";;N" "\\mathbb{N}"
+		    ";T" "\\top"
+		    ";B" "\\bot"
+		    ";;x" "\\times"
+		    ";;v" "\\veebar"
+		    ";;u" "\\cup"
+		    ";;{" "\\subseteq"
+		    ";D" "\\Diamond"
+		    ";;b" "\\Box"
+		    ;; bind to functions!
+		    "sum" (lambda () (interactive)
+			    (yas-expand-snippet "\\sum_{$1}^{$2} $0"))
+		    "grandu" (lambda () (interactive)
+			       (yas-expand-snippet "\\bigcup\limits_{$1} $0"))
+		    "Span" (lambda () (interactive)
+			     (yas-expand-snippet "\\Span($1)$0"))
+		    "lam" (lambda () (interactive)
+			    (yas-expand-snippet "\\lambda $1_{$2}\\,.\\,$0"))
+		    ;; "set" (lambda () (interactive)
+		    ;;           (yas-expand-snippet "\\set{ $1 | $2} $0"))
+		    "txt" (lambda () (interactive)
+			    (yas-expand-snippet "\\text{$1} $0"))
+		    ";;o" (lambda () (interactive)
+			    (yas-expand-snippet "\\oplus"))
+		    ;; "ev" (lambda () (interactive)
+		    ;;             (yas-expand-snippet "\\left\\llbracket$3\\right\\rrbracket^$1_$2 $3"))
+		    ;; clash with event type sigs
+		    ;; add accent snippets
+		    :cond #'laas-object-on-left-condition
+		    "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
 
 (use-package yasnippet :ensure t
   :hook (prog-mode . yas-minor-mode)
@@ -1606,7 +1628,56 @@ using this command."
   :ensure t
   :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
 
+(use-package symbol-overlay :ensure t)
+
 (use-package transient :ensure t)
+
+(use-package casual-suite :ensure t
+  :bind (
+	 ;; ("M-g" . casual-avy-tmenu)
+         ;; ("C-o" . casual-editkit-main-tmenu)
+         :map calc-mode-map
+         ("C-o" . casual-calc-tmenu)
+         :map dired-mode-map
+         ("C-o" . casual-dired-tmenu)
+         :map isearch-mode-map
+         ("C-o" . casual-isearch-tmenu)
+         :map ibuffer-mode-map
+         ("C-o" . casual-ibuffer-tmenu)
+         ("F" . casual-ibuffer-filter-tmenu)
+         ("s" . casual-ibuffer-sortby-tmenu)
+         :map Info-mode-map
+         ("C-o" . casual-info-tmenu)
+         :map reb-mode-map
+         ("C-o" . casual-re-builder-tmenu)
+         :map reb-lisp-mode-map
+         ("C-o" . casual-re-builder-tmenu)
+         :map bookmark-bmenu-mode-map
+         ("C-o" . casual-bookmarks-tmenu)
+         :map org-agenda-mode-map
+         ("C-o" . casual-agenda-tmenu)
+         :map symbol-overlay-map
+         ("C-o" . casual-symbol-overlay-tmenu)
+	 ))
+
+
+;; :config
+;; (keymap-set calc-mode-map "C-o" #'casual-calc-tmenu)
+;; (keymap-set dired-mode-map "C-o" #'casual-dired-tmenu)
+;; (keymap-set isearch-mode-map "C-o" #'casual-isearch-tmenu)
+;; (keymap-set ibuffer-mode-map "C-o" #'casual-ibuffer-tmenu)
+;; (keymap-set ibuffer-mode-map "F" #'casual-ibuffer-filter-tmenu)
+;; (keymap-set ibuffer-mode-map "s" #'casual-ibuffer-sortby-tmenu)
+;; (keymap-set Info-mode-map "C-o" #'casual-info-tmenu)
+;; (keymap-set reb-mode-map "C-o" #'casual-re-builder-tmenu)
+;; (keymap-set reb-lisp-mode-map "C-o" #'casual-re-builder-tmenu)
+;; (keymap-set bookmark-bmenu-mode-map "C-o" #'casual-bookmarks-tmenu)
+;; (keymap-set org-agenda-mode-map "C-o" #'casual-agenda-tmenu)
+;; (keymap-global-set "M-g" #'casual-avy-tmenu)
+;; (keymap-set symbol-overlay-map "C-o" #'casual-symbol-overlay-tmenu)
+;; (keymap-global-set "C-o" #'casual-editkit-main-tmenu)
+
+
 
 (use-package magit
   :ensure t
@@ -1674,84 +1745,34 @@ using this command."
   :after flyspell
   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 
-;; Replace with flyspell-correct-helm if you are a helm person.
-;; (use-package flyspell-correct-ido
-;;   :after flyspell-correct)
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :bind (("C-x C-j" . dired-jump))
+  :custom
+  ;; -a: all files, -l: long format, -h: human-readable sizes, -v: natural sort
+  (dired-listing-switches "-agho --group-directories-first")
+  (dired-recursive-copies 'always)
+  (dired-create-destination-dirs 'ask)
+  (dired-make-directory-clickable t)
+  (dired-mouse-drag-files t)
+  (dired-kill-when-opening-new-dired-buffer t)   ;; Tidy up open buffers by default
+  (dired-clean-confirm-killing-deleted-buffers nil)
+  (dired-dwim-target t))
 
-;; (use-package flyspell-correct-popup
-;;   :after flyspell-correct)
+(use-package dired-x
+  :ensure nil
+  :after dired
+  :config
+  (setq dired-omit-files (concat dired-omit-files "\\|^\\..+$")))
 
-;;  /plink:haoming@localhost#2222:/home/haoming/git/labs-25fa-hewlett-packard-lovecraft
-;;  /plink:hxia@orangepi5:/home/haoming/git/labs-25fa-hewlett-packard-lovecraft
-
-;;; Dired / Dirvish
-
-;; (use-package dired
-;;   :config
-;;   (setq dired-listing-switches
-;;         "-l --almost-all --human-readable --group-directories-first --no-group")
-;;   ;; this command is useful when you want to close the window of `dirvish-side'
-;;   ;; automatically when opening a file
-;;   (put 'dired-find-alternate-file 'disabled nil))
-
-;; (use-package dirvish
-;;   :ensure t
-;;   :init
-;;   (dirvish-override-dired-mode)
-;;   :custom
-;;   (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
-;;    '(("h" "~/"                          "Home")
-;;      ("d" "~/Downloads/"                "Downloads")
-
-
-;;      ("m" "/mnt/"                       "Drives")
-;;      ;; ("s" "/ssh:my-remote-server")      "SSH server"
-;;      ("e" "/sudo:root@localhost:/etc")  "Modify program settings"
-;;      ("t" "~/.local/share/Trash/files/" "TrashCan")))
-;;   :config
-;;   (dirvish-peek-mode)             ; Preview files in minibuffer
-;;   (dirvish-side-follow-mode)      ; similar to `treemacs-follow-mode'
-;;   (setq dirvish-mode-line-format
-;;         '(:left (sort symlink) :right (omit yank index)))
-;;   (setq dirvish-attributes           ; The order *MATTERS* for some attributes
-;;         '(vc-state subtree-state nerd-icons collapse git-msg file-time file-size)
-;;         dirvish-side-attributes
-;;         '(vc-state nerd-icons collapse file-size))
-;;   ;; open large directory (over 20000 files) asynchronously with `fd' command
-;;   (setq dirvish-large-directory-threshold 20000)
-
-;;   ;; keybinds for mouse
-;;   ;; (setq mouse-1-click-follows-link nil)
-;;   :bind ; Bind `dirvish-fd|dirvish-side|dirvish-dwim' as you see fit
-;;   (("C-c f" . dirvish)
-;;    :map dirvish-mode-map               ; Dirvish inherits `dired-mode-map'
-;;    (";"   . dired-up-directory)        ; So you can adjust `dired' bindings here
-;;    ("?"   . dirvish-dispatch)          ; [?] a helpful cheatsheet
-;;    ("a"   . dirvish-setup-menu)        ; [a]ttributes settings:`t' toggles mtime, `f' toggles fullframe, etc.
-;;    ("f"   . dirvish-file-info-menu)    ; [f]ile info
-;;    ("o"   . dirvish-quick-access)      ; [o]pen `dirvish-quick-access-entries'
-;;    ("s"   . dirvish-quicksort)         ; [s]ort flie list
-;;    ("r"   . dirvish-history-jump)      ; [r]ecent visited
-;;    ("l"   . dirvish-ls-switches-menu)  ; [l]s command flags
-;;    ("v"   . dirvish-vc-menu)           ; [v]ersion control commands
-;;    ("*"   . dirvish-mark-menu)
-;;    ("y"   . dirvish-yank-menu)
-;;    ("N"   . dirvish-narrow)
-;;    ("^"   . dirvish-history-last)
-;;    ("TAB" . dirvish-subtree-toggle)
-;;    ("M-f" . dirvish-history-go-forward)
-;;    ("M-b" . dirvish-history-go-backward)
-;;    ("M-e" . dirvish-emerge-menu)
-;;    ;; mouse support
-;;    ;; ("<mouse-1>" .  dirvish-subtree-toggle-or-open)
-;;    ;; ("<mouse-2>" . dired-mouse-find-file-other-window)
-;;    ;; ("<mouse-3>" . dired-mouse-find-file)
-;;    ))
 (use-package dired-rsync :ensure t
+  :after dired
   :bind (:map dired-mode-map
 	      ("C-c C-r" . dired-rsync)))
 
-(use-package dired-rsync-transient :ensure t
+(use-package dired-rsync-transient
+  :after dired
   :bind (:map dired-mode-map
 	      ("C-c C-x" . dired-rsync-transient)))
 
@@ -1770,10 +1791,10 @@ using this command."
   :ensure nil
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-  
+
   (add-to-list 'tramp-connection-properties
-             (list (regexp-quote "/ssh:acer-hxia:")
-                   "remote-shell" "/usr/bin/bash"))
+               (list (regexp-quote "/ssh:acer-hxia:")
+                     "remote-shell" "/usr/bin/bash"))
 
   ;;; various perf improvements
   (setq remote-file-name-inhibit-locks t
@@ -1800,7 +1821,7 @@ using this command."
 
 
   (setq tramp-direct-async-process t)
-  
+
   ;; (if (eq system-type 'windows-nt)
   ;;     (progn
   ;;	(connection-local-set-profiles
@@ -2125,6 +2146,48 @@ using this command."
   :config
   (treesit-auto-add-to-auto-mode-alist '(c cpp python rust toml yaml json html css markdown typescript tsx dockerfile bash))
   (global-treesit-auto-mode))
+
+
+;;https://gitlab.com/magus/mes/-/blob/main/lisp/mes-dev-misc-work.el
+;; https://magnus.therning.org/2023-11-16-using-the-golang-mode-shipped-with-emacs.html
+(use-package go-ts-mode
+  :ensure nil
+  :after treesit
+  :hook
+  (go-ts-mode . eglot-ensure)
+  (go-ts-mode . (lambda ()
+                  (add-hook 'before-save-hook #'eglot-format-buffer t t)
+                  (add-hook 'before-save-hook #'eglot-code-action-organize-imports t t)))
+  :mode (("\\.go\\'" . go-ts-mode)
+         ("/go\\.mod\\'" . go-mod-ts-mode))
+  :init
+  (add-to-list 'treesit-language-source-alist
+	       '(go "https://github.com/tree-sitter/tree-sitter-go"))
+  (add-to-list 'treesit-language-source-alist
+	       '(gomod "https://github.com/camdencheek/tree-sitter-go-mod"))
+  ;; (dolist (lang '(go gomod)) (treesit-install-language-grammar lang))
+  ;; (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
+  ;; (add-to-list 'major-mode-remap-alist '(go-mod-mode . go-mod-ts-mode))
+
+  ;; :custom
+  ;; (lsp-go-use-gofumpt t) TODO: fix me!
+  ;; :general
+  ;; (mes/despot-def go-ts-mode-map
+  ;;   "=" `("format" . ,(make-sparse-keymap))
+  ;;   "=b" '("buf" . eglot-format-buffer)
+  ;;   "=i" '("imports" . eglot-code-action-organize-imports)
+  ;;   "=r" '("region" . eglot-format)
+  ;;   "a" '("code action" . eglot-code-actions)
+  ;;   "b" `("backend" . ,(make-sparse-keymap))
+  ;;   "br" '("reconnect" . eglot-reconnect)
+  ;;   "bR" '("restart" . eglot)
+  ;;   "bs" '("shutdown" . eglot-shutdown)
+  ;;   "bS" '("shutdown all" . eglot-shutdown-all)
+  ;;   "h" `("help" . ,(make-sparse-keymap))
+  ;;   "hd" '("describe" . eldoc)
+  ;;   "r" `("refactor" . ,(make-sparse-keymap))
+  ;;   "rr" '("rename" . eglot-rename))
+  )
 
 
 (use-package docker

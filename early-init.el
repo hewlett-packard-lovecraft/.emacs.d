@@ -1,7 +1,7 @@
 ;;; performance  -*- lexical-binding: t; -*-
 
 ;; profiling
-;; (setq use-package-compute-statistics t)
+(setq use-package-compute-statistics t)
 (setq use-package-enable-imenu-support t)
 
 ;; temporarily increase GC threshold during startup
