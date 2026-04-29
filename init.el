@@ -110,10 +110,15 @@ using this command."
 (when (eq system-type 'windows-nt)
   (elpaca-no-symlink-mode)
 
-  (setq w32-allow-system-shell t) ; enables cmd.exe as shell
-  (setq explicit-shell-file-name "C:/msys64/usr/bin/bash.exe")
-  (setq shell-file-name explicit-shell-file-name)
+  (auto-revert-mode -1)
+
+  (setq ;; shell stuff here
+   w32-allow-system-shell t ; enables cmd.exe as shell
+   explicit-shell-file-name "C:/msys64/usr/bin/bash.exe"
+   shell-file-name explicit-shell-file-name)
+
   (setenv "SHELL" explicit-shell-file-name)
+
   (add-to-list 'exec-path "C:/msys64/ucrt64/bin")
   (add-to-list 'exec-path "C:/msys64/usr/bin")
 
@@ -131,15 +136,15 @@ using this command."
 
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
 
-(add-hook 'elpaca-after-init-hook
-	  (lambda () (load org-custom-file 'noerror)))
+;; (add-hook 'elpaca-after-init-hook
+;; 	  (lambda () (load org-custom-file 'noerror)))
 
 ;; load wsl, terminal file unless on Windows
 (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
+;; (add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
 
 (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
+;; (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
 
 
 ;; ;; use-package
@@ -191,8 +196,6 @@ using this command."
   ;; useful beyond Corfu.
   (read-extended-command-predicate #'command-completion-default-include-p)
 
-  :hook ((conf-mode prog-mode) . display-line-numbers-mode)
-  :hook ((conf-mode prog-mode) . hl-line-mode)
   :config
   ;; line numbers
   ;; (global-display-line-numbers-mode 1) # instead use hook
@@ -200,7 +203,9 @@ using this command."
 
 
   ;; autoreload buffers
-  (global-auto-revert-mode t)
+  (unless (eq system-type 'windows-nt)
+    (add-hook 'after-init-hook 'global-auto-revert-mode))
+
 
   ;; replace sound with flash
   (setq visible-bell t)
@@ -208,16 +213,8 @@ using this command."
   ;; to disable all sounds including flash
   (setq ring-bell-function 'ignore)
 
-  ;; ;; etc
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
-  ;; (menu-bar-mode -1)
-
-  ;; (cua-mode 1)
-  :hook (prog-mode . context-menu-mode)
-  :hook (conf-mode . context-menu-mode)
-  :hook (text-mode . context-menu-mode)
-  :config
+  (setq initial-major-mode 'text-mode)
+  (setq initial-scratch-message nil)
 
   ;; other defaults https://www.patrickdelliott.com/emacs.d/
   (setq enable-recursive-minibuffers t)
@@ -225,8 +222,6 @@ using this command."
   (setq backup-by-copying t)
 
   (setq sentence-end-double-space nil)
-
-  ;; (setq frame-inhibit-implied-resize t) ;; useless for a tiling window manager
 
   (setq show-trailing-whitespace t) ;; self-explanatory
 
@@ -245,23 +240,13 @@ using this command."
 
   (setq create-lockfiles nil) ;; no need to create lockfiles
 
-  (set-charset-priority 'unicode) ;; utf8 everywhere
-
-  (setq-default buffer-file-coding-system 'utf-8-unix)
-  (setq-default default-buffer-file-coding-system 'utf-8-unix)
-  (set-default-coding-systems 'utf-8-unix)
-  (prefer-coding-system 'utf-8-unix)
-
-  ;; (setq locale-coding-system 'utf-8
-  ;;	coding-system-for-read 'utf-8
-  ;;	coding-system-for-write 'utf-8)
-  ;; (set-terminal-coding-system 'utf-8)
-  ;; (set-keyboard-coding-system 'utf-8)
-  ;; (set-selection-coding-system 'utf-8)
-  ;; (prefer-coding-system 'utf-8)
+  ;; (set-charset-priority 'unicode) ;; utf8 everywhere
+  ;; (set-language-environment "UTF-8")
+  ;; (setq-default buffer-file-coding-system 'utf-8-unix)
+  ;; (prefer-coding-system 'utf-8-unix)
 
   ;; Don't persist a custom file
-  (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
+  ;; (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
   (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
   (setq enable-local-variables :all)     ; fix =defvar= warnings
 
@@ -317,10 +302,10 @@ using this command."
 
 
   ;; :hook (elpaca-after-init . (lambda ()
-  ;;			       (when (eq system-type 'windows-nt)
-  ;;				 (set-face-attribute 'default nil :font "Iosevka NFM-10" :height 120))
-  ;;			       (when (eq system-type 'gnu/linux)
-  ;;				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-14" :height 140))))
+  ;; 			       (when (eq system-type 'windows-nt)
+  ;; 				 (set-face-attribute 'default nil :font "Iosevka NFM-10" :height 120))
+  ;; 			       (when (eq system-type 'gnu/linux)
+  ;; 				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-14" :height 140))))
 
 
   ;; non-daemon GUI settings (daemon handled by wsl-t.el)
@@ -336,8 +321,13 @@ using this command."
 		       '(font . "Iosevka Nerd Font Mono-14"))))
 
 
-  :hook (after-save . executable-make-buffer-file-executable-if-script-p)
-  )
+  :hook (
+	 (after-save . executable-make-buffer-file-executable-if-script-p)
+	 (prog-mode . context-menu-mode)
+	 (conf-mode . context-menu-mode)
+	 (text-mode . context-menu-mode)
+	 ((conf-mode prog-mode) . display-line-numbers-mode)
+	 ((conf-mode prog-mode) . hl-line-mode)))
 
 (use-package windmove
   :ensure nil
@@ -373,7 +363,8 @@ using this command."
    ))
 
 
-(use-package paren-face :ensure t)
+(use-package paren-face :ensure t
+  :disabled)
 
 
 (use-package saveplace :ensure nil
@@ -396,11 +387,13 @@ using this command."
 
 ;; terminal copy
 (use-package clipetty :ensure t
+  :unless (eq system-type 'windows-nt)
   :config
   ;; :hook (tty-setup global-clipetty-mode);
   :hook (elpaca-after-init . 'global-clipetty-mode))
 
 (use-package xclip :ensure t
+  :unless (eq system-type 'windows-nt)
   ;; :config
   ;; (xclip-mode 1)
   :hook (tty-setup . xclip-mode))
@@ -442,11 +435,12 @@ using this command."
 	 (setq inhibit-startup-screen t)))))
 
 (use-package avy :ensure t
-  :bind (("C-|" . avy-goto-char-2)
+  :bind (("C-'" . avy-goto-char-2)
 	 ("C-:" . avy-goto-char)
-	 ("M-g l" . avy-goto-line)
+	 ;; ("M-g l" . avy-goto-line) ;; consult-line
 	 ("M-g w" . avy-goto-word-1)
 	 ;; ("M-g e" . avy-goto-word 0) ;; conflicts with consult-compile-error
+	 ("M-s M-s" . avy-goto-char-timer)
 	 ( "C-c C-j" . avy-resume ))
   :init
   (avy-setup-default)
@@ -683,8 +677,10 @@ using this command."
   :bind ("C-x C-r" . recentf-open)
   :custom
   (recentf-max-saved-items 100)
-  (recentf-keep '(file-remote-p file-readable-p))
-
+  (recentf-auto-cleanup 'never)
+  :config
+  (add-to-list 'recentf-keep '(file-remote-p file-readable-p))
+  (add-to-list 'recentf-exclude "^/\\(?:ssh\\|su\\|sudo\\|ftp\\|scp\\)?:")
   :preface
   (defun recentf-open ()
     (interactive)
@@ -727,9 +723,9 @@ using this command."
   :ensure nil
   ;; More convenient directory navigation commands
   :bind (:map vertico-map
-              ("RET" . vertico-directory-enter)
-              ("DEL" . vertico-directory-delete-char)
-              ("M-DEL" . vertico-directory-delete-word))
+	      ("RET" . vertico-directory-enter)
+	      ("DEL" . vertico-directory-delete-char)
+	      ("M-DEL" . vertico-directory-delete-word))
   ;; Tidy shadowed file names
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
@@ -1064,7 +1060,7 @@ using this command."
   )
 
 (use-package spacious-padding :ensure t
-  :hook ((TeX-mode org-mode markdown-mode text-mode) . spacious-padding-mode))
+  :hook ((TeX-mode org-mode markdown-mode) . spacious-padding-mode))
 
 (use-package pdf-tools
   :ensure t
@@ -1373,7 +1369,7 @@ using this command."
 	 ((typescript-mode typescript-ts-mode) . eglot-ensure)) ; start eglot for ts files
   :bind (:map eglot-mode-map
 	      :prefix-map eglot-mode-keymap
-	      :prefix "C-c C-l"
+	      :prefix "C-c l"
 	      ("a" . eglot-code-actions)
 	      ("f" . eglot-format)
 	      ("r" . eglot-rename)
@@ -1381,7 +1377,6 @@ using this command."
 	      ("s" . eglot-shutdown)
 	      ("S" . eglot-shutdown-all)
 	      )
-  :bind ()
   :config
   (add-to-list 'eglot-server-programs
 	       '((c-or-c++-mode c-or-c++-ts-mode) . ("clangd" "-j=24"
@@ -1453,8 +1448,10 @@ using this command."
 
 (use-package pg :ensure t)
 
-(use-package pgmacs
-  :requires pg :ensure (pgmacs :host github :repo "emarsden/pgmacs"))
+(use-package pgmacs :defer t
+  :commands (pgmacs pgmacs-open-uri pgmacs-open-string)
+  :requires pg
+  :ensure (pgmacs :host github :repo "emarsden/pgmacs"))
 
 ;; shamelessly stolen from patrick d elliot
 
@@ -1536,7 +1533,7 @@ using this command."
 
 (use-package yasnippet :ensure t
   :hook (prog-mode . yas-minor-mode)
-  :hook (yas-minor-mode . yas-reload-all)
+  ;; :hook (yas-minor-mode . yas-reload-all)
   :hook (org-mode . yas-global-mode-enable-in-buffer)
   :hook (LaTeX-mode . yas-global-mode-enable-in-buffer)
   :custom
@@ -1706,7 +1703,6 @@ using this command."
 
 (use-package ispell
   :disabled
-  :disabled
   :if (eq system-type 'windows-nt)
   :init
   (setenv "DICTIONARY" "en_CA")
@@ -1731,24 +1727,46 @@ using this command."
      ("en_CA" "~/.emacs.d/hunspell/en_CA.aff")))
   )
 
-;; flyspell
-(use-package flyspell
+
+
+;; jinx
+(use-package jinx :ensure t
   :disabled
-  :config
-  (add-hook 'text-mode-hook 'flyspell-mode)
-  (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+  :hook (elpaca-after-init . global-jinx-mode)
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages)))
+
+;; flyspell
+
+(use-package flyspell :ensure nil
+  :hook ((text-mode . flyspell-mode)
+	 ;; (prog-mode . flyspell-prog-mode)
+	 )
+  ;; :config
+  ;; (add-hook 'text-mode-hook 'flyspell-mode)
+  ;; (add-hook 'prog-mode-hook 'flyspell-prog-mode)
   )
 
-(use-package flyspell-correct
-  :disabled
-  :ensure t
+(use-package flyspell-correct  :ensure t
   :after flyspell
   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+
+(use-package flyspell-correct-avy-menu :ensure t
+  ;; :disabled
+  :after flyspell-correct)
+
+(use-package flyspell-correct-popup :ensure t
+  :disabled
+  :after flyspell-correct)
+
+(use-package async :ensure t
+  :hook (dired-mode . dired-async-mode))
 
 (use-package dired
   :ensure nil
   :commands (dired dired-jump)
   :bind (("C-x C-j" . dired-jump))
+  :hook (dired-mode . auto-revert-mode)
   :custom
   ;; -a: all files, -l: long format, -h: human-readable sizes, -v: natural sort
   (dired-listing-switches "-agho --group-directories-first")
@@ -1788,12 +1806,13 @@ using this command."
 
 ;;; TRAMP
 (use-package tramp
+  :defer t
   :ensure nil
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
   (add-to-list 'tramp-connection-properties
-               (list (regexp-quote "/ssh:acer-hxia:")
+	       (list (regexp-quote "/ssh:acer-hxia:")
                      "remote-shell" "/usr/bin/bash"))
 
   ;;; various perf improvements
@@ -1804,9 +1823,10 @@ using this command."
   (setq tramp-copy-size-limit (* 1024 1024) ;; 1MB
 	tramp-verbose 2)
 
-  (with-eval-after-load 'tramp
-    (with-eval-after-load 'compile
-      (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
+  ;; (with-eval-after-load 'tramp
+  (with-eval-after-load 'compile
+    (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options))
+  ;; )
 
   ;; Enable full-featured Dirvish over TRAMP on ssh connections
   ;; https://www.gnu.org/software/tramp/#Improving-performance-of-asynchronous-remote-processes
@@ -2018,7 +2038,10 @@ using this command."
   ;;   :load-path ("path-to-git-checkout-of-combobulate"))
   )
 
-(use-package cmake-mode :ensure t)
+(use-package cmake-mode
+  :unless (eq system-type 'windows-nt)
+
+  :ensure t)
 
 (use-package nix-mode :ensure t
   :unless (eq system-type 'windows-nt)
@@ -2102,7 +2125,7 @@ using this command."
   )
 
 (use-package drepl
-  ;; :unless (eq system-type 'windows-nt)
+  :unless (eq system-type 'windows-nt)
   :ensure t)
 
 (use-package code-cells
