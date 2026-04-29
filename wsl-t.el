@@ -6,18 +6,22 @@
   (and (eq system-type 'gnu/linux)
        (getenv "WSLENV")))
 
-(defun setup-wsl-t () "Check if running in WSL and not graphically, then configure Emacs to use the Windows clipboard."
-       (when (and (wsl-p) (eq (display-graphic-p) nil))
-	 ;; https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
-	 (setq interprogram-cut-function
-	       (lambda (text &optional _)
-		 (let ((process-connection-type nil))
-		   (let ((proc (start-process "clip.exe" "*Messages*" "clip.exe")))
-		     (process-send-string proc text)
-		     (process-send-eof proc)))))
-	 (setq interprogram-paste-function
-	       (lambda ()
-		 (string-trim (shell-command-to-string "powershell.exe -command Get-Clipboard"))))))
+;; (defun setup-wsl-t () "Check if running in WSL and not graphically, then configure Emacs to use the Windows clipboard."
+;;        (when (and (wsl-p) (eq (display-graphic-p) nil))
+;; 	 ;; https://www.rahuljuliato.com/posts/emacs-clipboard-terminal
+;; 	 (setq interprogram-cut-function
+;; 	       (lambda (text &optional _)
+;; 		 (let ((process-connection-type nil))
+;; 		   (let ((proc (start-process "clip.exe" "*Messages*" "clip.exe")))
+;; 		     (process-send-string proc text)
+;; 		     (process-send-eof proc)))))
+;; 	 (setq interprogram-paste-function
+;; 	       (lambda ()
+;; 		 (string-trim (shell-command-to-string "powershell.exe -command Get-Clipboard"))))))
+
+;; (when (wsl-p)
+;;    (add-hook 'after-make-frame-functions 'setup-wsl-t))
+
 
 (defun my/font-exists-p (font)
   "Return t if font exists, nil otherwise"
@@ -34,9 +38,6 @@
 (add-hook 'server-after-make-frame-hook 'toggle-frame-maximized t)
 (add-hook 'server-after-make-frame-hook 'my/server-set-font)
 
-;; (when (wsl-p)
-;;   (add-hook 'after-make-frame-functions 'setup-wsl-t))
-
 (defun contextual-menubar (&optional frame)
  "Display the menubar in FRAME (default: selected frame) if on a
     graphical display, but hide it if in terminal."
@@ -49,8 +50,10 @@
   (unless (display-graphic-p)
     (xterm-mouse-mode 1))
   )
-
-(add-hook 'after-make-frame-functions #'contextual-menubar)
+(unless (string-match-p "LUCID" system-configuration-features)
+  (add-hook 'after-make-frame-functions #'contextual-menubar)
+  )
+;; 
 
 (provide 'wsl-t)
 ;;; wsl-t.el ends here
