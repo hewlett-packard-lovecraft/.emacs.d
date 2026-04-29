@@ -1,6 +1,8 @@
 * .emacs.d
 
-an emacs targeting Windows, but works with Linux as well. I am very happy with the performance - emacs-init-time is 0.436867 seconds
+an emacs targeting Windows, but works with Linux as well.
+
+I am very happy with the performance - emacs-init-time is 0.436867 seconds
 
 
 MSYS2 dependencies:
