@@ -1,5 +1,7 @@
 # ignore everything
 *
+*elpa/*
+
 
 # include files
 !.gitignore
@@ -11,6 +13,7 @@
 !init.el
 !snippets/
 !org-latex-classes/
+!./README.org
 
 !hunspell/
 !hunspell/en_CA.aff
