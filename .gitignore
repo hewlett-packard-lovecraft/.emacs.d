@@ -1,7 +1,5 @@
 # ignore everything
-*
-*elpa/*
-
+/*
 
 # include files
 !.gitignore
@@ -15,14 +13,5 @@
 !org-latex-classes/
 !./README.org
 
-!hunspell/
-!hunspell/en_CA.aff
-!hunspell/en_CA.dic
-!hunspell/en_US.aff
-!hunspell/en_US
-
-!*/
-
-elpaca # not picked up for some reason
-elpaca/*
-elpaca/sources/*
+!hunspell
+!hunspell/*
