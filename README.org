@@ -3,13 +3,13 @@
 an emacs config targeting Windows, but works with Linux as well.
 
 #+caption: emacs-init-time on multiple platforms
-| Platform                     | emacs-init-time  |   |
-|------------------------------+------------------+---|
-| Windows 11 Home 25H2         | 0.436867 seconds |   |
-| Ubuntu 24.04.4 LTS (in WSL2) | 0.122461 seconds |   |
-| NixOS 25.11                  | ???              |   |
-| archlinuxarm on rk3566       | ???              |   |
-| armbian                      | ???              |   |
+| Platform                     | emacs-init-time  |
+|------------------------------+------------------+
+| Windows 11 Home 25H2         | 0.436867 seconds |
+| Ubuntu 24.04.4 LTS (in WSL2) | 0.122461 seconds |
+| NixOS 25.11                  | ???              |
+| archlinuxarm on rk3566       | ???              |
+| armbian on rk3588            | ???              |
 
 
 MSYS2 dependencies:
