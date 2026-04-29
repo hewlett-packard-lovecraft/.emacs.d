@@ -11,7 +11,7 @@
 !init.el
 !snippets/
 !org-latex-classes/
-!./README.org
+!README.org
 
 !hunspell
 !hunspell/*
