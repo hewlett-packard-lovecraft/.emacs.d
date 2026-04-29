@@ -240,6 +240,9 @@ using this command."
 
   (setq create-lockfiles nil) ;; no need to create lockfiles
 
+  ;; note: do not enable utf-8 on Windows
+  ;; https://www.reddit.com/r/emacs/comments/siuvpu/comment/hvergqr/
+
   ;; (set-charset-priority 'unicode) ;; utf8 everywhere
   ;; (set-language-environment "UTF-8")
   ;; (setq-default buffer-file-coding-system 'utf-8-unix)
@@ -1461,17 +1464,17 @@ using this command."
   :config
   ;; easy emoji entry in text mode.
   (aas-set-snippets 'text-mode
-		    ":-)" "??"
-		    "8-)" "??"
-		    ":rofl" "??"
-		    ":lol" "??"
-		    "<3" "??"
-		    ":eyes" "??"
-		    ":dragon" "??"
-		    ":fire" "??"
-		    ":hole" "???"
-		    ":flush" "??"
-		    ":wow" "??"))
+    ":-)" "??"
+    "8-)" "??"
+    ":rofl" "??"
+    ":lol" "??"
+    "<3" "??"
+    ":eyes" "??"
+    ":dragon" "??"
+    ":fire" "??"
+    ":hole" "???"
+    ":flush" "??"
+    ":wow" "??"))
 
 (use-package laas :ensure t
   ;; disables accent snippets - things like 'l (which expands to \textsl{}) end up being very disruptive in practice.
@@ -1480,56 +1483,56 @@ using this command."
 	 (org-mode . laas-mode))
   :config
   (aas-set-snippets 'laas-mode
-		    ;; I need to make sure not to accidentally trigger the following, so I should only use impossible (or extremely rare) bigrams/trigrams.
-		    ;; "*b" (lambda () (interactive)
-		    ;;        (yas-expand-snippet "\\textbf{$1}$0"))
-		    ;; "*i" (lambda () (interactive)
-		    ;;     (yas-expand-snippet "\\textit{$1}$0"))
-		    "mx" (lambda () (interactive)
-			   (yas-expand-snippet "\\\\($1\\\\)$0"))
-		    "mq" (lambda () (interactive)
-			   (yas-expand-snippet "\\[$1\\]$0"))
-		    ;; "*I" (lambda () (interactive)
-		    ;;      (yas-expand-snippet "\\begin{enumerate}\n$>\\item $0\n\\end{enumerate}"))
-		    ;; "*e" (lambda () (interactive)
-		    ;;      (yas-expand-snippet "\\begin{exe}\n$>\\ex $0\n\\end{exe}"))
-		    ;; "*f" (lambda () (interactive)
-		    ;;      (yas-expand-snippet "\\begin{forest}\n[{$1}\n[{$2}]\n[{$0}]\n]\n\\end{forest}"))
-		    "*\"" (lambda () (interactive)
-			    (yas-expand-snippet "\\enquote{$1}$0"))
-		    :cond #'texmathp ; expand only while in math
-		    "Olon" "O(n \\log n)"
-		    ";:" "\\coloneq"
-		    ";;N" "\\mathbb{N}"
-		    ";T" "\\top"
-		    ";B" "\\bot"
-		    ";;x" "\\times"
-		    ";;v" "\\veebar"
-		    ";;u" "\\cup"
-		    ";;{" "\\subseteq"
-		    ";D" "\\Diamond"
-		    ";;b" "\\Box"
-		    ;; bind to functions!
-		    "sum" (lambda () (interactive)
-			    (yas-expand-snippet "\\sum_{$1}^{$2} $0"))
-		    "grandu" (lambda () (interactive)
-			       (yas-expand-snippet "\\bigcup\limits_{$1} $0"))
-		    "Span" (lambda () (interactive)
-			     (yas-expand-snippet "\\Span($1)$0"))
-		    "lam" (lambda () (interactive)
-			    (yas-expand-snippet "\\lambda $1_{$2}\\,.\\,$0"))
-		    ;; "set" (lambda () (interactive)
-		    ;;           (yas-expand-snippet "\\set{ $1 | $2} $0"))
-		    "txt" (lambda () (interactive)
-			    (yas-expand-snippet "\\text{$1} $0"))
-		    ";;o" (lambda () (interactive)
-			    (yas-expand-snippet "\\oplus"))
-		    ;; "ev" (lambda () (interactive)
-		    ;;             (yas-expand-snippet "\\left\\llbracket$3\\right\\rrbracket^$1_$2 $3"))
-		    ;; clash with event type sigs
-		    ;; add accent snippets
-		    :cond #'laas-object-on-left-condition
-		    "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
+    ;; I need to make sure not to accidentally trigger the following, so I should only use impossible (or extremely rare) bigrams/trigrams.
+    ;; "*b" (lambda () (interactive)
+    ;;        (yas-expand-snippet "\\textbf{$1}$0"))
+    ;; "*i" (lambda () (interactive)
+    ;;     (yas-expand-snippet "\\textit{$1}$0"))
+    "mx" (lambda () (interactive)
+	   (yas-expand-snippet "\\\\($1\\\\)$0"))
+    "mq" (lambda () (interactive)
+	   (yas-expand-snippet "\\[$1\\]$0"))
+    ;; "*I" (lambda () (interactive)
+    ;;      (yas-expand-snippet "\\begin{enumerate}\n$>\\item $0\n\\end{enumerate}"))
+    ;; "*e" (lambda () (interactive)
+    ;;      (yas-expand-snippet "\\begin{exe}\n$>\\ex $0\n\\end{exe}"))
+    ;; "*f" (lambda () (interactive)
+    ;;      (yas-expand-snippet "\\begin{forest}\n[{$1}\n[{$2}]\n[{$0}]\n]\n\\end{forest}"))
+    "*\"" (lambda () (interactive)
+	    (yas-expand-snippet "\\enquote{$1}$0"))
+    :cond #'texmathp ; expand only while in math
+    "Olon" "O(n \\log n)"
+    ";:" "\\coloneq"
+    ";;N" "\\mathbb{N}"
+    ";T" "\\top"
+    ";B" "\\bot"
+    ";;x" "\\times"
+    ";;v" "\\veebar"
+    ";;u" "\\cup"
+    ";;{" "\\subseteq"
+    ";D" "\\Diamond"
+    ";;b" "\\Box"
+    ;; bind to functions!
+    "sum" (lambda () (interactive)
+	    (yas-expand-snippet "\\sum_{$1}^{$2} $0"))
+    "grandu" (lambda () (interactive)
+	       (yas-expand-snippet "\\bigcup\limits_{$1} $0"))
+    "Span" (lambda () (interactive)
+	     (yas-expand-snippet "\\Span($1)$0"))
+    "lam" (lambda () (interactive)
+	    (yas-expand-snippet "\\lambda $1_{$2}\\,.\\,$0"))
+    ;; "set" (lambda () (interactive)
+    ;;           (yas-expand-snippet "\\set{ $1 | $2} $0"))
+    "txt" (lambda () (interactive)
+	    (yas-expand-snippet "\\text{$1} $0"))
+    ";;o" (lambda () (interactive)
+	    (yas-expand-snippet "\\oplus"))
+    ;; "ev" (lambda () (interactive)
+    ;;             (yas-expand-snippet "\\left\\llbracket$3\\right\\rrbracket^$1_$2 $3"))
+    ;; clash with event type sigs
+    ;; add accent snippets
+    :cond #'laas-object-on-left-condition
+    "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
 
 (use-package yasnippet :ensure t
   :hook (prog-mode . yas-minor-mode)
