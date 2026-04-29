@@ -1,8 +1,15 @@
 * .emacs.d
 
-an emacs targeting Windows, but works with Linux as well.
+an emacs config targeting Windows, but works with Linux as well.
 
-I am very happy with the performance - emacs-init-time is 0.436867 seconds
+#+caption: emacs-init-time on multiple platforms
+| Platform                     | emacs-init-time  |   |
+|------------------------------+------------------+---|
+| Windows 11 Home 25H2         | 0.436867 seconds |   |
+| Ubuntu 24.04.4 LTS (in WSL2) | 0.122461 seconds |   |
+| NixOS 25.11                  | ???              |   |
+| archlinuxarm on rk3566       | ???              |   |
+| armbian                      | ???              |   |
 
 
 MSYS2 dependencies:

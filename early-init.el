@@ -35,3 +35,5 @@
 (load-theme 'modus-operandi t)
 
 (setq inhibit-startup-screen t)
+(setq initial-major-mode 'text-mode)
+(setq initial-scratch-message nil)

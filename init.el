@@ -1,4 +1,4 @@
-;;; init.el --- Howard's Emacs configuration  -*- lexical-binding: t; -*-
+;;; init.el --- Howard's  configuration  -*- lexical-binding: t; -*-
 ;;; Commentary:
 ;; A basic config for editing Org files and LaTeX. Works on Windows.
 ;;
@@ -169,8 +169,8 @@ using this command."
 ;; ;; ;; emacs-builtins
 (use-package emacs
   ;; global Emacs keybinds
-  :bind (("C->" . indent-rigidly-right-to-tab-stop)
-	 ("C-<" . indent-rigidly-left-to-tab-stop))
+  ;; :bind (("C->" . indent-rigidly-right-to-tab-stop)
+	 ;; ("C-<" . indent-rigidly-left-to-tab-stop))
 
   :custom
   ;; ;; dape
@@ -212,9 +212,6 @@ using this command."
 
   ;; to disable all sounds including flash
   (setq ring-bell-function 'ignore)
-
-  (setq initial-major-mode 'text-mode)
-  (setq initial-scratch-message nil)
 
   ;; other defaults https://www.patrickdelliott.com/emacs.d/
   (setq enable-recursive-minibuffers t)
@@ -1607,6 +1604,7 @@ using this command."
 
   ;; The Custom interface is also supported for tuning the variable above.
   )
+
 (use-package nerd-icons-completion :ensure t
   :after marginalia
   :config
@@ -1758,6 +1756,7 @@ using this command."
   ;; :disabled
   :after flyspell-correct)
 
+;; avoid flyspell with corfu as flyspell is blocking, causing input delay
 (use-package flyspell-correct-popup :ensure t
   :disabled
   :after flyspell-correct)
