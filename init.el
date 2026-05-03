@@ -137,7 +137,7 @@ using this command."
 (setq org-custom-file (expand-file-name "org.el" user-emacs-directory))
 
 ;; (add-hook 'elpaca-after-init-hook
-;; 	  (lambda () (load org-custom-file 'noerror)))
+;;	  (lambda () (load org-custom-file 'noerror)))
 
 ;; load wsl, terminal file unless on Windows
 (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
@@ -152,6 +152,15 @@ using this command."
 (elpaca elpaca-use-package
   ;; Enable use-package :ensure support for Elpaca.
   (elpaca-use-package-mode))
+
+(use-package benchmark-init :ensure t
+  ;; :disabled
+  :config
+  ;; To disable collection of benchmark data after init is done.
+  (add-hook 'after-init-hook 'benchmark-init/deactivate)
+  ;; (add-hook 'elpaca-after-init-hook 'benchmark-init/deactivate)
+
+  )
 
 
 ;;When installing a package used in the init file itself,
@@ -170,7 +179,7 @@ using this command."
 (use-package emacs
   ;; global Emacs keybinds
   ;; :bind (("C->" . indent-rigidly-right-to-tab-stop)
-	 ;; ("C-<" . indent-rigidly-left-to-tab-stop))
+  ;; ("C-<" . indent-rigidly-left-to-tab-stop))
 
   :custom
   ;; ;; dape
@@ -302,10 +311,10 @@ using this command."
 
 
   ;; :hook (elpaca-after-init . (lambda ()
-  ;; 			       (when (eq system-type 'windows-nt)
-  ;; 				 (set-face-attribute 'default nil :font "Iosevka NFM-10" :height 120))
-  ;; 			       (when (eq system-type 'gnu/linux)
-  ;; 				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-14" :height 140))))
+  ;;			       (when (eq system-type 'windows-nt)
+  ;;				 (set-face-attribute 'default nil :font "Iosevka NFM-10" :height 120))
+  ;;			       (when (eq system-type 'gnu/linux)
+  ;;				 (set-face-attribute 'default nil :font "Iosevka Nerd Font-14" :height 140))))
 
 
   ;; non-daemon GUI settings (daemon handled by wsl-t.el)
@@ -516,8 +525,8 @@ using this command."
 ;;   (defun evil-surround-elisp ()
 ;;     (push '(?\` . ("`" . "'")) evil-surround-pairs-alist))
 ;;   (defun evil-surround-org ()
-;;     (push '(?\" . ("�" . "�")) evil-surround-pairs-alist)
-;;     (push '(?\' . ("�" . "�")) evil-surround-pairs-alist)
+;;     (push '(?\" . (" " . " ")) evil-surround-pairs-alist)
+;;     (push '(?\' . (" " . " ")) evil-surround-pairs-alist)
 ;;     (push '(?b . ("*" . "*")) evil-surround-pairs-alist)
 ;;     (push '(?* . ("*" . "*")) evil-surround-pairs-alist)
 ;;     (push '(?i . ("/" . "/")) evil-surround-pairs-alist)
@@ -844,7 +853,12 @@ using this command."
 	 ("C-c & M-v" . consult-yasnippet-visit-snippet-file)
 	 ))
 
-(use-package consult-project-extra :ensure t)
+(use-package consult-project-extra
+  :ensure t
+  :custom (consult-project-function #'consult-project-extra-project-fn) ;; Optional but recommended for a more consistent UI
+  :bind
+  (("C-c p f" . consult-project-extra-find)
+   ("C-c p o" . consult-project-extra-find-other-window)))
 
 (use-package consult-notes
   :ensure t
@@ -904,19 +918,38 @@ using this command."
 
 
 ;; autoformat
-(use-package format-all
+(use-package format-all :disabled
   :ensure t
   :commands format-all-mode
   :hook (prog-mode . format-all-mode)
   :bind ("M-F" . format-all-buffer)
-  :hook (sql-mode . (lambda () (setq format-all-formatters
-				     '(("SQL" (sqlformat "-r"))))))
+  ;; :hook (sql-mode . (lambda () (setq format-all-formatters
+  ;;				     '(("SQL" (sqlformat "-r"))))))
   :hook ((sh-mode bash-ts-mode) . (lambda () (setq format-all-formatters
 						   '(("Shell" (shfmt "-i" "4" "-ci"))))))
   :hook ((c-mode c-ts-mode) . (lambda () (setq format-all-formatters
 					       '(("C"     (astyle "--mode=c"))
 						 ))))
   :hook (python-base-mode . (lambda () (setq format-all-show-errors 'error))))
+
+(use-package apheleia :ensure t
+  :config
+  ;; according to README, already lazy-loaded
+  (apheleia-global-mode +1)
+
+  (when (eq system-type 'windows-nt)
+    (setf (alist-get 'latexindent apheleia-formatters)
+	  '("latexindent" "--logfile=NUL"))
+    )
+
+  (add-to-list 'apheleia-formatters '(sqlfluff "sqlfluff" "format" "--dialect" "snowflake" "-"))
+  (add-to-list 'apheleia-mode-alist '(sql-mode . sqlfluff))
+  )
+
+(use-package sql-indent
+  :ensure t
+  :defer t
+  :hook ((sql-mode . sqlind-minor-mode)))
 
 ;; Flymake
 (use-package flymake :ensure nil
@@ -1065,6 +1098,7 @@ using this command."
 (use-package pdf-tools
   :ensure t
   :magic ("%PDF" . pdf-view-mode)
+  :hook (pdf-view-mode . auto-revert-mode)
   :config
   (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1)))
   (pdf-tools-install :no-query))
@@ -1139,8 +1173,6 @@ using this command."
 
 (use-package org-download
   :ensure t
-  :after org
-  :defer nil
   :custom
   (org-download-method 'directory)
   (org-download-image-dir "images")
@@ -1149,8 +1181,10 @@ using this command."
   (org-image-actual-width 420)
   ;; (org-image-actual-width (truncate (* (display-pixel-width) 0.8)))
 
-  (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)")
+  ;;  (org-download-screenshot-method "powershell -c Add-Type -AssemblyName System.Windows.Forms;$image = [Windows.Forms.Clipboard]::GetImage();$image.Save('%s', [System.Drawing.Imaging.ImageFormat]::Png)")
+  (org-download-screenshot-method "magick")
 
+  :hook (dired-mode . org-download-enable)
   :bind (:map org-mode-map
 	      ("C-c Y" . org-download-yank)
 	      ("C-c y" . org-download-screenshot)))
@@ -1162,15 +1196,13 @@ using this command."
   :hook (org-mode . org-auctex-mode))
 
 (use-package org-transclusion :ensure t
+  :disabled
   :after org
   ;; :general
   ;; (my/leader-keys
   ;;   "nt" '(org-transclusion-mode :wk "transclusion mode"))
   )
 
-
-(use-package citeproc :ensure t
-  :after org)
 
 ;; Remember that the website version of this manual shows the latest
 ;; developments, which may not be available in the package you are
@@ -1438,7 +1470,6 @@ using this command."
 			     )))
 
 (use-package eglot-booster
-  :disabled
   :unless (eq system-type 'windows-nt)
   :ensure (:host github
 		 :repo "jdtsmith/eglot-booster")
@@ -1461,17 +1492,17 @@ using this command."
   :config
   ;; easy emoji entry in text mode.
   (aas-set-snippets 'text-mode
-    ":-)" "??"
-    "8-)" "??"
-    ":rofl" "??"
-    ":lol" "??"
-    "<3" "??"
-    ":eyes" "??"
-    ":dragon" "??"
-    ":fire" "??"
-    ":hole" "???"
-    ":flush" "??"
-    ":wow" "??"))
+		    ":-)" "??"
+		    "8-)" "??"
+		    ":rofl" "??"
+		    ":lol" "??"
+		    "<3" "??"
+		    ":eyes" "??"
+		    ":dragon" "??"
+		    ":fire" "??"
+		    ":hole" "???"
+		    ":flush" "??"
+		    ":wow" "??"))
 
 (use-package laas :ensure t
   ;; disables accent snippets - things like 'l (which expands to \textsl{}) end up being very disruptive in practice.
@@ -1480,56 +1511,56 @@ using this command."
 	 (org-mode . laas-mode))
   :config
   (aas-set-snippets 'laas-mode
-    ;; I need to make sure not to accidentally trigger the following, so I should only use impossible (or extremely rare) bigrams/trigrams.
-    ;; "*b" (lambda () (interactive)
-    ;;        (yas-expand-snippet "\\textbf{$1}$0"))
-    ;; "*i" (lambda () (interactive)
-    ;;     (yas-expand-snippet "\\textit{$1}$0"))
-    "mx" (lambda () (interactive)
-	   (yas-expand-snippet "\\\\($1\\\\)$0"))
-    "mq" (lambda () (interactive)
-	   (yas-expand-snippet "\\[$1\\]$0"))
-    ;; "*I" (lambda () (interactive)
-    ;;      (yas-expand-snippet "\\begin{enumerate}\n$>\\item $0\n\\end{enumerate}"))
-    ;; "*e" (lambda () (interactive)
-    ;;      (yas-expand-snippet "\\begin{exe}\n$>\\ex $0\n\\end{exe}"))
-    ;; "*f" (lambda () (interactive)
-    ;;      (yas-expand-snippet "\\begin{forest}\n[{$1}\n[{$2}]\n[{$0}]\n]\n\\end{forest}"))
-    "*\"" (lambda () (interactive)
-	    (yas-expand-snippet "\\enquote{$1}$0"))
-    :cond #'texmathp ; expand only while in math
-    "Olon" "O(n \\log n)"
-    ";:" "\\coloneq"
-    ";;N" "\\mathbb{N}"
-    ";T" "\\top"
-    ";B" "\\bot"
-    ";;x" "\\times"
-    ";;v" "\\veebar"
-    ";;u" "\\cup"
-    ";;{" "\\subseteq"
-    ";D" "\\Diamond"
-    ";;b" "\\Box"
-    ;; bind to functions!
-    "sum" (lambda () (interactive)
-	    (yas-expand-snippet "\\sum_{$1}^{$2} $0"))
-    "grandu" (lambda () (interactive)
-	       (yas-expand-snippet "\\bigcup\limits_{$1} $0"))
-    "Span" (lambda () (interactive)
-	     (yas-expand-snippet "\\Span($1)$0"))
-    "lam" (lambda () (interactive)
-	    (yas-expand-snippet "\\lambda $1_{$2}\\,.\\,$0"))
-    ;; "set" (lambda () (interactive)
-    ;;           (yas-expand-snippet "\\set{ $1 | $2} $0"))
-    "txt" (lambda () (interactive)
-	    (yas-expand-snippet "\\text{$1} $0"))
-    ";;o" (lambda () (interactive)
-	    (yas-expand-snippet "\\oplus"))
-    ;; "ev" (lambda () (interactive)
-    ;;             (yas-expand-snippet "\\left\\llbracket$3\\right\\rrbracket^$1_$2 $3"))
-    ;; clash with event type sigs
-    ;; add accent snippets
-    :cond #'laas-object-on-left-condition
-    "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
+		    ;; I need to make sure not to accidentally trigger the following, so I should only use impossible (or extremely rare) bigrams/trigrams.
+		    ;; "*b" (lambda () (interactive)
+		    ;;        (yas-expand-snippet "\\textbf{$1}$0"))
+		    ;; "*i" (lambda () (interactive)
+		    ;;     (yas-expand-snippet "\\textit{$1}$0"))
+		    "mx" (lambda () (interactive)
+			   (yas-expand-snippet "\\\\($1\\\\)$0"))
+		    "mq" (lambda () (interactive)
+			   (yas-expand-snippet "\\[$1\\]$0"))
+		    ;; "*I" (lambda () (interactive)
+		    ;;      (yas-expand-snippet "\\begin{enumerate}\n$>\\item $0\n\\end{enumerate}"))
+		    ;; "*e" (lambda () (interactive)
+		    ;;      (yas-expand-snippet "\\begin{exe}\n$>\\ex $0\n\\end{exe}"))
+		    ;; "*f" (lambda () (interactive)
+		    ;;      (yas-expand-snippet "\\begin{forest}\n[{$1}\n[{$2}]\n[{$0}]\n]\n\\end{forest}"))
+		    "*\"" (lambda () (interactive)
+			    (yas-expand-snippet "\\enquote{$1}$0"))
+		    :cond #'texmathp ; expand only while in math
+		    "Olon" "O(n \\log n)"
+		    ";:" "\\coloneq"
+		    ";;N" "\\mathbb{N}"
+		    ";T" "\\top"
+		    ";B" "\\bot"
+		    ";;x" "\\times"
+		    ";;v" "\\veebar"
+		    ";;u" "\\cup"
+		    ";;{" "\\subseteq"
+		    ";D" "\\Diamond"
+		    ";;b" "\\Box"
+		    ;; bind to functions!
+		    "sum" (lambda () (interactive)
+			    (yas-expand-snippet "\\sum_{$1}^{$2} $0"))
+		    "grandu" (lambda () (interactive)
+			       (yas-expand-snippet "\\bigcup\limits_{$1} $0"))
+		    "Span" (lambda () (interactive)
+			     (yas-expand-snippet "\\Span($1)$0"))
+		    "lam" (lambda () (interactive)
+			    (yas-expand-snippet "\\lambda $1_{$2}\\,.\\,$0"))
+		    ;; "set" (lambda () (interactive)
+		    ;;           (yas-expand-snippet "\\set{ $1 | $2} $0"))
+		    "txt" (lambda () (interactive)
+			    (yas-expand-snippet "\\text{$1} $0"))
+		    ";;o" (lambda () (interactive)
+			    (yas-expand-snippet "\\oplus"))
+		    ;; "ev" (lambda () (interactive)
+		    ;;             (yas-expand-snippet "\\left\\llbracket$3\\right\\rrbracket^$1_$2 $3"))
+		    ;; clash with event type sigs
+		    ;; add accent snippets
+		    :cond #'laas-object-on-left-condition
+		    "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
 
 (use-package yasnippet :ensure t
   :hook (prog-mode . yas-minor-mode)
@@ -1569,6 +1600,7 @@ using this command."
 (use-package htmlize :ensure t)
 
 (use-package doom-snippets :ensure (:host github :repo "doomemacs/snippets" :files ("*.el" "*"))
+  :disabled
   :after yasnippet)
 
 (use-package yasnippet-snippets :ensure t
@@ -1626,36 +1658,36 @@ using this command."
   :ensure t
   :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
 
-(use-package symbol-overlay :ensure t)
+;; (use-package symbol-overlay :ensure t)
 
 (use-package transient :ensure t)
 
 (use-package casual-suite :ensure t
   :bind (
 	 ;; ("M-g" . casual-avy-tmenu)
-         ;; ("C-o" . casual-editkit-main-tmenu)
-         :map calc-mode-map
-         ("C-o" . casual-calc-tmenu)
-         :map dired-mode-map
-         ("C-o" . casual-dired-tmenu)
-         :map isearch-mode-map
-         ("C-o" . casual-isearch-tmenu)
-         :map ibuffer-mode-map
-         ("C-o" . casual-ibuffer-tmenu)
-         ("F" . casual-ibuffer-filter-tmenu)
-         ("s" . casual-ibuffer-sortby-tmenu)
-         :map Info-mode-map
-         ("C-o" . casual-info-tmenu)
-         :map reb-mode-map
-         ("C-o" . casual-re-builder-tmenu)
-         :map reb-lisp-mode-map
-         ("C-o" . casual-re-builder-tmenu)
-         :map bookmark-bmenu-mode-map
-         ("C-o" . casual-bookmarks-tmenu)
-         :map org-agenda-mode-map
-         ("C-o" . casual-agenda-tmenu)
-         :map symbol-overlay-map
-         ("C-o" . casual-symbol-overlay-tmenu)
+	 ;; ("C-o" . casual-editkit-main-tmenu)
+	 :map calc-mode-map
+	 ("C-o" . casual-calc-tmenu)
+	 :map dired-mode-map
+	 ("C-o" . casual-dired-tmenu)
+	 :map isearch-mode-map
+	 ("C-o" . casual-isearch-tmenu)
+	 :map ibuffer-mode-map
+	 ("C-o" . casual-ibuffer-tmenu)
+	 ("F" . casual-ibuffer-filter-tmenu)
+	 ("s" . casual-ibuffer-sortby-tmenu)
+	 :map Info-mode-map
+	 ("C-o" . casual-info-tmenu)
+	 :map reb-mode-map
+	 ("C-o" . casual-re-builder-tmenu)
+	 :map reb-lisp-mode-map
+	 ("C-o" . casual-re-builder-tmenu)
+	 :map bookmark-bmenu-mode-map
+	 ("C-o" . casual-bookmarks-tmenu)
+	 :map org-agenda-mode-map
+	 ("C-o" . casual-agenda-tmenu)
+	 :map symbol-overlay-map
+	 ("C-o" . casual-symbol-overlay-tmenu)
 	 ))
 
 
@@ -1732,14 +1764,15 @@ using this command."
 
 ;; jinx
 (use-package jinx :ensure t
-  :disabled
+  ;; :disabled
   :hook (elpaca-after-init . global-jinx-mode)
   :bind (("M-$" . jinx-correct)
-         ("C-M-$" . jinx-languages)))
+	 ("C-M-$" . jinx-languages)))
 
 ;; flyspell
 
 (use-package flyspell :ensure nil
+  :disabled
   :hook ((text-mode . flyspell-mode)
 	 ;; (prog-mode . flyspell-prog-mode)
 	 )
@@ -1749,10 +1782,12 @@ using this command."
   )
 
 (use-package flyspell-correct  :ensure t
+  :disabled
   :after flyspell
   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 
 (use-package flyspell-correct-avy-menu :ensure t
+  :disabled
   ;; :disabled
   :after flyspell-correct)
 
@@ -1815,7 +1850,7 @@ using this command."
 
   (add-to-list 'tramp-connection-properties
 	       (list (regexp-quote "/ssh:acer-hxia:")
-                     "remote-shell" "/usr/bin/bash"))
+		     "remote-shell" "/usr/bin/bash"))
 
   ;;; various perf improvements
   (setq remote-file-name-inhibit-locks t
@@ -1918,8 +1953,8 @@ using this command."
   )
 
 (use-package vterm-toggle :ensure t
-  :commands (vterm-toggle vterm-toggle-cd)
   :unless (eq system-type 'windows-nt)
+  :commands (vterm-toggle vterm-toggle-cd)
   :bind (("<f2>" . vterm-toggle) ("C-<f2>" . vterm-toggle-cd))
   :bind (:map vterm-mode-map ("s-n" . vterm-toggle-forward) ("s-p" . vterm-toggle-backward) ))
 
@@ -2058,48 +2093,47 @@ using this command."
 
 (use-package pet :ensure t
   :disabled
-  :config
-  (setq pet-debug t)
-  :hook (elpaca-after-init . (lambda ()  (progn
+  :hook (python-base-mode . (lambda (pet-mode -10))))
+;; :hook (elpaca-after-init . (lambda ()  (progn
 
-					   ;; (add-hook 'python-base-mode-hook
-					   ;;		  (lambda ()
-					   ;;		    (setq-local python-shell-interpreter (pet-executable-find "python")
-					   ;;				python-shell-virtualenv-root (pet-virtualenv-root))
+;;					   ;; (add-hook 'python-base-mode-hook
+;;					   ;;		  (lambda ()
+;;					   ;;		    (setq-local python-shell-interpreter (pet-executable-find "python")
+;;					   ;;				python-shell-virtualenv-root (pet-virtualenv-root))
 
-					   ;;		    (pet-eglot-setup)
-					   ;;		    (eglot-ensure)
+;;					   ;;		    (pet-eglot-setup)
+;;					   ;;		    (eglot-ensure)
 
-					   ;;		    ;; (pet-flycheck-setup)
-					   ;;		    ;; (flycheck-mode)
+;;					   ;;		    ;; (pet-flycheck-setup)
+;;					   ;;		    ;; (flycheck-mode)
 
-					   ;;		    ;; (setq-local lsp-jedi-executable-command
-					   ;;		    ;;		 (pet-executable-find "jedi-language-server"))
+;;					   ;;		    ;; (setq-local lsp-jedi-executable-command
+;;					   ;;		    ;;		 (pet-executable-find "jedi-language-server"))
 
-					   ;;		    ;; (setq-local lsp-pyright-python-executable-cmd python-shell-interpreter
-					   ;;		    ;;		 lsp-pyright-venv-path python-shell-virtualenv-root)
+;;					   ;;		    ;; (setq-local lsp-pyright-python-executable-cmd python-shell-interpreter
+;;					   ;;		    ;;		 lsp-pyright-venv-path python-shell-virtualenv-root)
 
-					   ;;		    ;; (lsp)
+;;					   ;;		    ;; (lsp)
 
-					   ;;		    (setq-local dap-python-executable python-shell-interpreter)
+;;					   ;;		    (setq-local dap-python-executable python-shell-interpreter)
 
-					   ;;		    (setq-local python-pytest-executable (pet-executable-find "pytest"))
+;;					   ;;		    (setq-local python-pytest-executable (pet-executable-find "pytest"))
 
-					   ;;		    (when-let ((ruff-executable (pet-executable-find "ruff")))
-					   ;;		      (setq-local ruff-format-command ruff-executable)
-					   ;;		      (ruff-format-on-save-mode))
+;;					   ;;		    (when-let ((ruff-executable (pet-executable-find "ruff")))
+;;					   ;;		      (setq-local ruff-format-command ruff-executable)
+;;					   ;;		      (ruff-format-on-save-mode))
 
-					   ;;		    (when-let ((black-executable (pet-executable-find "black")))
-					   ;;		      (setq-local python-black-command black-executable)
-					   ;;		      (python-black-on-save-mode))
+;;					   ;;		    (when-let ((black-executable (pet-executable-find "black")))
+;;					   ;;		      (setq-local python-black-command black-executable)
+;;					   ;;		      (python-black-on-save-mode))
 
-					   ;;		    (when-let ((isort-executable (pet-executable-find "isort")))
-					   ;;		      (setq-local python-isort-command isort-executable)
-					   ;;		      (python-isort-on-save-mode))))
-					   (add-hook 'python-base-mode-hook 'pet-mode -10)
+;;					   ;;		    (when-let ((isort-executable (pet-executable-find "isort")))
+;;					   ;;		      (setq-local python-isort-command isort-executable)
+;;					   ;;		      (python-isort-on-save-mode))))
+;;					   (add-hook 'python-base-mode-hook 'pet-mode -10)
 
 
-					   ))))
+;;					   ))))
 
 
 (use-package tomlparse :ensure t)
@@ -2181,10 +2215,10 @@ using this command."
   :hook
   (go-ts-mode . eglot-ensure)
   (go-ts-mode . (lambda ()
-                  (add-hook 'before-save-hook #'eglot-format-buffer t t)
-                  (add-hook 'before-save-hook #'eglot-code-action-organize-imports t t)))
+		  (add-hook 'before-save-hook #'eglot-format-buffer t t)
+		  (add-hook 'before-save-hook #'eglot-code-action-organize-imports t t)))
   :mode (("\\.go\\'" . go-ts-mode)
-         ("/go\\.mod\\'" . go-mod-ts-mode))
+	 ("/go\\.mod\\'" . go-mod-ts-mode))
   :init
   (add-to-list 'treesit-language-source-alist
 	       '(go "https://github.com/tree-sitter/tree-sitter-go"))

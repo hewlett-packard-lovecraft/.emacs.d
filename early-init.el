@@ -18,7 +18,7 @@
 ;; Elpaca
 (setq package-enable-at-startup nil
       use-package-enable-imenu-support t
-      use-package-compute-statistics t
+      ;; use-package-compute-statistics t
       )
 
 ;; Load themes, disable toolbar early to avoid flickering
