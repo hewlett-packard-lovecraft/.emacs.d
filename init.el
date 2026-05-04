@@ -141,7 +141,7 @@ using this command."
 
 ;; load wsl, terminal file unless on Windows
 (setq wsl-t-custom-file (expand-file-name "wsl-t.el" user-emacs-directory))
-;; (add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
+(add-hook 'elpaca-after-init-hook (lambda () (load wsl-t-custom-file 'noerror)))
 
 (setq customs-file (expand-file-name "customs.el" user-emacs-directory))
 ;; (add-hook 'elpaca-after-init-hook (lambda () (load customs-file 'noerror)))
@@ -942,14 +942,18 @@ using this command."
 	  '("latexindent" "--logfile=NUL"))
     )
 
-  (add-to-list 'apheleia-formatters '(sqlfluff "sqlfluff" "format" "--dialect" "snowflake" "-"))
+  (add-to-list 'apheleia-formatters '(sqlfluff "sqlfluff" "format" "--dialect" "postgres" "-"))
   (add-to-list 'apheleia-mode-alist '(sql-mode . sqlfluff))
   )
 
-(use-package sql-indent
-  :ensure t
+(use-package sql-indent :ensure t
   :defer t
   :hook ((sql-mode . sqlind-minor-mode)))
+
+(use-package flymake-sqlfluff :ensure t
+  :custom
+  (flymake-sqlfluff-dialect "postgres")
+  :hook (sql-mode . flymake-sqlfluff-load))
 
 ;; Flymake
 (use-package flymake :ensure nil
@@ -1764,7 +1768,7 @@ using this command."
 
 ;; jinx
 (use-package jinx :ensure t
-  ;; :disabled
+  :disabled
   :hook (elpaca-after-init . global-jinx-mode)
   :bind (("M-$" . jinx-correct)
 	 ("C-M-$" . jinx-languages)))
@@ -1772,7 +1776,7 @@ using this command."
 ;; flyspell
 
 (use-package flyspell :ensure nil
-  :disabled
+  ;; :disabled
   :hook ((text-mode . flyspell-mode)
 	 ;; (prog-mode . flyspell-prog-mode)
 	 )
@@ -1782,7 +1786,7 @@ using this command."
   )
 
 (use-package flyspell-correct  :ensure t
-  :disabled
+  ;; :disabled
   :after flyspell
   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 
